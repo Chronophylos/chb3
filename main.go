@@ -1,42 +1,177 @@
 package main
 
 import (
-	"github.com/gempir/go-twitch-irc/v2"
-	"github.com/rs/zerolog/log"
+	"fmt"
+	"os"
 
-	commands "github.com/chronophylos/chb3/commands"
-	chb3 "github.com/chronophylos/chb3/pkg"
+	"github.com/akamensky/argparse"
+	"github.com/gempir/go-twitch-irc/v2"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 const (
 	secretFile = ".bot_secret"
 )
 
+// Build Infos
+var (
+	Version = "debug"
+)
+
+// Flags
+var (
+	showSecrets *bool
+	debug       *bool
+	logLevel    *string
+)
+
+func SetGlobalLogger(json bool) {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	level := zerolog.InfoLevel
+
+	// Force log level to debug
+	if *debug {
+		*logLevel = "DEBUG"
+	}
+
+	// Get zerolog.Level from string
+	switch *logLevel {
+	case "DEBUG":
+		level = zerolog.DebugLevel
+		break
+	case "INFO":
+		level = zerolog.InfoLevel
+		break
+	case "WARN":
+		level = zerolog.WarnLevel
+		break
+	case "ERROR":
+		level = zerolog.ErrorLevel
+		break
+	case "PANIC":
+		level = zerolog.PanicLevel
+		break
+	}
+
+	// Set Log Level
+	zerolog.SetGlobalLevel(level)
+
+	if !json {
+		// Pretty logging
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	// Add file and line number to log
+	log.Logger = log.With().Caller().Logger()
+}
+
+func init() {
+	// Create new parser
+	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
+
+	debug = parser.Flag("", "debug",
+		&argparse.Options{Help: "Enable debugging. Shorthand for --level=DEBUG"})
+
+	logLevel = parser.Selector("", "level",
+		[]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL", "PANIC"},
+		&argparse.Options{Default: "INFO", Help: "Set Log Level"})
+
+	showSecrets = parser.Flag("", "show-secrets",
+		&argparse.Options{Help: "Show secrets in log (eg. your twitch token)"})
+
+	// Parse Flags
+	err := parser.Parse(os.Args)
+	if err != nil {
+		// Print usage for err
+		fmt.Print(parser.Usage(err))
+	}
+}
+
 func main() {
-	chb3.SetGlobalLogger(true)
+	SetGlobalLogger(false)
 
-	log.Info().Msg("Starting")
+	log.Info().Msgf("Starting CHB3 %s", Version)
 
-	secret := chb3.NewSecret(secretFile)
-	state := chb3.NewState(".bot_state")
+	secret := NewSecret(secretFile)
+	state := NewState(".bot_state")
 
-	analytics, err := chb3.NewAnalytics()
+	analytics, err := NewAnalytics()
 	if err != nil {
 		log.Fatal().Msg("Error creating analytics logger")
 	}
 
+	token := "[REDACTED]"
+	if *showSecrets {
+		token = secret.Twitch.Token
+	}
+
 	log.Info().
 		Str("username", secret.Twitch.Username).
-		Str("token", secret.Twitch.Token).
+		Str("token", token).
 		Msg("Creating new Twitch Client")
 	client := twitch.NewClient(secret.Twitch.Username, secret.Twitch.Token)
 
 	log.Info().Msg("Creating Command Registry")
-	commandRegistry := chb3.NewCommandRegistry(client)
+	commandRegistry := NewCommandRegistry()
 
 	log.Info().Msg("Registering State Commands")
-	commands.InitStateCommands(commandRegistry, state)
 
+	// Commands {{{
+	// State {{{
+	commandRegistry.Register(NewCommandEx(`(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, match [][]string) bool {
+		log := GetLogger(cmdState)
+
+		if !(cmdState.IsMod || cmdState.IsOwner) {
+			return false
+		}
+
+		log.Info().Msg("Leaving Channel")
+
+		client.Say(cmdState.Channel, "ppPoof")
+		client.Depart(cmdState.Channel)
+
+		return true
+	}, true))
+
+	commandRegistry.Register(NewCommand(`(?i)^shut up @?chronophylosbot`, func(cmdState *CommandState, match [][]string) bool {
+		log := GetLogger(cmdState)
+
+		if !(cmdState.IsMod || cmdState.IsOwner) {
+			return false
+		}
+
+		log.Info().Msg("Going to sleep")
+
+		state.SetSleeping(cmdState.Channel, true)
+
+		return true
+	}))
+
+	commandRegistry.Register(NewCommandEx(`(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, match [][]string) bool {
+		log := GetLogger(cmdState)
+
+		if !(cmdState.IsMod || cmdState.IsOwner) {
+			return false
+		}
+
+		log.Info().Msg("Waking up")
+
+		state.SetSleeping(cmdState.Channel, false)
+
+		return true
+	}, true))
+	// }}}
+
+	// Version Command {{{
+	commandRegistry.Register(NewCommand(`(?i)^chronophylosbot\?`, func(cmdState *CommandState, match [][]string) bool {
+		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
+		return true
+	}))
+	// }}}
+	// }}}
+
+	// Twich Client Event Handling {{{
 	client.OnClearChatMessage(func(message twitch.ClearChatMessage) {
 		analytics.Log().
 			Time("sent", message.Time).
@@ -82,7 +217,7 @@ func main() {
 			Interface("tags", message.Tags).
 			Msg("PRIVMSG")
 
-		cmdState := &chb3.CommandState{
+		cmdState := &CommandState{
 			IsSleeping:    state.IsSleeping(message.Channel),
 			IsMod:         false,
 			IsBroadcaster: message.User.Name == message.Channel,
@@ -150,6 +285,7 @@ func main() {
 		analytics.Log().Msg("CONNECTED")
 		log.Info().Msg("Connected to irc.twitch.tv")
 	})
+	// }}}
 
 	log.Info().Msg("Joining Channels")
 	client.Join("chronophylos")
@@ -165,3 +301,5 @@ func main() {
 
 	log.Error().Msg("Twitch Client Terminated")
 }
+
+// vim: set foldmarker={{{,}}} foldmethod=marker:

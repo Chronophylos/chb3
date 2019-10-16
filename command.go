@@ -1,4 +1,4 @@
-package pkg
+package main
 
 import (
 	"regexp"
@@ -11,7 +11,7 @@ import (
 
 // TriggerFunction is a functions called when a command is triggered that provides all required information.
 // The function should return true if the command was successfull and false if not and the next command should be tried
-type TriggerFunction (func(client *twitch.Client, cmdState *CommandState, match [][]string) bool)
+type TriggerFunction func(cmdState *CommandState, match [][]string) bool
 
 // Command holds a function that can be triggered with Command#Trigger and a regex
 type Command struct {
@@ -35,14 +35,14 @@ func NewCommandEx(re string, trigger TriggerFunction, ignoreSleep bool) *Command
 }
 
 // Trigger is used to trigger a commmand
-func (c *Command) Trigger(client *twitch.Client, cmdState *CommandState) bool {
+func (c *Command) Trigger(cmdState *CommandState) bool {
 	if c.IgnoreSleep || !cmdState.IsSleeping {
 		match := c.re.FindAllStringSubmatch(cmdState.Message, -1)
 		if match == nil {
 			return false
 		}
 
-		return c.trigger(client, cmdState, match)
+		return c.trigger(cmdState, match)
 	}
 
 	return false
@@ -65,15 +65,12 @@ type CommandState struct {
 
 // CommandRegistry is used to register commands and trigger all registered commands
 type CommandRegistry struct {
-	client   *twitch.Client
 	commands []*Command
 }
 
 // NewCommandRegistry creates and returns a new CommandRegistry
-func NewCommandRegistry(client *twitch.Client) *CommandRegistry {
-	return &CommandRegistry{
-		client: client,
-	}
+func NewCommandRegistry() *CommandRegistry {
+	return &CommandRegistry{}
 }
 
 // Register registers a command in the registry
@@ -86,7 +83,7 @@ func (r *CommandRegistry) Register(command *Command) {
 // signaling a successfull execution, it returns otherwise tries the command.
 func (r *CommandRegistry) Trigger(cmdState *CommandState) {
 	for _, command := range r.commands {
-		if command.Trigger(r.client, cmdState) {
+		if command.Trigger(cmdState) {
 			break
 		}
 	}

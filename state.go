@@ -1,4 +1,4 @@
-package pkg
+package main
 
 import (
 	"encoding/json"
@@ -42,7 +42,7 @@ func NewState(filename string) *State {
 			Str("filename", filename).
 			Msg("Loaded State")
 
-		return state
+		return &state
 	}
 
 	log.Warn().
@@ -66,11 +66,11 @@ func (s *State) save() {
 			Msg("Could not marshal state to json")
 	}
 
-	err = ioutil.WriteFile(".bot_state", bytes, 0644)
+	err = ioutil.WriteFile(s.filename, bytes, 0644)
 	if err != nil {
 		log.Fatal().
 			Err(err).
-			Str("filename", filename).
+			Str("filename", s.filename).
 			Msg("Could not write state to file")
 	}
 
