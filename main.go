@@ -405,7 +405,9 @@ func setGlobalLogger(json bool) {
 func checkIfBotname(name string) bool {
 	switch name {
 	case "nightbot":
+		fallthroug
 	case "fossabot":
+		fallthroug
 	case "streamelements":
 		return true
 	}
