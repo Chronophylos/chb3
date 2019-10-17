@@ -3,8 +3,11 @@ package main
 import (
 	"crypto/md5"
 	"fmt"
+	"math"
+	"math/rand"
 	"os"
 	"strconv"
+	"strings"
 
 	"github.com/akamensky/argparse"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -169,14 +172,48 @@ func main() {
 		client.Say(cmdState.Channel, "I rate "+key+" "+rating+"/10")
 		return true
 	}))
+	/// weather
 	// }}}
 
 	// Arguably Useful Commands {{{
-
+	commandRegistry.Register(NewCommand(`er dr`, func(cmdState *CommandState, match Match) bool {
+		if cmdState.User.Name == "nightbot" {
+			client.Say(cmdState.Channel, "ückt voll oft zwei tasten LuL")
+			return true
+		}
+		return false
+	}))
+	commandRegistry.Register(NewCommand(`(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, match Match) bool {
+		client.Say(cmdState.Channel, "Hello "+cmdState.User.DisplayName+"👋")
+		return true
+	}))
+	commandRegistry.Register(NewCommand(`^I'm here FeelsGoodMan$`, func(cmdState *CommandState, match Match) bool {
+		if cmdState.User.Name == "stirnbot" {
+			log.Info().Msg("Greeting StrinBot")
+			client.Say(cmdState.Channel, "StirnBot MrDestructoid /")
+			return true
+		}
+		return false
+	}))
+	commandRegistry.Register(NewCommand(`(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, match Match) bool {
+		if cmdState.User.Name == "n0valis" {
+			client.Say(cmdState.Channel, "did you mean me?")
+			return true
+		}
+		return false
+	}))
+	commandRegistry.Register(NewCommand(`(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, match Match) bool {
+		client.Say(cmdState.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
+		return true
+	}))
+	commandRegistry.Register(NewCommand(`(?i)\bkleiwe\b`, func(cmdState *CommandState, match Match) bool {
+		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
+		return true
+	}))
 	// }}}
 
 	// Hardly Useful Commands {{{
-
+	/// reupload
 	// }}}
 	// }}}
 
@@ -367,6 +404,19 @@ func rate(key string) string {
 	p, _ := strconv.ParseInt(hash, 16, 64)
 	q := float32(p%101) / 10
 	return fmt.Sprintf("%.1f", q)
+}
+
+// jumble uses the Fisher-Yates shuffle to shuffle a string in place
+func jumble(name string) string {
+	a := strings.Split(name, "")
+	l := len(a)
+
+	for i := l - 2; i > 1; i-- {
+		j := math.Floor(rand.Float64()*(i+1)) + 1
+		a[i], a[j] = a[j], a[i]
+	}
+
+	return strings.Join(a, "")
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:
