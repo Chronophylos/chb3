@@ -2,9 +2,13 @@ package main
 
 import (
 	"crypto/md5"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"math"
 	"math/rand"
+	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -50,6 +54,7 @@ func init() {
 	if err != nil {
 		// Print usage for err
 		fmt.Print(parser.Usage(err))
+		os.Exit(1)
 	}
 }
 
@@ -66,14 +71,9 @@ func main() {
 		log.Fatal().Msg("Error creating analytics logger")
 	}
 
-	token := "[REDACTED]"
-	if *showSecrets {
-		token = secret.Twitch.Token
-	}
-
 	log.Info().
 		Str("username", secret.Twitch.Username).
-		Str("token", token).
+		Str("token", CencorSecrets(secret.Twitch.Token)).
 		Msg("Creating new Twitch Client")
 	client := twitch.NewClient(secret.Twitch.Username, secret.Twitch.Token)
 
@@ -84,9 +84,7 @@ func main() {
 
 	// Commands {{{
 	// State {{{
-	commandRegistry.Register(NewCommandEx(`(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, match Match) bool {
-		log := GetLogger(cmdState)
-
+	commandRegistry.Register(NewCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -99,9 +97,7 @@ func main() {
 		return true
 	}, true))
 
-	commandRegistry.Register(NewCommand(`(?i)^shut up @?chronophylosbot`, func(cmdState *CommandState, match Match) bool {
-		log := GetLogger(cmdState)
-
+	commandRegistry.Register(NewCommand("go sleep", `(?i)^(shut up|go sleep) @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -113,9 +109,7 @@ func main() {
 		return true
 	}))
 
-	commandRegistry.Register(NewCommandEx(`(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, match Match) bool {
-		log := GetLogger(cmdState)
-
+	commandRegistry.Register(NewCommandEx("wake up", `(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -129,22 +123,14 @@ func main() {
 	// }}}
 
 	// Version Command {{{
-	commandRegistry.Register(NewCommand(`(?i)^chronophylosbot\?`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("version", `(?i)^chronophylosbot\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 		return true
 	}))
 	// }}}
 
-	// Merlins Commands aka Spell Checker {{{
-	commandRegistry.Register(NewCommand(`.*`, func(cmdState *CommandState, match Match) bool {
-		// TODO: Implement
-		return false
-	}))
-	// }}}
-
 	// Useful Commands {{{
-	commandRegistry.Register(NewCommand(`^!vanish`, func(cmdState *CommandState, match Match) bool {
-		log := GetLogger(cmdState)
+	commandRegistry.Register(NewCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.IsMod {
 			log.Info().
 				Msgf("Telling %s how to use !vanish", cmdState.User.Name)
@@ -154,7 +140,7 @@ func main() {
 		return false
 	}))
 
-	commandRegistry.Register(NewCommand(`^\^`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("^", `^\^`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !cmdState.IsBot {
 			client.Say(cmdState.Channel, "^")
 			return true
@@ -162,8 +148,7 @@ func main() {
 		return false
 	}))
 
-	commandRegistry.Register(NewCommand(`(?i)^rate (.*) pls$`, func(cmdState *CommandState, match Match) bool {
-		log := GetLogger(cmdState)
+	commandRegistry.Register(NewCommand("rate", `(?i)^rate (.*) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		key := match[0][1]
 		rating := rate(key)
 		log.Info().
@@ -177,18 +162,18 @@ func main() {
 	// }}}
 
 	// Arguably Useful Commands {{{
-	commandRegistry.Register(NewCommand(`er dr`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("er dr", `er dr`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "nightbot" {
 			client.Say(cmdState.Channel, "ückt voll oft zwei tasten LuL")
 			return true
 		}
 		return false
 	}))
-	commandRegistry.Register(NewCommand(`(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("hello user", `(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, "Hello "+cmdState.User.DisplayName+"👋")
 		return true
 	}))
-	commandRegistry.Register(NewCommand(`^I'm here FeelsGoodMan$`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("hello stirnbot", `^I'm here FeelsGoodMan$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "stirnbot" {
 			log.Info().Msg("Greeting StrinBot")
 			client.Say(cmdState.Channel, "StirnBot MrDestructoid /")
@@ -196,26 +181,48 @@ func main() {
 		}
 		return false
 	}))
-	commandRegistry.Register(NewCommand(`(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("***REMOVED*** and wsd", `(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "n0valis" {
 			client.Say(cmdState.Channel, "did you mean me?")
 			return true
 		}
 		return false
 	}))
-	commandRegistry.Register(NewCommand(`(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("the age of marc", `(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
 		return true
 	}))
-	commandRegistry.Register(NewCommand(`(?i)\bkleiwe\b`, func(cmdState *CommandState, match Match) bool {
+	commandRegistry.Register(NewCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
 		return true
 	}))
 	// }}}
 
 	// Hardly Useful Commands {{{
-	/// reupload
+	commandRegistry.Register(NewCommand("reupload", `((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		link := match[0][1]
+
+		// Fix links
+		if !strings.HasPrefix("https://", link) {
+			if !strings.HasPrefix("http://", link) {
+				link = strings.TrimPrefix(link, "http://")
+			}
+			link = "https://" + link
+		}
+
+		log.Info().
+			Str("link", link).
+			Msg("Reuploading a link to imgur")
+
+		newURL := reupload(link, secret.Imgur.ClientID)
+		if newURL != "" {
+			client.Say(cmdState.Channel, "Did you mean "+newURL+" ?")
+			return true
+		}
+		return false
+	}))
 	// }}}
+
 	// }}}
 
 	// Twich Client Event Handling {{{
@@ -263,6 +270,11 @@ func main() {
 			Str("msg", message.Message).
 			Interface("tags", message.Tags).
 			Msg("PRIVMSG")
+
+		// Don't listen to messages sent by the bot
+		if message.User.Name == secret.Twitch.Username {
+			return
+		}
 
 		cmdState := &CommandState{
 			IsSleeping:    state.IsSleeping(message.Channel),
@@ -418,6 +430,88 @@ func jumble(name string) string {
 	}
 
 	return strings.Join(a, "")
+}
+
+type imgurBody struct {
+	Data    imgurBodyData `json:"data"`
+	Success bool          `json:"success"`
+}
+
+type imgurBodyData struct {
+	Link  string `json:"link"`
+	Error string `json:"error"`
+}
+
+func reupload(link, clientID string) string {
+	client := &http.Client{}
+
+	form := url.Values{}
+	form.Add("image", link)
+
+	req, err := http.NewRequest("POST", "https://api.imgur.com/3/upload", strings.NewReader(form.Encode()))
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("link", link).
+			Msg("Error creating POST request for https://api.imgur.com/3/upload")
+		return ""
+	}
+
+	req.Header.Add("Authorization", "Client-ID "+clientID)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	log.Debug().
+		Str("link", link).
+		Str("client-id", CencorSecrets(clientID)).
+		Msg("Posting url to imgur")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("link", link).
+			Str("client-id", clientID).
+			Msg("Error posting url to imgur")
+		return ""
+	}
+
+	bytes, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("link", link).
+			Msg("Error reading bytes from request body")
+		return ""
+	}
+
+	log.Debug().
+		Str("body", string(bytes[:])).
+		Msg("Read bytes from body")
+
+	var body imgurBody
+	err = json.Unmarshal(bytes, &body)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("link", link).
+			Msg("Error unmarshalling response from imgur")
+		return ""
+	}
+
+	log.Debug().
+		Bool("success", body.Success).
+		Str("old-link", link).
+		Str("new-link", body.Data.Link).
+		Msg("Got an answer from imgur")
+
+	if !body.Success {
+		log.Error().
+			Str("error", body.Data.Error).
+			Msg("Imgur API returned an error")
+		return ""
+	}
+
+	return body.Data.Link
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 
+	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
 
@@ -18,7 +19,7 @@ type TwitchSecret struct {
 }
 
 type ImgurSecret struct {
-	ClientID string `json:"clientid"`
+	ClientID string `json:"id"`
 }
 
 func NewSecret(filename string) Secret {
@@ -40,9 +41,23 @@ func NewSecret(filename string) Secret {
 			Msg("Error unmarshalling secret")
 	}
 
-	log.Info().
-		Str("filename", filename).
-		Msg("Secrets Loaded")
+	if log.Logger.GetLevel() > zerolog.DebugLevel && *showSecrets {
+		log.Debug().
+			Str("filename", filename).
+			Interface("secrets", secret).
+			Msg("Secrets Loaded")
+	} else {
+		log.Info().
+			Str("filename", filename).
+			Msg("Secrets Loaded")
+	}
 
 	return secret
+}
+
+func CencorSecrets(secret string) string {
+	if *showSecrets {
+		return secret
+	}
+	return "[REDACTED]"
 }

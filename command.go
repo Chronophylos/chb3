@@ -13,25 +13,27 @@ type Match [][]string
 
 // TriggerFunction is a functions called when a command is triggered that provides all required information.
 // The function should return true if the command was successfull and false if not and the next command should be tried
-type TriggerFunction func(cmdState *CommandState, match Match) bool
+type TriggerFunction func(cmdState *CommandState, log zerolog.Logger, match Match) bool
 
 // Command holds a function that can be triggered with Command#Trigger and a regex
 type Command struct {
+	Name        string
 	re          *regexp.Regexp
 	trigger     TriggerFunction
 	IgnoreSleep bool
 }
 
 // NewCommand creates a new command from a regex string and a TriggerFunction returning the new command
-func NewCommand(re string, trigger TriggerFunction) *Command {
+func NewCommand(name, re string, trigger TriggerFunction) *Command {
 	return &Command{
+		Name:    name,
 		re:      regexp.MustCompile(re),
 		trigger: trigger,
 	}
 }
 
-func NewCommandEx(re string, trigger TriggerFunction, ignoreSleep bool) *Command {
-	cmd := NewCommand(re, trigger)
+func NewCommandEx(name, re string, trigger TriggerFunction, ignoreSleep bool) *Command {
+	cmd := NewCommand(name, re, trigger)
 	cmd.IgnoreSleep = ignoreSleep
 	return cmd
 }
@@ -44,7 +46,14 @@ func (c *Command) Trigger(cmdState *CommandState) bool {
 			return false
 		}
 
-		return c.trigger(cmdState, match)
+		log := c.getLogger(cmdState)
+
+		log.Debug().
+			Interface("match", match).
+			Str("command", c.Name).
+			Msg("Found matching command")
+
+		return c.trigger(cmdState, log, match)
 	}
 
 	return false
@@ -92,10 +101,11 @@ func (r *CommandRegistry) Trigger(cmdState *CommandState) {
 	}
 }
 
-func GetLogger(cmdState *CommandState) zerolog.Logger {
+func (c *Command) getLogger(cmdState *CommandState) zerolog.Logger {
 	return log.With().
+		Str("command", c.Name).
 		Str("channel", cmdState.Channel).
 		Str("username", cmdState.User.Name).
-		Str("message", cmdState.Message).
+		Str("msg", cmdState.Message).
 		Logger()
 }
