@@ -144,8 +144,9 @@ func main() {
 
 	// Useful Commands {{{
 	commandRegistry.Register(NewCommand(`^!vanish`, func(cmdState *CommandState, match Match) bool {
+		log := GetLogger(cmdState)
 		if cmdState.IsMod {
-			GetLogger(cmdState).Info().
+			log.Info().
 				Msgf("Telling %s how to use !vanish", cmdState.User.Name)
 			client.Say(cmdState.Channel, "Try /unmod"+cmdState.User.Name+" first weSmart")
 			return true
@@ -412,7 +413,7 @@ func jumble(name string) string {
 	l := len(a)
 
 	for i := l - 2; i > 1; i-- {
-		j := math.Floor(rand.Float64()*(i+1)) + 1
+		j := int32(math.Floor(rand.Float64()*float64(i+1)) + 1)
 		a[i], a[j] = a[j], a[i]
 	}
 
