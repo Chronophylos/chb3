@@ -9,9 +9,11 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+type Match [][]string
+
 // TriggerFunction is a functions called when a command is triggered that provides all required information.
 // The function should return true if the command was successfull and false if not and the next command should be tried
-type TriggerFunction func(cmdState *CommandState, match [][]string) bool
+type TriggerFunction func(cmdState *CommandState, match Match) bool
 
 // Command holds a function that can be triggered with Command#Trigger and a regex
 type Command struct {
@@ -54,6 +56,7 @@ type CommandState struct {
 	IsMod         bool
 	IsBroadcaster bool
 	IsOwner       bool
+	IsBot         bool
 
 	Channel string
 	Message string

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto/md5"
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/akamensky/argparse"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -25,46 +27,6 @@ var (
 	debug       *bool
 	logLevel    *string
 )
-
-func SetGlobalLogger(json bool) {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
-	level := zerolog.InfoLevel
-
-	// Force log level to debug
-	if *debug {
-		*logLevel = "DEBUG"
-	}
-
-	// Get zerolog.Level from string
-	switch *logLevel {
-	case "DEBUG":
-		level = zerolog.DebugLevel
-		break
-	case "INFO":
-		level = zerolog.InfoLevel
-		break
-	case "WARN":
-		level = zerolog.WarnLevel
-		break
-	case "ERROR":
-		level = zerolog.ErrorLevel
-		break
-	case "PANIC":
-		level = zerolog.PanicLevel
-		break
-	}
-
-	// Set Log Level
-	zerolog.SetGlobalLevel(level)
-
-	if !json {
-		// Pretty logging
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
-	}
-
-	// Add file and line number to log
-	log.Logger = log.With().Caller().Logger()
-}
 
 func init() {
 	// Create new parser
@@ -89,7 +51,7 @@ func init() {
 }
 
 func main() {
-	SetGlobalLogger(false)
+	setGlobalLogger(false)
 
 	log.Info().Msgf("Starting CHB3 %s", Version)
 
@@ -119,7 +81,7 @@ func main() {
 
 	// Commands {{{
 	// State {{{
-	commandRegistry.Register(NewCommandEx(`(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, match [][]string) bool {
+	commandRegistry.Register(NewCommandEx(`(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, match Match) bool {
 		log := GetLogger(cmdState)
 
 		if !(cmdState.IsMod || cmdState.IsOwner) {
@@ -134,7 +96,7 @@ func main() {
 		return true
 	}, true))
 
-	commandRegistry.Register(NewCommand(`(?i)^shut up @?chronophylosbot`, func(cmdState *CommandState, match [][]string) bool {
+	commandRegistry.Register(NewCommand(`(?i)^shut up @?chronophylosbot`, func(cmdState *CommandState, match Match) bool {
 		log := GetLogger(cmdState)
 
 		if !(cmdState.IsMod || cmdState.IsOwner) {
@@ -148,7 +110,7 @@ func main() {
 		return true
 	}))
 
-	commandRegistry.Register(NewCommandEx(`(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, match [][]string) bool {
+	commandRegistry.Register(NewCommandEx(`(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, match Match) bool {
 		log := GetLogger(cmdState)
 
 		if !(cmdState.IsMod || cmdState.IsOwner) {
@@ -164,10 +126,57 @@ func main() {
 	// }}}
 
 	// Version Command {{{
-	commandRegistry.Register(NewCommand(`(?i)^chronophylosbot\?`, func(cmdState *CommandState, match [][]string) bool {
+	commandRegistry.Register(NewCommand(`(?i)^chronophylosbot\?`, func(cmdState *CommandState, match Match) bool {
 		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 		return true
 	}))
+	// }}}
+
+	// Merlins Commands aka Spell Checker {{{
+	commandRegistry.Register(NewCommand(`.*`, func(cmdState *CommandState, match Match) bool {
+		// TODO: Implement
+		return false
+	}))
+	// }}}
+
+	// Useful Commands {{{
+	commandRegistry.Register(NewCommand(`^!vanish`, func(cmdState *CommandState, match Match) bool {
+		if cmdState.IsMod {
+			GetLogger(cmdState).Info().
+				Msgf("Telling %s how to use !vanish", cmdState.User.Name)
+			client.Say(cmdState.Channel, "Try /unmod"+cmdState.User.Name+" first weSmart")
+			return true
+		}
+		return false
+	}))
+
+	commandRegistry.Register(NewCommand(`^\^`, func(cmdState *CommandState, match Match) bool {
+		if !cmdState.IsBot {
+			client.Say(cmdState.Channel, "^")
+			return true
+		}
+		return false
+	}))
+
+	commandRegistry.Register(NewCommand(`(?i)^rate (.*) pls$`, func(cmdState *CommandState, match Match) bool {
+		log := GetLogger(cmdState)
+		key := match[0][1]
+		rating := rate(key)
+		log.Info().
+			Str("key", key).
+			Str("rating", rating).
+			Msg("Rating something")
+		client.Say(cmdState.Channel, "I rate "+key+" "+rating+"/10")
+		return true
+	}))
+	// }}}
+
+	// Arguably Useful Commands {{{
+
+	// }}}
+
+	// Hardly Useful Commands {{{
+
 	// }}}
 	// }}}
 
@@ -222,6 +231,7 @@ func main() {
 			IsMod:         false,
 			IsBroadcaster: message.User.Name == message.Channel,
 			IsOwner:       message.User.ID == "54946241",
+			IsBot:         checkIfBotname(message.User.Name),
 
 			Channel: message.Channel,
 			Message: message.Message,
@@ -300,6 +310,63 @@ func main() {
 	}
 
 	log.Error().Msg("Twitch Client Terminated")
+}
+
+func setGlobalLogger(json bool) {
+	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	level := zerolog.InfoLevel
+
+	// Force log level to debug
+	if *debug {
+		*logLevel = "DEBUG"
+	}
+
+	// Get zerolog.Level from string
+	switch *logLevel {
+	case "DEBUG":
+		level = zerolog.DebugLevel
+		break
+	case "INFO":
+		level = zerolog.InfoLevel
+		break
+	case "WARN":
+		level = zerolog.WarnLevel
+		break
+	case "ERROR":
+		level = zerolog.ErrorLevel
+		break
+	case "PANIC":
+		level = zerolog.PanicLevel
+		break
+	}
+
+	// Set Log Level
+	zerolog.SetGlobalLevel(level)
+
+	if !json {
+		// Pretty logging
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	// Add file and line number to log
+	log.Logger = log.With().Caller().Logger()
+}
+
+func checkIfBotname(name string) bool {
+	switch name {
+	case "nightbot":
+	case "fossabot":
+	case "streamelements":
+		return true
+	}
+	return false
+}
+
+func rate(key string) string {
+	hash := fmt.Sprintf("%x", md5.Sum([]byte(key)))
+	p, _ := strconv.ParseInt(hash, 16, 64)
+	q := float32(p%101) / 10
+	return fmt.Sprintf("%.1f", q)
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:
