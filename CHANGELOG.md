@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+* Bot detection
+
 ## [3.0.0]
 
 Working but some features from v1 and v2 are missing:
