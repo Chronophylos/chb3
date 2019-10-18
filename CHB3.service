@@ -1,0 +1,8 @@
+[Unit]
+Description=ChronophylosBot Version 3
+
+[Service]
+ExecStart=/usr/bin/chb3
+
+[Install]
+WantedBy=multi-user.target
