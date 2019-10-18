@@ -110,14 +110,24 @@ func main() {
 	// }}}
 
 	// Admin Commands {{{
-	commandRegistry.Register(NewCommand("join", `(?i)^@?chronophylosbot join my channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	commandRegistry.Register(NewCommand("join", `(?i)^join (my channel|\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		joinChannel := match[0][1]
+
 		if cmdState.Channel == secret.Twitch.Username {
-			if state.HasChannel(cmdState.Channel) {
-				client.Say(cmdState.Channel, "I'm already in your channel.")
-			} else {
-				client.Join(cmdState.User.Name)
-				state.AddChannel(cmdState.User.Name)
-				client.Say(cmdState.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` and I'll leave again.")
+			if joinChannel == "my channel" {
+				if state.HasChannel(cmdState.User.Name) {
+					client.Say(cmdState.Channel, "I'm already in your channel.")
+				} else {
+					join(client, state, log, cmdState.User.Name)
+					client.Say(cmdState.Channel, "I joined your channel. Type `leave "+cmdState.User.Name+" pls` in this channel and I'll leave again.")
+				}
+			} else if cmdState.IsOwner {
+				if state.HasChannel(joinChannel) {
+					client.Say(cmdState.Channel, "I'm already in that channel.")
+				} else {
+					join(client, state, log, joinChannel)
+					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
+				}
 			}
 			return true
 		}
@@ -129,13 +139,23 @@ func main() {
 			return false
 		}
 
-		log.Info().Msg("Leaving Channel")
-
 		client.Say(cmdState.Channel, "ppPoof")
-		client.Depart(cmdState.Channel)
+		part(client, state, log, cmdState.Channel)
 
 		return true
 	}, true))
+
+	commandRegistry.Register(NewCommand("leave", `(?i)^leave (\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		partChannel := match[0][1]
+		if cmdState.Channel == secret.Twitch.Username {
+			part(client, state, log, partChannel)
+			client.Say(cmdState.Channel, "I left "+partChannel+".")
+
+			return true
+		}
+
+		return false
+	}))
 	// }}}
 
 	// Version Command {{{
@@ -364,9 +384,9 @@ func main() {
 	// }}}
 
 	log.Info().Msg("Joining Channels")
-	// Make sure the bot is always in #chronophylos
-	client.Join("chronophylos")
-	state.AddChannel("chronophylos")
+	// Make sure the bot is always in #chronophylosbot
+	client.Join("chronophylosbot")
+	state.AddChannel("chronophylosbot")
 	client.Join(state.GetChannels()...)
 
 	log.Info().Msg("Connecting to irc.twitch.tv")
@@ -378,6 +398,18 @@ func main() {
 	}
 
 	log.Error().Msg("Twitch Client Terminated")
+}
+
+func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
+	client.Join(channel)
+	state.AddChannel(channel)
+	log.Info().Str("channel", channel).Msg("Joined new channel")
+}
+
+func part(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
+	client.Depart(channel)
+	state.RemoveChannel(channel)
+	log.Info().Str("channel", channel).Msg("Parted from channel")
 }
 
 func setGlobalLogger(json bool) {
@@ -423,9 +455,9 @@ func setGlobalLogger(json bool) {
 func checkIfBotname(name string) bool {
 	switch name {
 	case "nightbot":
-		fallthroug
+		fallthrough
 	case "fossabot":
-		fallthroug
+		fallthrough
 	case "streamelements":
 		return true
 	}

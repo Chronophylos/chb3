@@ -10,7 +10,7 @@ import (
 )
 
 type State struct {
-	Channels map[string]*channelState `json:"channels"`
+	channels map[string]*channelState
 	filename string
 }
 
@@ -21,9 +21,7 @@ type channelState struct {
 func NewState(filename string) *State {
 	var channels map[string]*channelState
 
-	if _, err := os.Stat(filename); os.IsExist(err) {
-		var state State
-
+	if _, err := os.Stat(filename); !os.IsNotExist(err) {
 		bytes, err := ioutil.ReadFile(filename)
 		if err != nil {
 			log.Fatal().
@@ -31,7 +29,7 @@ func NewState(filename string) *State {
 				Msg("Could not read state file")
 		}
 
-		err = json.Unmarshal(bytes, &state)
+		err = json.Unmarshal(bytes, &channels)
 		if err != nil {
 			log.Fatal().
 				Err(err).
@@ -43,7 +41,10 @@ func NewState(filename string) *State {
 			Str("filename", filename).
 			Msg("Loaded State")
 
-		return &state
+		return &State{
+			channels: channels,
+			filename: filename,
+		}
 	}
 
 	log.Warn().
@@ -53,14 +54,14 @@ func NewState(filename string) *State {
 	channels = make(map[string]*channelState)
 
 	return &State{
-		Channels: channels,
+		channels: channels,
 		filename: filename,
 	}
 
 }
 
 func (s *State) save() {
-	bytes, err := json.Marshal(s)
+	bytes, err := json.Marshal(s.channels)
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -79,17 +80,17 @@ func (s *State) save() {
 		Msg("Saved state to disk")
 }
 func (s *State) IsSleeping(channel string) bool {
-	if cState, ok := s.Channels[channel]; ok {
+	if cState, ok := s.channels[channel]; ok {
 		return cState.Sleeping
 	}
 	return false
 }
 
 func (s *State) SetSleeping(channel string, sleeping bool) {
-	if cState, ok := s.Channels[channel]; ok {
+	if cState, ok := s.channels[channel]; ok {
 		cState.Sleeping = sleeping
 	} else {
-		s.Channels[channel] = &channelState{Sleeping: sleeping}
+		s.channels[channel] = &channelState{Sleeping: sleeping}
 	}
 
 	log.Debug().
@@ -101,9 +102,9 @@ func (s *State) SetSleeping(channel string, sleeping bool) {
 }
 
 func (s *State) GetChannels() []string {
-	channels := make([]string, 0, len(s.Channels))
+	channels := make([]string, 0, len(s.channels))
 
-	for k := range s.Channels {
+	for k := range s.channels {
 		channels = append(channels, k)
 	}
 
@@ -111,20 +112,28 @@ func (s *State) GetChannels() []string {
 }
 
 func (s *State) AddChannel(channel string) error {
-	if _, ok := s.Channels[channel]; ok {
+	if s.HasChannel(channel) {
 		return fmt.Errorf("Channel %s already exists", channel)
 	}
-	s.Channels[channel] = &channelState{}
+
+	s.channels[channel] = &channelState{}
+	s.save()
+
+	return nil
 }
 
 func (s *State) RemoveChannel(channel string) error {
-	if _, ok := s.Channels[channel]; !ok {
+	if !s.HasChannel(channel) {
 		return fmt.Errorf("Channel %s doesn't exists", channel)
 	}
-	delete(s.Channels, channel)
+
+	delete(s.channels, channel)
+	s.save()
+
+	return nil
 }
 
 func (s *State) HasChannel(channel string) bool {
-	_, ok := s.Channels[channel]
-	return ok
+	_, present := s.channels[channel]
+	return present
 }
