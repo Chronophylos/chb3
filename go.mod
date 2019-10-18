@@ -8,4 +8,5 @@ require (
 	github.com/gempir/go-twitch-irc/v2 v2.2.0
 	github.com/rs/zerolog v1.15.0
 	github.com/spf13/pflag v1.0.5
+	github.com/spf13/viper v1.4.0
 )
