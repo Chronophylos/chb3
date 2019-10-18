@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* filenames in the log will only show up when using --debug
+* timestamp in the log shows date and time to milliseconds
+* config file structure
+
 ## [3.0.1]
 
 ### Fixed
