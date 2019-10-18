@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 
@@ -107,4 +108,23 @@ func (s *State) GetChannels() []string {
 	}
 
 	return channels
+}
+
+func (s *State) AddChannel(channel string) error {
+	if _, ok := s.Channels[channel]; ok {
+		return fmt.Errorf("Channel %s already exists", channel)
+	}
+	s.Channels[channel] = &channelState{}
+}
+
+func (s *State) RemoveChannel(channel string) error {
+	if _, ok := s.Channels[channel]; !ok {
+		return fmt.Errorf("Channel %s doesn't exists", channel)
+	}
+	delete(s.Channels, channel)
+}
+
+func (s *State) HasChannel(channel string) bool {
+	_, ok := s.Channels[channel]
+	return ok
 }
