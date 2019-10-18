@@ -119,14 +119,14 @@ func main() {
 					client.Say(cmdState.Channel, "I'm already in your channel.")
 				} else {
 					join(client, state, log, cmdState.User.Name)
-					client.Say(cmdState.Channel, "I joined your channel. Type `leave "+cmdState.User.Name+" pls` in this channel and I'll leave again.")
+					client.Say(cmdState.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
 				}
 			} else if cmdState.IsOwner {
 				if state.HasChannel(joinChannel) {
 					client.Say(cmdState.Channel, "I'm already in that channel.")
 				} else {
 					join(client, state, log, joinChannel)
-					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
+					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `leave "+cmdState.User.Name+" pls` in this channel and I'll leave again.")
 				}
 			}
 			return true
