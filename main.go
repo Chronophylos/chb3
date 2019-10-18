@@ -12,20 +12,24 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/akamensky/argparse"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 )
 
 const (
-	secretFile = ".bot_secret"
+	secretFile     = ".bot_secret"
+	stateFile      = ".bot_state"
+	chronophylosID = "54946241"
 )
 
 // Build Infos
 var (
-	Version = "debug"
+	Version = "local"
 )
 
 // Flags
@@ -35,7 +39,16 @@ var (
 	logLevel    *string
 )
 
+// Config
+var (
+	twitchUsername string
+	twitchToken    string
+
+	imgurClientID string
+)
+
 func init() {
+	// Commandline Flags {{{
 	// Create new parser
 	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
 
@@ -56,26 +69,67 @@ func init() {
 		fmt.Print(parser.Usage(err))
 		os.Exit(1)
 	}
+	// }}}
+
+	// Setup logger
+	setGlobalLogger(false)
+
+	// Viper {{{
+	viper.SetConfigType("toml") // toml is nice
+	viper.SetConfigName("config")
+	viper.AddConfigPath("/etc/chb3") // config location
+	viper.AddConfigPath(".")         // also look in the working directory
+
+	// Not sure what to use this for yet.
+	viper.SetEnvPrefix("CHB3")
+
+	err = viper.ReadInConfig()
+	if err != nil {
+		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
+			// Config file not found
+			log.Fatal().
+				Err(err).
+				Msg("Error config not found.")
+		}
+		log.Fatal().
+			Err(err).
+			Msg("Error reading config.")
+	}
+	// }}}
+
+	// Required Settings {{{
+	if !viper.IsSet("twitch.username") {
+		log.Fatal().Msg("Twitch Username is not set.")
+	}
+	twitchUsername = viper.GetString("twitch.username")
+
+	if !viper.IsSet("twitch.token") {
+		log.Fatal().Msg("Twitch Token is not set.")
+	}
+	twitchToken = viper.GetString("twitch.token")
+
+	if !viper.IsSet("imgur.clientid") {
+		log.Fatal().Msg("Imgur ClientID is not set.")
+	}
+	imgurClientID = viper.GetString("imgur.clientid")
+	// }}}
 }
 
 func main() {
-	setGlobalLogger(false)
-
 	log.Info().Msgf("Starting CHB3 %s", Version)
 
-	secret := NewSecret(secretFile)
-	state := NewState(".bot_state")
+	state := NewState(stateFile)
 
 	analytics, err := NewAnalytics()
 	if err != nil {
-		log.Fatal().Msg("Error creating analytics logger")
+		log.Fatal().Msg("Error creating analytics logger.")
 	}
 
 	log.Info().
-		Str("username", secret.Twitch.Username).
-		Str("token", CencorSecrets(secret.Twitch.Token)).
-		Msg("Creating new Twitch Client")
-	client := twitch.NewClient(secret.Twitch.Username, secret.Twitch.Token)
+		Str("username", twitchUsername).
+		Str("token", CencorSecrets(twitchToken)).
+		Msg("Creating new Twitch Client.")
+	client := twitch.NewClient(twitchUsername, twitchToken)
 
 	log.Info().Msg("Creating Command Registry")
 	commandRegistry := NewCommandRegistry()
@@ -113,7 +167,7 @@ func main() {
 	commandRegistry.Register(NewCommand("join", `(?i)^join (my channel|\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		joinChannel := match[0][1]
 
-		if cmdState.Channel == secret.Twitch.Username {
+		if cmdState.Channel == twitchUsername {
 			if joinChannel == "my channel" {
 				if state.HasChannel(cmdState.User.Name) {
 					client.Say(cmdState.Channel, "I'm already in your channel.")
@@ -147,7 +201,7 @@ func main() {
 
 	commandRegistry.Register(NewCommand("leave", `(?i)^leave (\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		partChannel := match[0][1]
-		if cmdState.Channel == secret.Twitch.Username {
+		if cmdState.Channel == twitchUsername {
 			part(client, state, log, partChannel)
 			client.Say(cmdState.Channel, "I left "+partChannel+".")
 
@@ -255,7 +309,7 @@ func main() {
 			Str("link", link).
 			Msg("Reuploading a link to imgur")
 
-		newURL := reupload(link, secret.Imgur.ClientID)
+		newURL := reupload(link)
 		if newURL != "" {
 			client.Say(cmdState.Channel, "Did you mean "+newURL+" ?")
 			return true
@@ -313,7 +367,7 @@ func main() {
 			Msg("PRIVMSG")
 
 		// Don't listen to messages sent by the bot
-		if message.User.Name == secret.Twitch.Username {
+		if message.User.Name == twitchUsername {
 			return
 		}
 
@@ -321,7 +375,7 @@ func main() {
 			IsSleeping:    state.IsSleeping(message.Channel),
 			IsMod:         false,
 			IsBroadcaster: message.User.Name == message.Channel,
-			IsOwner:       message.User.ID == "54946241",
+			IsOwner:       message.User.ID == chronophylosID,
 			IsBot:         checkIfBotname(message.User.Name),
 
 			Channel: message.Channel,
@@ -389,9 +443,9 @@ func main() {
 	// }}}
 
 	log.Info().Msg("Joining Channels")
-	// Make sure the bot is always in #chronophylosbot
-	client.Join("chronophylosbot")
-	state.AddChannel("chronophylosbot")
+	// Make sure the bot is always in it's own channel
+	client.Join(twitchUsername)
+	state.AddChannel(twitchUsername)
 	client.Join(state.GetChannels()...)
 
 	log.Info().Msg("Connecting to irc.twitch.tv")
@@ -418,15 +472,17 @@ func part(client *twitch.Client, state *State, log zerolog.Logger, channel strin
 }
 
 func setGlobalLogger(json bool) {
-	zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	zerolog.TimeFieldFormat = time.StampMilli
 	level := zerolog.InfoLevel
 
-	// Force log level to debug
 	if *debug {
+		// Force log level to debug
 		*logLevel = "DEBUG"
+		// Add file and line number to log
+		log.Logger = log.With().Caller().Logger()
 	}
 
-	// Get zerolog.Level from string
+	// Get zerolog.Level from stringimgurClientID
 	switch *logLevel {
 	case "DEBUG":
 		level = zerolog.DebugLevel
@@ -450,11 +506,9 @@ func setGlobalLogger(json bool) {
 
 	if !json {
 		// Pretty logging
-		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
+		log.Logger = log.Output(output)
 	}
-
-	// Add file and line number to log
-	log.Logger = log.With().Caller().Logger()
 }
 
 func checkIfBotname(name string) bool {
@@ -499,7 +553,7 @@ type imgurBodyData struct {
 	Error string `json:"error"`
 }
 
-func reupload(link, clientID string) string {
+func reupload(link string) string {
 	client := &http.Client{}
 
 	form := url.Values{}
@@ -514,12 +568,12 @@ func reupload(link, clientID string) string {
 		return ""
 	}
 
-	req.Header.Add("Authorization", "Client-ID "+clientID)
+	req.Header.Add("Authorization", "Client-ID "+imgurClientID)
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	log.Debug().
 		Str("link", link).
-		Str("client-id", CencorSecrets(clientID)).
+		Str("client-id", CencorSecrets(imgurClientID)).
 		Msg("Posting url to imgur")
 
 	resp, err := client.Do(req)
@@ -527,7 +581,7 @@ func reupload(link, clientID string) string {
 		log.Error().
 			Err(err).
 			Str("link", link).
-			Str("client-id", clientID).
+			Str("client-id", CencorSecrets(imgurClientID)).
 			Msg("Error posting url to imgur")
 		return ""
 	}
