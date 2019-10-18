@@ -161,6 +161,7 @@ func main() {
 	// Version Command {{{
 	commandRegistry.Register(NewCommand("version", `(?i)^chronophylosbot\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
+		log.Info().Msg("Sending Version")
 		return true
 	}))
 	// }}}
@@ -168,8 +169,7 @@ func main() {
 	// Useful Commands {{{
 	commandRegistry.Register(NewCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.IsMod {
-			log.Info().
-				Msgf("Telling %s how to use !vanish", cmdState.User.Name)
+			log.Info().Msgf("Telling %s how to use !vanish", cmdState.User.Name)
 			client.Say(cmdState.Channel, "Try /unmod"+cmdState.User.Name+" first weSmart")
 			return true
 		}
@@ -200,18 +200,20 @@ func main() {
 	// Arguably Useful Commands {{{
 	commandRegistry.Register(NewCommand("er dr", `er dr`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "nightbot" {
+			log.Info().Msg("Robert pressed two keys.")
 			client.Say(cmdState.Channel, "ückt voll oft zwei tasten LuL")
 			return true
 		}
 		return false
 	}))
 	commandRegistry.Register(NewCommand("hello user", `(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		log.Info().Msgf("Greeting %s.", cmdState.User.DisplayName)
 		client.Say(cmdState.Channel, "Hello "+cmdState.User.DisplayName+"👋")
 		return true
 	}))
 	commandRegistry.Register(NewCommand("hello stirnbot", `^I'm here FeelsGoodMan$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "stirnbot" {
-			log.Info().Msg("Greeting StrinBot")
+			log.Info().Msg("Greeting StirnBot.")
 			client.Say(cmdState.Channel, "StirnBot MrDestructoid /")
 			return true
 		}
@@ -219,16 +221,19 @@ func main() {
 	}))
 	commandRegistry.Register(NewCommand("***REMOVED*** and wsd", `(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "n0valis" {
+			log.Info().Msg("Confusing ***REMOVED***.")
 			client.Say(cmdState.Channel, "did you mean me?")
 			return true
 		}
 		return false
 	}))
 	commandRegistry.Register(NewCommand("the age of marc", `(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		log.Info().Msg("Gratulating marc for his birthday.")
 		client.Say(cmdState.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
 		return true
 	}))
 	commandRegistry.Register(NewCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		log.Info().Msg("Missspelling %s.", cmdState.User.DisplayName)
 		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
 		return true
 	}))
