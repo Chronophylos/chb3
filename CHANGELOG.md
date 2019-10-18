@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 * join and leave commands
+* owner only join and leave commands
 
 ## [3.0.0]
 
@@ -27,3 +28,5 @@ Working but some features from v1 and v2 are missing:
 
 [Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.0.0..HEAD
 [3.0.0]: https://github.com/Chronophylos/chb3/releases/tag/v3.0.0
+
+[//]: # vim: set foldlevel=9:
