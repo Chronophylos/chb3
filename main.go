@@ -27,7 +27,7 @@ const (
 
 // Build Infos
 var (
-	Version = "local"
+	Version = "3.1.0"
 )
 
 // Flags
