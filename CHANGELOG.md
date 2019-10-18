@@ -6,11 +6,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0]
+
+### Added
+
+* makefile for installation
+
 ### Changed
 
 * filenames in the log will only show up when using --debug
 * timestamp in the log shows date and time to milliseconds
 * config file structure
+* state file should now be in /var/lib
 
 ## [3.0.1]
 
@@ -34,7 +41,9 @@ Working but some features from v1 and v2 are missing:
 
 * Analytics Log
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.0.0..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.1.0..HEAD
+[3.1.0]: https://github.com/Chronophylos/chb3/compare/v3.0.1..v3.1.0
+[3.0.1]: https://github.com/Chronophylos/chb3/compare/v3.0.0..v3.0.1
 [3.0.0]: https://github.com/Chronophylos/chb3/releases/tag/v3.0.0
 
 [//]: # vim: set foldlevel=9:
