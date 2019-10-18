@@ -233,7 +233,7 @@ func main() {
 		return true
 	}))
 	commandRegistry.Register(NewCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		log.Info().Msg("Missspelling %s.", cmdState.User.DisplayName)
+		log.Info().Msgf("Missspelling %s.", cmdState.User.DisplayName)
 		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
 		return true
 	}))
