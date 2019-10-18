@@ -84,19 +84,6 @@ func main() {
 
 	// Commands {{{
 	// State {{{
-	commandRegistry.Register(NewCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if !(cmdState.IsMod || cmdState.IsOwner) {
-			return false
-		}
-
-		log.Info().Msg("Leaving Channel")
-
-		client.Say(cmdState.Channel, "ppPoof")
-		client.Depart(cmdState.Channel)
-
-		return true
-	}, true))
-
 	commandRegistry.Register(NewCommand("go sleep", `(?i)^(shut up|go sleep) @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
@@ -117,6 +104,35 @@ func main() {
 		log.Info().Msg("Waking up")
 
 		state.SetSleeping(cmdState.Channel, false)
+
+		return true
+	}, true))
+	// }}}
+
+	// Admin Commands {{{
+	commandRegistry.Register(NewCommand("join", `(?i)^@?chronophylosbot join my channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		if cmdState.Channel == secret.Twitch.Username {
+			if state.HasChannel(cmdState.Channel) {
+				client.Say(cmdState.Channel, "I'm already in your channel.")
+			} else {
+				client.Join(cmdState.User.Name)
+				state.AddChannel(cmdState.User.Name)
+				client.Say(cmdState.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` and I'll leave again.")
+			}
+			return true
+		}
+		return false
+	}))
+
+	commandRegistry.Register(NewCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		if !(cmdState.IsMod || cmdState.IsOwner) {
+			return false
+		}
+
+		log.Info().Msg("Leaving Channel")
+
+		client.Say(cmdState.Channel, "ppPoof")
+		client.Depart(cmdState.Channel)
 
 		return true
 	}, true))
@@ -348,7 +364,9 @@ func main() {
 	// }}}
 
 	log.Info().Msg("Joining Channels")
+	// Make sure the bot is always in #chronophylos
 	client.Join("chronophylos")
+	state.AddChannel("chronophylos")
 	client.Join(state.GetChannels()...)
 
 	log.Info().Msg("Connecting to irc.twitch.tv")
