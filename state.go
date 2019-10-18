@@ -18,17 +18,46 @@ type channelState struct {
 	Sleeping bool `json:"sleeping"`
 }
 
-func NewState(filename string) *State {
-	var channels map[string]*channelState
+const (
+	defaultStatePath = "/var/lib/chb3"
+	localStatePath   = "."
+	stateFilename    = "state.json"
+)
 
+func NewState() *State {
+	var channels map[string]*channelState
+	filename := localStatePath
+
+	// check if user is root
+	if os.Geteuid() == 0 {
+		filename = defaultStatePath
+
+		// make sure the path exists
+		err := os.MkdirAll(defaultStatePath, 0644)
+		if err != nil {
+			log.Fatal().
+				Err(err).
+				Str("path", defaultStatePath).
+				Msg("Error creating path to state file")
+		}
+	}
+
+	// add filename to path
+	filename = filename + "/" + stateFilename
+
+	// Check if file exists
 	if _, err := os.Stat(filename); !os.IsNotExist(err) {
+		// File seems to exists
+		// Read file
 		bytes, err := ioutil.ReadFile(filename)
 		if err != nil {
 			log.Fatal().
 				Err(err).
+				Str("filename", filename).
 				Msg("Could not read state file")
 		}
 
+		// Unmarshal file
 		err = json.Unmarshal(bytes, &channels)
 		if err != nil {
 			log.Fatal().

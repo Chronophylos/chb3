@@ -22,8 +22,6 @@ import (
 )
 
 const (
-	secretFile     = ".bot_secret"
-	stateFile      = ".bot_state"
 	chronophylosID = "54946241"
 )
 
@@ -118,7 +116,7 @@ func init() {
 func main() {
 	log.Info().Msgf("Starting CHB3 %s", Version)
 
-	state := NewState(stateFile)
+	state := NewState()
 
 	analytics, err := NewAnalytics()
 	if err != nil {
@@ -127,7 +125,7 @@ func main() {
 
 	log.Info().
 		Str("username", twitchUsername).
-		Str("token", CencorSecrets(twitchToken)).
+		Str("token", censor(twitchToken)).
 		Msg("Creating new Twitch Client.")
 	client := twitch.NewClient(twitchUsername, twitchToken)
 
@@ -573,7 +571,7 @@ func reupload(link string) string {
 
 	log.Debug().
 		Str("link", link).
-		Str("client-id", CencorSecrets(imgurClientID)).
+		Str("client-id", censor(imgurClientID)).
 		Msg("Posting url to imgur")
 
 	resp, err := client.Do(req)
@@ -581,7 +579,7 @@ func reupload(link string) string {
 		log.Error().
 			Err(err).
 			Str("link", link).
-			Str("client-id", CencorSecrets(imgurClientID)).
+			Str("client-id", censor(imgurClientID)).
 			Msg("Error posting url to imgur")
 		return ""
 	}
@@ -623,6 +621,13 @@ func reupload(link string) string {
 	}
 
 	return body.Data.Link
+}
+
+func censor(text string) string {
+	if *showSecrets {
+		return text
+	}
+	return "[REDACTED]"
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:

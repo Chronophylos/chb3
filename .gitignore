@@ -1,4 +1,4 @@
 config.toml
-.bot_state
+state.json
 chb3
 *.jlog
