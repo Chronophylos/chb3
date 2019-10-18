@@ -6,6 +6,10 @@ install: chb3
 	install -Dm755 chb3 "/usr/bin/"
 	install -Dm644 chb3.service "/usr/lib/systemd/system/"
 
+strip: chb3
+	@echo "Strip symbols"
+	strip -v -s chb3
+
 chb3: $(DEPS)
 	go build -v -i .
 
