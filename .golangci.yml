@@ -1,0 +1,69 @@
+run:
+    timeout: 1m
+    issues-exit-code: 1
+
+output:
+    format: colored-line-number
+
+linters:
+    enable:
+        - bodyclose
+        - stylecheck
+        - gosec
+        - unconvert
+        - dupl
+        - goconst
+        - gocyclo
+        - maligned
+        - lll
+        - unused
+        - unparam
+        - nakedret
+        - prealloc # disabled until ready for optimisation
+        - gocritic
+        - gochecknoinits
+    disable:
+        - typecheck
+
+
+linter-settings:
+    errcheck:
+        check-type-assertions: true
+
+    govet:
+        check-shadowing: true
+
+    gocyclo:
+        min-complexity: 20
+
+    maligned:
+        suggest-new: true
+
+    dupl:
+        threshold: 64
+
+    goconst:
+        min-len: 3
+        min-occurences: 3
+
+    lll:
+        line-lenght: 120
+
+    unused:
+        check-exported: false
+
+    unparam:
+        check-exported: false
+
+    nakedret:
+        max-func-lines: 30
+
+    prealloc:
+        simple: true
+
+    gocritic:
+        enabled-tags:
+            - diagnostic
+            - style
+            - performance
+            - opinionated
