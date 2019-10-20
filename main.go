@@ -296,7 +296,7 @@ func main() {
 	})
 
 	newCommand("patsch", `fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		state.Patsch(cmdState.User.Name, cmdState.Time)
+		state.Patsch(cmdState.User.Name, cmdState.Time, len(match[0]))
 		log.Info().Msg("Patsch!")
 		return false
 	})
