@@ -1,8 +1,17 @@
 [Unit]
 Description=ChronophylosBot Version 3
+After=network.target
 
 [Service]
+Type=simple
+
+Restart=on-failure
+RestartSec=10
+
 ExecStart=/usr/bin/chb3
+
+StandardOutput=syslog
+StandardError=syslog
 
 [Install]
 WantedBy=multi-user.target
