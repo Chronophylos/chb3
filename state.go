@@ -60,7 +60,7 @@ func (p *Patscher) HasPatschedToday(t time.Time) bool {
 	return p.LastPatsched.Truncate(24 * time.Hour).Before(t)
 }
 
-func (p *Patscher) Patsch(t time.Time) {
+func (p *Patscher) Patsch(t time.Time, count int) {
 	if p.HasPatschedLately(t) {
 		// Streak is not broken
 		if !p.HasPatschedToday(t) {
@@ -72,7 +72,7 @@ func (p *Patscher) Patsch(t time.Time) {
 		p.Streak = 0
 	}
 	p.LastPatsched = t
-	p.Count++
+	p.Count += count
 }
 
 func LoadState() *State {
@@ -260,7 +260,7 @@ func (s *State) GetPatscher(username string) *Patscher {
 	return s.Patscher[username]
 }
 
-func (s *State) Patsch(username string, t time.Time) {
-	s.GetPatscher(username).Patsch(t)
+func (s *State) Patsch(username string, t time.Time, count int) {
+	s.GetPatscher(username).Patsch(t, count)
 	s.save()
 }
