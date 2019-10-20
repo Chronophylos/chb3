@@ -205,7 +205,7 @@ func main() {
 					client.Say(cmdState.Channel, "I'm already in that channel.")
 				} else {
 					join(client, state, log, joinChannel)
-					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `leave "+cmdState.User.Name+" pls` in this channel and I'll leave again.")
+					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
 				}
 			}
 			return true
