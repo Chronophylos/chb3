@@ -13,13 +13,13 @@ linters:
         - unconvert
         - dupl
         - goconst
-        - gocyclo
+        # - gocyclo # useless since the main is extremely big (for now)
         - maligned
         - lll
         - unused
         - unparam
         - nakedret
-        - prealloc # disabled until ready for optimisation
+        # - prealloc # disabled until ready for optimisation
         - gocritic
         - gochecknoinits
     disable:
