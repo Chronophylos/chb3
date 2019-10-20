@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"time"
@@ -35,6 +36,7 @@ var (
 	showSecrets *bool
 	debug       *bool
 	logLevel    *string
+	daemon      *bool
 )
 
 // Config
@@ -45,13 +47,16 @@ var (
 	imgurClientID string
 )
 
-func init() {
+func main() {
 	// Commandline Flags {{{
 	// Create new parser
 	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
 
 	debug = parser.Flag("", "debug",
 		&argparse.Options{Help: "Enable debugging. Shorthand for --level=DEBUG"})
+
+	daemon = parser.Flag("", "daemon",
+		&argparse.Options{Help: "Run as a daemon"})
 
 	logLevel = parser.Selector("", "level",
 		[]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL", "PANIC"},
@@ -70,7 +75,7 @@ func init() {
 	// }}}
 
 	// Setup logger
-	setGlobalLogger(false)
+	setGlobalLogger()
 
 	// Viper {{{
 	viper.SetConfigType("toml") // toml is nice
@@ -111,12 +116,26 @@ func init() {
 	}
 	imgurClientID = viper.GetString("imgur.clientid")
 	// }}}
-}
 
-func main() {
 	log.Info().Msgf("Starting CHB3 %s", Version)
 
-	state := NewState()
+	// Signals {{{
+
+	// setup signal catching
+	sigs := make(chan os.Signal, 1)
+
+	// catch all term signals
+	signal.Notify(sigs, os.Interrupt)
+
+	// method invoked upon seeing signal
+	go func() {
+		s := <-sigs
+		log.Info().Msgf("Received %s. Quitting.", s)
+		os.Exit(1)
+	}()
+	//}}}
+
+	state := LoadState()
 
 	analytics, err := NewAnalytics()
 	if err != nil {
@@ -217,6 +236,24 @@ func main() {
 		return true
 	}))
 	// }}}
+
+	// Voicemails {{{
+	commandRegistry.Register(NewCommand("leave voicemail", `(?i)@?chronophylosbot tell (\w+) (.*)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		username := match[0][1]
+		message := match[0][2]
+
+		log.Info().
+			Str("username", username).
+			Str("voicemessage", message).
+			Str("creator", cmdState.User.Name).
+			Msg("Leaving a voicemail")
+
+		state.AddVoicemail(username, cmdState.Channel, cmdState.User.Name, message, cmdState.Time)
+		client.Say(cmdState.Channel, "I'll forward this message to "+username+" when they type something in chat")
+
+		return true
+	}))
+	//}}}
 
 	// Useful Commands {{{
 	commandRegistry.Register(NewCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
@@ -385,6 +422,8 @@ func main() {
 		}
 
 		commandRegistry.Trigger(cmdState)
+
+		checkForVoicemails(client, state, message.User.Name, message.Channel)
 	})
 
 	client.OnReconnectMessage(func(message twitch.ReconnectMessage) {
@@ -399,8 +438,14 @@ func main() {
 			Msg("ROOMSTATE")
 	})
 
-	// not logged for now
-	client.OnUserJoinMessage(func(message twitch.UserJoinMessage) {})
+	client.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
+		analytics.Log().
+			Str("channel", message.Channel).
+			Str("username", message.User).
+			Msg("USERJOIN")
+
+		checkForVoicemails(client, state, message.User, message.Channel)
+	})
 
 	client.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
 		analytics.Log().
@@ -413,8 +458,12 @@ func main() {
 			Msg("USERNOTICE")
 	})
 
-	// not logged for now
-	client.OnUserPartMessage(func(message twitch.UserPartMessage) {})
+	client.OnUserPartMessage(func(message twitch.UserPartMessage) {
+		analytics.Log().
+			Str("channel", message.Channel).
+			Str("username", message.User).
+			Msg("USERPARt")
+	})
 
 	client.OnUserStateMessage(func(message twitch.UserStateMessage) {
 		analytics.Log().
@@ -457,6 +506,23 @@ func main() {
 	log.Error().Msg("Twitch Client Terminated")
 }
 
+func checkForVoicemails(client *twitch.Client, state *State, username, channel string) {
+	if state.HasVoicemail(username) {
+
+		voicemails := state.PopVoicemails(username)
+
+		log.Info().
+			Int("voicemail-count", len(voicemails)).
+			Str("username", username).
+			Msg("Replaying voicemails")
+
+		client.Say(channel, "@"+username+" there "+pluralize("message", len(voicemails))+" for you:")
+		for _, voicemail := range voicemails {
+			client.Say(channel, voicemail.String())
+		}
+	}
+}
+
 func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
 	client.Join(channel)
 	state.AddChannel(channel)
@@ -469,7 +535,7 @@ func part(client *twitch.Client, state *State, log zerolog.Logger, channel strin
 	log.Info().Str("channel", channel).Msg("Parted from channel")
 }
 
-func setGlobalLogger(json bool) {
+func setGlobalLogger() {
 	zerolog.TimeFieldFormat = time.StampMilli
 	level := zerolog.InfoLevel
 
@@ -502,7 +568,7 @@ func setGlobalLogger(json bool) {
 	// Set Log Level
 	zerolog.SetGlobalLevel(level)
 
-	if !json {
+	if !*daemon {
 		// Pretty logging
 		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
 		log.Logger = log.Output(output)
@@ -624,10 +690,17 @@ func reupload(link string) string {
 }
 
 func censor(text string) string {
-	if *showSecrets {
+	if *showSecrets && !*daemon {
 		return text
 	}
 	return "[REDACTED]"
+}
+
+func pluralize(text string, times int) string {
+	if times > 1 {
+		return "are " + string(times) + " " + text + "s"
+	}
+	return "is one " + text
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:
