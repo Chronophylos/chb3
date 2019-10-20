@@ -47,7 +47,7 @@ type Patscher struct {
 func NewPatscher() *Patscher {
 	return &Patscher{
 		LastPatsched: time.Now(),
-		Count:        0,
+		Count:        1,
 		Streak:       0,
 	}
 }
