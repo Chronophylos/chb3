@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * makefile installation path
 
+### Added
+
+* fischPatsch and fishPat statistics
+* voicemails aka leave a message for a user
+
 ## [3.1.0]
 
 ### Added
