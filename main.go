@@ -541,7 +541,10 @@ func main() {
 	})
 	// }}}
 
-	log.Info().Msg("Joining Channels")
+	log.Info().
+		Str("own-channel", twitchUsername).
+		Interface("channels", state.GetChannels()).
+		Msg("Joining Channels")
 	// Make sure the bot is always in it's own channel
 	client.Join(twitchUsername)
 	state.AddChannel(twitchUsername)
