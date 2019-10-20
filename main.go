@@ -154,8 +154,16 @@ func main() {
 	log.Info().Msg("Registering State Commands")
 
 	// Commands {{{
+	newCommand := func(name, re string, trigger TriggerFunction) {
+		commandRegistry.Register(NewCommand(name, re, trigger))
+	}
+
+	newCommandEx := func(name, re string, trigger TriggerFunction, ignoreSleep bool) {
+		commandRegistry.Register(NewCommandEx(name, re, trigger, ignoreSleep))
+	}
+
 	// State {{{
-	commandRegistry.Register(NewCommand("go sleep", `(?i)^(shut up|go sleep) @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("go sleep", `(?i)^(shut up|go sleep) @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -165,9 +173,9 @@ func main() {
 		state.SetSleeping(cmdState.Channel, true)
 
 		return true
-	}))
+	})
 
-	commandRegistry.Register(NewCommandEx("wake up", `(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommandEx("wake up", `(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -177,11 +185,11 @@ func main() {
 		state.SetSleeping(cmdState.Channel, false)
 
 		return true
-	}, true))
+	}, true)
 	// }}}
 
 	// Admin Commands {{{
-	commandRegistry.Register(NewCommand("join", `(?i)^join (my channel|\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("join", `(?i)^join (my channel|\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		joinChannel := match[0][1]
 
 		if cmdState.Channel == twitchUsername {
@@ -203,9 +211,9 @@ func main() {
 			return true
 		}
 		return false
-	}))
+	})
 
-	commandRegistry.Register(NewCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !(cmdState.IsMod || cmdState.IsOwner) {
 			return false
 		}
@@ -214,9 +222,9 @@ func main() {
 		part(client, state, log, cmdState.Channel)
 
 		return true
-	}, true))
+	}, true)
 
-	commandRegistry.Register(NewCommand("leave", `(?i)^leave (\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("leave", `(?i)^leave (\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		partChannel := match[0][1]
 		if cmdState.Channel == twitchUsername {
 			part(client, state, log, partChannel)
@@ -226,19 +234,19 @@ func main() {
 		}
 
 		return false
-	}))
+	})
 	// }}}
 
 	// Version Command {{{
-	commandRegistry.Register(NewCommand("version", `(?i)^chronophylosbot\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("version", `(?i)^chronophylosbot\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 		log.Info().Msg("Sending Version")
 		return true
-	}))
+	})
 	// }}}
 
 	// Voicemails {{{
-	commandRegistry.Register(NewCommand("leave voicemail", `(?i)@?chronophylosbot tell (\w+) (.*)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("leave voicemail", `(?i)@?chronophylosbot tell (\w+) (.*)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		username := match[0][1]
 		message := match[0][2]
 
@@ -252,28 +260,67 @@ func main() {
 		client.Say(cmdState.Channel, "I'll forward this message to "+username+" when they type something in chat")
 
 		return true
-	}))
+	})
 	//}}}
 
+	// patscheck {{{
+	newCommand("patscheck", `(?i)habe ich heute schon gepatscht\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		patscher := state.GetPatscher(cmdState.User.Name)
+
+		log.Info().
+			Interface("patscher", patscher).
+			Msg("Checking Patscher")
+
+		if patscher.Count == 0 {
+			client.Say(cmdState.Channel, "You've never patted a fish before. You should do that now.")
+			return true
+		}
+
+		streak := "Your current streak is " + strconv.Itoa(patscher.Streak) + "."
+		if patscher.Streak == 0 {
+			streak = "You don't have a streak ongoing."
+		}
+
+		total := " In total you patted " + strconv.Itoa(patscher.Count) + " times."
+		if patscher.Count == 0 {
+			total = ""
+		}
+
+		if patscher.HasPatschedToday(cmdState.Time) {
+			client.Say(cmdState.Channel, "You already patted today. "+streak+total)
+		} else {
+			client.Say(cmdState.Channel, "You have not yet patted today. Do that now! "+streak+total)
+		}
+
+		return true
+	})
+
+	newCommand("patsch", `fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		state.Patsch(cmdState.User.Name, cmdState.Time)
+		log.Info().Msg("Patsch!")
+		return false
+	})
+	// }}}
+
 	// Useful Commands {{{
-	commandRegistry.Register(NewCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.IsMod {
 			log.Info().Msgf("Telling %s how to use !vanish", cmdState.User.Name)
 			client.Say(cmdState.Channel, "Try /unmod"+cmdState.User.Name+" first weSmart")
 			return true
 		}
 		return false
-	}))
+	})
 
-	commandRegistry.Register(NewCommand("^", `^\^`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("^", `^\^`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if !cmdState.IsBot {
 			client.Say(cmdState.Channel, "^")
 			return true
 		}
 		return false
-	}))
+	})
 
-	commandRegistry.Register(NewCommand("rate", `(?i)^rate (.*) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("rate", `(?i)^rate (.*) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		key := match[0][1]
 		rating := rate(key)
 		log.Info().
@@ -282,54 +329,59 @@ func main() {
 			Msg("Rating something")
 		client.Say(cmdState.Channel, "I rate "+key+" "+rating+"/10")
 		return true
-	}))
+	})
 	/// weather
 	// }}}
 
 	// Arguably Useful Commands {{{
-	commandRegistry.Register(NewCommand("er dr", `er dr`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("er dr", `er dr`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "nightbot" {
 			log.Info().Msg("Robert pressed two keys.")
 			client.Say(cmdState.Channel, "ückt voll oft zwei tasten LuL")
 			return true
 		}
 		return false
-	}))
-	commandRegistry.Register(NewCommand("hello user", `(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	})
+
+	newCommand("hello user", `(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		log.Info().Msgf("Greeting %s.", cmdState.User.DisplayName)
 		client.Say(cmdState.Channel, "Hello "+cmdState.User.DisplayName+"👋")
 		return true
-	}))
-	commandRegistry.Register(NewCommand("hello stirnbot", `^I'm here FeelsGoodMan$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	})
+
+	newCommand("hello stirnbot", `^I'm here FeelsGoodMan$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "stirnbot" {
 			log.Info().Msg("Greeting StirnBot.")
 			client.Say(cmdState.Channel, "StirnBot MrDestructoid /")
 			return true
 		}
 		return false
-	}))
-	commandRegistry.Register(NewCommand("robert and wsd", `(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	})
+
+	newCommand("robert and wsd", `(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.User.Name == "n0valis" {
 			log.Info().Msg("Confusing robert.")
 			client.Say(cmdState.Channel, "did you mean me?")
 			return true
 		}
 		return false
-	}))
-	commandRegistry.Register(NewCommand("the age of marc", `(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	})
+
+	newCommand("the age of marc", `(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		log.Info().Msg("Gratulating marc for his birthday.")
 		client.Say(cmdState.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
 		return true
-	}))
-	commandRegistry.Register(NewCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	})
+
+	newCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		log.Info().Msgf("Missspelling %s.", cmdState.User.DisplayName)
 		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
 		return true
-	}))
+	})
 	// }}}
 
 	// Hardly Useful Commands {{{
-	commandRegistry.Register(NewCommand("reupload", `((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("reupload", `((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		link := match[0][1]
 
 		// Fix links
@@ -350,7 +402,7 @@ func main() {
 			return true
 		}
 		return false
-	}))
+	})
 	// }}}
 
 	// }}}

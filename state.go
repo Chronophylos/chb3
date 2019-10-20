@@ -19,6 +19,7 @@ const (
 type State struct {
 	Channels   map[string]*channelState `json:"channels"`
 	Voicemails map[string][]*Voicemail  `json:"voicemails"`
+	Patscher   map[string]*Patscher     `json:"patscher"`
 	Filename   string                   `json:"-"`
 }
 
@@ -37,10 +38,48 @@ func (v *Voicemail) String() string {
 	return v.Created.Format(time.StampMilli) + " #" + v.Channel + " " + v.Creator + ": " + v.Message
 }
 
+type Patscher struct {
+	LastPatsched time.Time `json:"last-patsched"`
+	Count        int       `json:"count"`
+	Streak       int       `json:"streak"`
+}
+
+func NewPatscher() *Patscher {
+	return &Patscher{
+		LastPatsched: time.Now(),
+		Count:        0,
+		Streak:       0,
+	}
+}
+
+func (p *Patscher) HasPatschedLately(t time.Time) bool {
+	return p.LastPatsched.Truncate(48 * time.Hour).Before(t)
+}
+
+func (p *Patscher) HasPatschedToday(t time.Time) bool {
+	return p.LastPatsched.Truncate(24 * time.Hour).Before(t)
+}
+
+func (p *Patscher) Patsch(t time.Time) {
+	if p.HasPatschedLately(t) {
+		// Streak is not broken
+		if !p.HasPatschedToday(t) {
+			// Don't increase stream multiple times per day
+			p.Streak++
+		}
+	} else {
+		// Streak is broken
+		p.Streak = 0
+	}
+	p.LastPatsched = t
+	p.Count++
+}
+
 func LoadState() *State {
 	state := State{
 		Channels:   make(map[string]*channelState),
 		Voicemails: make(map[string][]*Voicemail),
+		Patscher:   make(map[string]*Patscher),
 	}
 
 	filename := localStatePath
@@ -209,4 +248,19 @@ func (s *State) HasVoicemail(username string) bool {
 	}
 
 	return len(voicemails) > 0
+}
+
+func (s *State) GetPatscher(username string) *Patscher {
+	_, present := s.Patscher[username]
+
+	if !present {
+		s.Patscher[username] = NewPatscher()
+	}
+
+	return s.Patscher[username]
+}
+
+func (s *State) Patsch(username string, t time.Time) {
+	s.GetPatscher(username).Patsch(t)
+	s.save()
 }
