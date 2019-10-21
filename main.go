@@ -251,6 +251,10 @@ func main() {
 		username := match[0][1]
 		message := match[0][2]
 
+		if username == twitchUsername {
+			return false
+		}
+
 		log.Info().
 			Str("username", username).
 			Str("voicemessage", message).
