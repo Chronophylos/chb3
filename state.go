@@ -17,10 +17,11 @@ const (
 )
 
 type State struct {
-	Channels   map[string]*channelState `json:"channels"`
-	Voicemails map[string][]*Voicemail  `json:"voicemails"`
-	Patscher   map[string]*Patscher     `json:"patscher"`
-	Filename   string                   `json:"-"`
+	Channels        map[string]*channelState `json:"channels"`
+	Voicemails      map[string][]*Voicemail  `json:"voicemails"`
+	Patscher        map[string]*Patscher     `json:"patscher"`
+	LastFishFeeding time.Time                `json:"last-fish-feeding"`
+	Filename        string                   `json:"-"`
 }
 
 type channelState struct {
@@ -267,7 +268,22 @@ func (s *State) GetPatscher(username string) *Patscher {
 	return s.Patscher[username]
 }
 
-func (s *State) Patsch(username string, t time.Time, count int) {
+func (s *State) Patsch(username string, t time.Time) {
 	s.GetPatscher(username).Patsch(t)
 	s.save()
+}
+
+func (s *State) HasPatschedToday(username string, t time.Time) bool {
+	return s.GetPatscher(username).HasPatschedToday(t)
+}
+
+func (s *State) HasFishBeenFedToday(t time.Time) bool {
+	diff := t.Sub(s.LastFishFeeding)
+	days := diff.Hours() / 24
+
+	return days < 1
+}
+
+func (s *State) FeedFish(t time.Time) {
+	s.LastFishFeeding = t
 }

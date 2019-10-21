@@ -300,10 +300,46 @@ func main() {
 		return true
 	})
 
+	newCommand("anfüttern", `trilluxeANFUETTERN fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		if cmdState.Channel != "furzbart" {
+			return false
+		}
+
+		if state.HasFishBeenFedToday(cmdState.Time) {
+			client.Say(cmdState.Channel, "Bitte überfüttere den Fisch nicht. Danke :)")
+
+			log.Info().Msg("Der Fisch wurde schon gefüttert")
+
+			return true
+		}
+
+		state.FeedFish(cmdState.Time)
+		log.Info().Msg("Der Fisch ist jetzt satt")
+
+		client.Say(cmdState.Channel, "Der Fisch sieht glücklich aus :)")
+
+		return true
+	})
+
 	newCommand("patsch", `fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		state.Patsch(cmdState.User.Name, cmdState.Time, len(match[0]))
+		if cmdState.Channel != "furzbart" {
+			return false
+		}
+
+		if len(match) > 1 {
+			client.Say(cmdState.Channel, "/timeout "+cmdState.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
+			return false
+		}
+
+		if state.HasPatschedToday(cmdState.User.Name, cmdState.Time) {
+			client.Say(cmdState.Channel, "Du hast heute schon gepatscht.")
+			return false
+		}
+
+		state.Patsch(cmdState.User.Name, cmdState.Time)
 		log.Info().Msg("Patsch!")
-		return false
+
+		return true
 	})
 	// }}}
 
