@@ -571,10 +571,30 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 			Str("username", username).
 			Msg("Replaying voicemails")
 
-		client.Say(channel, "@"+username+" there "+pluralize("message", len(voicemails))+" for you:")
+		messages := []string{"@" + username + ", " + pluralize("message", len(voicemails)) + " for you: "}
+		i := 0
+		noDelimiter := true
+		var delimiter string
+
 		for _, voicemail := range voicemails {
-			client.Say(channel, voicemail.String())
+			message := voicemail.String()
+			if len(messages[i])+len(message) > 400 {
+				i++
+				messages[i] = message
+			} else {
+				delimiter = " — "
+				if noDelimiter {
+					noDelimiter = false
+					delimiter = ""
+				}
+				messages[i] += delimiter + message
+			}
 		}
+
+		for _, message := range messages {
+			client.Say(channel, message)
+		}
+
 	}
 }
 
@@ -753,9 +773,9 @@ func censor(text string) string {
 
 func pluralize(text string, times int) string {
 	if times > 1 {
-		return "are " + string(times) + " " + text + "s"
+		return string(times) + " " + text + "s"
 	}
-	return "is one " + text
+	return "one " + text
 }
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:

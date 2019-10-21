@@ -35,7 +35,7 @@ type Voicemail struct {
 }
 
 func (v *Voicemail) String() string {
-	return v.Created.Format(time.StampMilli) + " #" + v.Channel + " " + v.Creator + ": " + v.Message
+	return v.Created.Format(time.Stamp) + " " + v.Creator + ": " + v.Message
 }
 
 type Patscher struct {
