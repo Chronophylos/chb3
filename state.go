@@ -46,25 +46,32 @@ type Patscher struct {
 
 func NewPatscher() *Patscher {
 	return &Patscher{
-		LastPatsched: time.Now(),
-		Count:        1,
+		// some day in the past, before chb3 was even imagined
+		LastPatsched: time.Date(2009, time.November, 10, 23, 0, 0, 0, time.UTC),
+		Count:        0,
 		Streak:       0,
 	}
 }
 
 func (p *Patscher) HasPatschedLately(t time.Time) bool {
-	return p.LastPatsched.Truncate(48 * time.Hour).Before(t)
+	diff := t.Sub(p.LastPatsched)
+	days := diff.Hours() / 24
+
+	return days < 2
 }
 
 func (p *Patscher) HasPatschedToday(t time.Time) bool {
-	return p.LastPatsched.Truncate(24 * time.Hour).Before(t)
+	diff := t.Sub(p.LastPatsched)
+	days := diff.Hours() / 24
+
+	return days < 1
 }
 
-func (p *Patscher) Patsch(t time.Time, count int) {
+func (p *Patscher) Patsch(t time.Time) {
 	if p.HasPatschedLately(t) {
 		// Streak is not broken
 		if !p.HasPatschedToday(t) {
-			// Don't increase stream multiple times per day
+			// Don't increase streak multiple times per day
 			p.Streak++
 		}
 	} else {
@@ -72,7 +79,7 @@ func (p *Patscher) Patsch(t time.Time, count int) {
 		p.Streak = 0
 	}
 	p.LastPatsched = t
-	p.Count += count
+	p.Count++
 }
 
 func LoadState() *State {
@@ -261,6 +268,6 @@ func (s *State) GetPatscher(username string) *Patscher {
 }
 
 func (s *State) Patsch(username string, t time.Time, count int) {
-	s.GetPatscher(username).Patsch(t, count)
+	s.GetPatscher(username).Patsch(t)
 	s.save()
 }
