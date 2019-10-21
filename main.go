@@ -20,6 +20,7 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
+	"gopkg.in/Knetic/govaluate.v2"
 )
 
 const (
@@ -330,7 +331,40 @@ func main() {
 		client.Say(cmdState.Channel, "I rate "+key+" "+rating+"/10")
 		return true
 	})
+
 	/// weather
+
+	newCommand("math", `(?i)^!math (.*)$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		exprString := match[0][1]
+
+		expr, err := govaluate.NewEvaluableExpression(exprString)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("expression", exprString).
+				Msg("Error parsing expression")
+			client.Say(cmdState.Channel, fmt.Sprintf("Error: %v", err))
+			return true
+		}
+
+		result, err := expr.Evaluate(nil)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("expression", exprString).
+				Msg("Error evaluating expression")
+			return true
+		}
+
+		log.Info().
+			Str("expression", exprString).
+			Interface("result", result).
+			Msg("Evaluated Math Expression")
+
+		client.Say(cmdState.Channel, fmt.Sprintf("%v", result))
+
+		return true
+	})
 	// }}}
 
 	// Arguably Useful Commands {{{
