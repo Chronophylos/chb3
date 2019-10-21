@@ -6,6 +6,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## Changed
+
+* the bot now enforces fish rules
+
 ## [3.1.2] - 2019-10-21
 
 ## Fixed
