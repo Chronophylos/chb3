@@ -301,7 +301,7 @@ func main() {
 	})
 
 	newCommand("anfüttern", `trilluxeANFUETTERN (fischPatsch|fishPat)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.Channel != "furzbart" {
+		if cmdState.Channel != "furzbart" && !(*debug && cmdState.Channel == twitchUsername) {
 			return false
 		}
 
@@ -322,7 +322,7 @@ func main() {
 	})
 
 	newCommand("patsch", `fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.Channel != "furzbart" {
+		if cmdState.Channel != "furzbart" && !(*debug && cmdState.Channel == twitchUsername) {
 			return false
 		}
 
