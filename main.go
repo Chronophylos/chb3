@@ -54,17 +54,17 @@ func main() {
 	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
 
 	debug = parser.Flag("", "debug",
-		&argparse.Options{Help: "Enable debugging. Shorthand for --level=DEBUG"})
+		&argparse.Options{Help: "Enable debugging. Sets --level=DEBUG."})
 
 	daemon = parser.Flag("", "daemon",
-		&argparse.Options{Help: "Run as a daemon"})
+		&argparse.Options{Help: "Run as a daemon."})
 
 	logLevel = parser.Selector("", "level",
 		[]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL", "PANIC"},
-		&argparse.Options{Default: "INFO", Help: "Set Log Level"})
+		&argparse.Options{Default: "INFO", Help: "Set Log Level."})
 
 	showSecrets = parser.Flag("", "show-secrets",
-		&argparse.Options{Help: "Show secrets in log (eg. your twitch token)"})
+		&argparse.Options{Help: "Show secrets in log (eg. your twitch token)."})
 
 	// Parse Flags
 	err := parser.Parse(os.Args)
