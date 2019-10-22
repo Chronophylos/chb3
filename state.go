@@ -56,11 +56,15 @@ func NewPatscher() *Patscher {
 
 func (p *Patscher) HasPatschedLately(t time.Time) bool {
 	diff := t.Sub(p.LastPatsched)
+
 	return diff.Hours() < 48
 }
 
 func (p *Patscher) HasPatschedToday(t time.Time) bool {
-	return p.LastPatsched.Truncate(24 * time.Hour).Equal(t.Truncate(24 * time.Hour))
+	lastPatsched := p.LastPatsched.Truncate(24 * time.Hour)
+	t = t.Truncate(24 * time.Hour)
+
+	return lastPatsched.Equal(t)
 }
 
 func (p *Patscher) Patsch(t time.Time) {
