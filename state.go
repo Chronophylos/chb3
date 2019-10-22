@@ -45,6 +45,9 @@ type Patscher struct {
 	Streak       int       `json:"streak"`
 }
 
+// NewPatscher creates a new Patscher.
+// LastPatsched is set to golangs launch date something far enough
+// in the past so it should not interfere with anything.
 func NewPatscher() *Patscher {
 	return &Patscher{
 		// some day in the past, before chb3 was even imagined
@@ -54,12 +57,14 @@ func NewPatscher() *Patscher {
 	}
 }
 
+// HasPatschedLately checks if LastPatsched is not earlier than 48 hours before t.
 func (p *Patscher) HasPatschedLately(t time.Time) bool {
 	diff := t.Sub(p.LastPatsched)
 
 	return diff.Hours() < 48
 }
 
+// HasPatschedToday checks if LastPatsched is on the same day has t.
 func (p *Patscher) HasPatschedToday(t time.Time) bool {
 	lastPatsched := p.LastPatsched.Truncate(24 * time.Hour)
 	t = t.Truncate(24 * time.Hour)
@@ -67,6 +72,9 @@ func (p *Patscher) HasPatschedToday(t time.Time) bool {
 	return lastPatsched.Equal(t)
 }
 
+// Patsch sets LastPatsched to t, increases Count by one.
+// Streak gets increased by one if it is not broken. Otherwise it resets it to 0.
+// t is now.
 func (p *Patscher) Patsch(t time.Time) {
 	if p.HasPatschedLately(t) {
 		// Streak is not broken
