@@ -56,9 +56,7 @@ func NewPatscher() *Patscher {
 
 func (p *Patscher) HasPatschedLately(t time.Time) bool {
 	diff := t.Sub(p.LastPatsched)
-	days := diff.Hours() / 24
-
-	return days < 2
+	return diff.Hours() < 48
 }
 
 func (p *Patscher) HasPatschedToday(t time.Time) bool {
