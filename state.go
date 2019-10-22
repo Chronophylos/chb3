@@ -62,10 +62,7 @@ func (p *Patscher) HasPatschedLately(t time.Time) bool {
 }
 
 func (p *Patscher) HasPatschedToday(t time.Time) bool {
-	diff := t.Sub(p.LastPatsched)
-	days := diff.Hours() / 24
-
-	return days < 1
+	return p.LastPatsched.Truncate(24 * time.Hour).Equal(t.Truncate(24 * time.Hour))
 }
 
 func (p *Patscher) Patsch(t time.Time) {
