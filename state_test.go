@@ -46,9 +46,9 @@ func TestPatscherPatsch(t *testing.T) {
 func TestPatscherHasPatsched(t *testing.T) {
 	assert := assert.New(t)
 
-	now := time.Date(2010, time.November, 10, 23, 0, 0, 0, time.UTC)
+	now := time.Date(2010, time.November, 10, 10, 0, 0, 0, time.UTC)
 	yesterday := time.Date(2010, time.November, 9, 23, 0, 0, 0, time.UTC)
-	lastWeek := time.Date(2010, time.November, 3, 23, 0, 0, 0, time.UTC)
+	lastWeek := time.Date(2010, time.November, 3, 7, 0, 0, 0, time.UTC)
 
 	p := NewPatscher()
 
@@ -64,4 +64,9 @@ func TestPatscherHasPatsched(t *testing.T) {
 
 	assert.True(p.HasPatschedLately(now))
 	assert.False(p.HasPatschedToday(now))
+
+	p.Patsch(now)
+
+	assert.True(p.HasPatschedLately(now))
+	assert.True(p.HasPatschedToday(now))
 }
