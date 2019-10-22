@@ -6,17 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## Changed
+### Changed
 
 * the bot now enforces fish rules
 
+### Fixed
+
+* the bot now knows the difference between to days when patting
+
 ## [3.1.2] - 2019-10-21
 
-## Fixed
+### Fixed
 
 * streaks will work now
 
-## Added
+### Added
 
 * basic math command
 
