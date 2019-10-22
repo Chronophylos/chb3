@@ -300,7 +300,7 @@ func main() {
 		return true
 	})
 
-	newCommand("anfüttern", `trilluxeANFUETTERN fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+	newCommand("anfüttern", `trilluxeANFUETTERN (fischPatsch|fishPat)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		if cmdState.Channel != "furzbart" {
 			return false
 		}
