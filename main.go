@@ -294,7 +294,7 @@ func main() {
 		if patscher.HasPatschedToday(cmdState.Time) {
 			client.Say(cmdState.Channel, "You already patted today. "+streak+total)
 		} else {
-			client.Say(cmdState.Channel, "You have not yet patted today. Do that now! "+streak+total)
+			client.Say(cmdState.Channel, "You have not yet patted today. "+streak+total)
 		}
 
 		return true
