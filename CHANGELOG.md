@@ -26,6 +26,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * basic math command
 
+### Changed
+
+* some command outputs
+
 ## [3.1.1] - The release that should be 3.2.0
 
 State files are incompatible with [3.1.0]
