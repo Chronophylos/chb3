@@ -277,7 +277,7 @@ func main() {
 			Msg("Checking Patscher")
 
 		if patscher.Count == 0 {
-			client.Say(cmdState.Channel, "You've never patted a fish before. You should do that now.")
+			client.Say(cmdState.Channel, "You've never patted the fish before. You should do that now.")
 			return true
 		}
 
