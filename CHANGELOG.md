@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * the bot now enforces fish rules
+* users wont get voicemails if they join a channel anymore
 
 ### Fixed
 
