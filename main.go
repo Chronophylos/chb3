@@ -570,7 +570,7 @@ func main() {
 			Str("username", message.User).
 			Msg("USERJOIN")
 
-		checkForVoicemails(client, state, message.User, message.Channel)
+		//checkForVoicemails(client, state, message.User, message.Channel)
 	})
 
 	client.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
