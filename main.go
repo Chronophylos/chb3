@@ -134,7 +134,17 @@ func main() {
 		log.Info().Msgf("Received %s. Quitting.", s)
 		os.Exit(1)
 	}()
-	//}}}
+	// }}}
+
+	// Panics {{{
+	defer func() {
+		if err := recover(); err != nil {
+			log.Error().
+				Interface("panic", err).
+				Msg("Ignoring Panic!")
+		}
+	}()
+	// }}}
 
 	state := LoadState()
 
