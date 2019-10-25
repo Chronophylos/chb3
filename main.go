@@ -651,7 +651,7 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 		voicemails := state.PopVoicemails(username)
 
 		log.Info().
-			Int("voicemail-count", len(voicemails)).
+			Int("count", len(voicemails)).
 			Str("username", username).
 			Msg("Replaying voicemails")
 
@@ -662,9 +662,12 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 
 		for _, voicemail := range voicemails {
 			message := voicemail.String()
+			if len(messages[0])+len(message) > 400 {
+				truncate(message, 400-len(messages[0]))
+			}
 			if len(messages[i])+len(message) > 400 {
 				i++
-				messages[i] = message
+				messages = append(messages, message)
 			} else {
 				delimiter = " — "
 				if noDelimiter {
@@ -680,6 +683,15 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 		}
 
 	}
+}
+
+// Credit: https://stackoverflow.com/users/130095/geoff
+func truncate(s string, i int) string {
+	runes := []rune(s)
+	if len(runes) > i {
+		return string(runes[:i])
+	}
+	return s
 }
 
 func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
