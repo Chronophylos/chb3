@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* the bot should not crash anymore but log the error instead
+
+
 ## [3.1.4] - 2019-10-25
 
 ### Changed
