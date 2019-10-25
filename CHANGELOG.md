@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * the bot should not crash anymore but log the error instead
 
+### Fixed
+
+* a crash when voicemails are too long
+
 
 ## [3.1.4] - 2019-10-25
 
@@ -21,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * voicemails were case sensitive
 
+
 ## [3.1.3] - 2019-10-22
 
 ### Changed
@@ -30,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * the bot now knows the difference between to days when patting
+
 
 ## [3.1.2] - 2019-10-21
 
@@ -45,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * some command outputs
 
+
 ## [3.1.1] - The release that should be 3.2.0
 
 State files are incompatible with [3.1.0]
@@ -57,6 +64,7 @@ State files are incompatible with [3.1.0]
 
 * fischPatsch and fishPat statistics
 * voicemails aka leave a message for a user
+
 
 ## [3.1.0]
 
@@ -71,6 +79,7 @@ State files are incompatible with [3.1.0]
 * config file structure
 * state file should now be in /var/lib
 
+
 ## [3.0.1]
 
 ### Fixed
@@ -82,6 +91,7 @@ State files are incompatible with [3.1.0]
 * join and leave commands
 * owner only join and leave commands
 
+
 ## [3.0.0]
 
 Working but some features from v1 and v2 are missing:
@@ -92,6 +102,7 @@ Working but some features from v1 and v2 are missing:
 ### Added
 
 * Analytics Log
+
 
 [Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.1.4..HEAD
 [3.1.4]: https://github.com/Chronophylos/chb3/compare/v3.1.3..v3.1.4
