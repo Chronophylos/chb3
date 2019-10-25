@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
@@ -229,12 +230,15 @@ func (s *State) HasChannel(channel string) bool {
 }
 
 func (s *State) AddVoicemail(username, channel, creator, message string, created time.Time) {
+	username = strings.ToLower(username)
+
 	voicemail := &Voicemail{
 		Created: created,
 		Message: message,
 		Channel: channel,
 		Creator: creator,
 	}
+
 	voicemails, present := s.Voicemails[username]
 	if !present {
 		s.Voicemails[username] = []*Voicemail{voicemail}
@@ -242,10 +246,20 @@ func (s *State) AddVoicemail(username, channel, creator, message string, created
 		s.Voicemails[username] = append(voicemails, voicemail)
 	}
 
+	log.Debug().
+		Str("username", username).
+		Str("channel", channel).
+		Str("creator", creator).
+		Str("message", message).
+		Time("created", created).
+		Msg("Added Voicemail")
+
 	s.save()
 }
 
 func (s *State) PopVoicemails(username string) []*Voicemail {
+	username = strings.ToLower(username)
+
 	voicemails := s.Voicemails[username]
 
 	s.Voicemails[username] = []*Voicemail{}
@@ -256,6 +270,8 @@ func (s *State) PopVoicemails(username string) []*Voicemail {
 }
 
 func (s *State) HasVoicemail(username string) bool {
+	username = strings.ToLower(username)
+
 	voicemails, present := s.Voicemails[username]
 
 	if !present {

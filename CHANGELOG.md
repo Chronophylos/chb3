@@ -6,12 +6,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.4] - 2019-10-25
+
+### Changed
+
+* users wont get voicemails if they join a channel anymore
+
+### Fixed
+
+* voicemails were case sensitive
+
 ## [3.1.3] - 2019-10-22
 
 ### Changed
 
 * the bot now enforces fish rules
-* users wont get voicemails if they join a channel anymore
 
 ### Fixed
 
@@ -79,7 +88,8 @@ Working but some features from v1 and v2 are missing:
 
 * Analytics Log
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.1.3..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.1.4..HEAD
+[3.1.4]: https://github.com/Chronophylos/chb3/compare/v3.1.3..v3.1.4
 [3.1.3]: https://github.com/Chronophylos/chb3/compare/v3.1.2..v3.1.3
 [3.1.2]: https://github.com/Chronophylos/chb3/compare/v3.1.1..v3.1.2
 [3.1.1]: https://github.com/Chronophylos/chb3/compare/v3.1.0..v3.1.1
