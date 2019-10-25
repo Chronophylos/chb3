@@ -231,6 +231,7 @@ func (s *State) HasChannel(channel string) bool {
 
 func (s *State) AddVoicemail(username, channel, creator, message string, created time.Time) {
 	username = strings.ToLower(username)
+	message = strings.TrimSpace(message)
 
 	voicemail := &Voicemail{
 		Created: created,
