@@ -542,7 +542,7 @@ func main() {
 			return
 		}
 
-		message.Message = strings.ReplaceAll(message.Message, "\U000e0000")
+		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
 
 		cmdState := &CommandState{
 			IsSleeping:    state.IsSleeping(message.Channel),
