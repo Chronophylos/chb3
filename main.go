@@ -647,119 +647,8 @@ func main() {
 	log.Error().Msg("Twitch Client Terminated")
 }
 
-func checkForVoicemails(client *twitch.Client, state *State, username, channel string) {
-	if state.HasVoicemail(username) {
-
-		voicemails := state.PopVoicemails(username)
-
-		log.Info().
-			Int("count", len(voicemails)).
-			Str("username", username).
-			Msg("Replaying voicemails")
-
-		messages := []string{"@" + username + ", " + pluralize("message", len(voicemails)) + " for you: "}
-		i := 0
-		noDelimiter := true
-		var delimiter string
-
-		for _, voicemail := range voicemails {
-			message := voicemail.String()
-			if len(messages[0])+len(message) > 400 {
-				truncate(message, 400-len(messages[0]))
-			}
-			if len(messages[i])+len(message) > 400 {
-				i++
-				messages = append(messages, message)
-			} else {
-				delimiter = " — "
-				if noDelimiter {
-					noDelimiter = false
-					delimiter = ""
-				}
-				messages[i] += delimiter + message
-			}
-		}
-
-		for _, message := range messages {
-			client.Say(channel, message)
-		}
-
-	}
-}
-
-// Credit: https://stackoverflow.com/users/130095/geoff
-func truncate(s string, i int) string {
-	runes := []rune(s)
-	if len(runes) > i {
-		return string(runes[:i])
-	}
-	return s
-}
-
-func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
-	client.Join(channel)
-	state.AddChannel(channel)
-	log.Info().Str("channel", channel).Msg("Joined new channel")
-}
-
-func part(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
-	client.Depart(channel)
-	state.RemoveChannel(channel)
-	log.Info().Str("channel", channel).Msg("Parted from channel")
-}
-
-func setGlobalLogger() {
-	zerolog.TimeFieldFormat = time.StampMilli
-	level := zerolog.InfoLevel
-
-	if *debug {
-		// Force log level to debug
-		*logLevel = "DEBUG"
-		// Add file and line number to log
-		log.Logger = log.With().Caller().Logger()
-	}
-
-	// Get zerolog.Level from stringimgurClientID
-	switch *logLevel {
-	case "DEBUG":
-		level = zerolog.DebugLevel
-		break
-	case "INFO":
-		level = zerolog.InfoLevel
-		break
-	case "WARN":
-		level = zerolog.WarnLevel
-		break
-	case "ERROR":
-		level = zerolog.ErrorLevel
-		break
-	case "PANIC":
-		level = zerolog.PanicLevel
-		break
-	}
-
-	// Set Log Level
-	zerolog.SetGlobalLevel(level)
-
-	if !*daemon {
-		// Pretty logging
-		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
-		log.Logger = log.Output(output)
-	}
-}
-
-func checkIfBotname(name string) bool {
-	switch name {
-	case "nightbot":
-		fallthrough
-	case "fossabot":
-		fallthrough
-	case "streamelements":
-		return true
-	}
-	return false
-}
-
+// Command Functions {{{
+// rate {{{
 func rate(key string) string {
 	hash := fmt.Sprintf("%x", md5.Sum([]byte(key)))
 	p, _ := strconv.ParseInt(hash, 16, 64)
@@ -767,6 +656,8 @@ func rate(key string) string {
 	return fmt.Sprintf("%.1f", q)
 }
 
+// }}}
+// jumble {{{
 // jumble uses the Fisher-Yates shuffle to shuffle a string in place
 func jumble(name string) string {
 	a := strings.Split(name, "")
@@ -780,6 +671,8 @@ func jumble(name string) string {
 	return strings.Join(a, "")
 }
 
+// }}}
+// Imgur Reupload {{{
 type imgurBody struct {
 	Data    imgurBodyData `json:"data"`
 	Success bool          `json:"success"`
@@ -862,6 +755,52 @@ func reupload(link string) string {
 	return body.Data.Link
 }
 
+// }}}
+// check for voicemails {{{
+func checkForVoicemails(client *twitch.Client, state *State, username, channel string) {
+	if state.HasVoicemail(username) {
+
+		voicemails := state.PopVoicemails(username)
+
+		log.Info().
+			Int("count", len(voicemails)).
+			Str("username", username).
+			Msg("Replaying voicemails")
+
+		messages := []string{"@" + username + ", " + pluralize("message", len(voicemails)) + " for you: "}
+		i := 0
+		noDelimiter := true
+		var delimiter string
+
+		for _, voicemail := range voicemails {
+			message := voicemail.String()
+			if len(messages[0])+len(message) > 400 {
+				truncate(message, 400-len(messages[0]))
+			}
+			if len(messages[i])+len(message) > 400 {
+				i++
+				messages = append(messages, message)
+			} else {
+				delimiter = " — "
+				if noDelimiter {
+					noDelimiter = false
+					delimiter = ""
+				}
+				messages[i] += delimiter + message
+			}
+		}
+
+		for _, message := range messages {
+			client.Say(channel, message)
+		}
+
+	}
+}
+
+// }}}
+// }}}
+
+// Helper Functions {{{
 func censor(text string) string {
 	if *showSecrets && !*daemon {
 		return text
@@ -875,5 +814,80 @@ func pluralize(text string, times int) string {
 	}
 	return "one " + text
 }
+
+func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
+	client.Join(channel)
+	state.AddChannel(channel)
+	log.Info().Str("channel", channel).Msg("Joined new channel")
+}
+
+func part(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
+	client.Depart(channel)
+	state.RemoveChannel(channel)
+	log.Info().Str("channel", channel).Msg("Parted from channel")
+}
+
+func setGlobalLogger() {
+	zerolog.TimeFieldFormat = time.StampMilli
+	level := zerolog.InfoLevel
+
+	if *debug {
+		// Force log level to debug
+		*logLevel = "DEBUG"
+		// Add file and line number to log
+		log.Logger = log.With().Caller().Logger()
+	}
+
+	// Get zerolog.Level from stringimgurClientID
+	switch *logLevel {
+	case "DEBUG":
+		level = zerolog.DebugLevel
+		break
+	case "INFO":
+		level = zerolog.InfoLevel
+		break
+	case "WARN":
+		level = zerolog.WarnLevel
+		break
+	case "ERROR":
+		level = zerolog.ErrorLevel
+		break
+	case "PANIC":
+		level = zerolog.PanicLevel
+		break
+	}
+
+	// Set Log Level
+	zerolog.SetGlobalLevel(level)
+
+	if !*daemon {
+		// Pretty logging
+		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
+		log.Logger = log.Output(output)
+	}
+}
+
+func checkIfBotname(name string) bool {
+	switch name {
+	case "nightbot":
+		fallthrough
+	case "fossabot":
+		fallthrough
+	case "streamelements":
+		return true
+	}
+	return false
+}
+
+// Credit: https://stackoverflow.com/users/130095/geoff
+func truncate(s string, i int) string {
+	runes := []rune(s)
+	if len(runes) > i {
+		return string(runes[:i])
+	}
+	return s
+}
+
+// }}}
 
 // vim: set foldmarker={{{,}}} foldmethod=marker:
