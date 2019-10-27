@@ -767,7 +767,7 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 			Str("username", username).
 			Msg("Replaying voicemails")
 
-		messages := []string{"@" + username + ", " + pluralize("message", len(voicemails)) + " for you: "}
+		messages := []string{"@" + username + ", " + pluralize("message", int64(len(voicemails))) + " for you: "}
 		i := 0
 		noDelimiter := true
 		var delimiter string
@@ -808,9 +808,9 @@ func censor(text string) string {
 	return "[REDACTED]"
 }
 
-func pluralize(text string, times int) string {
+func pluralize(text string, times int64) string {
 	if times > 1 {
-		return string(times) + " " + text + "s"
+		return strconv.FormatInt(times, 10) + " " + text + "s"
 	}
 	return "one " + text
 }
