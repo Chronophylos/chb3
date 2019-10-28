@@ -22,11 +22,16 @@ type State struct {
 	Voicemails      map[string][]*Voicemail  `json:"voicemails"`
 	Patscher        map[string]*Patscher     `json:"patscher"`
 	LastFishFeeding time.Time                `json:"last-fish-feeding"`
+	Timeouts        map[string]*Timeout      `json:"timeouts"`
 	Filename        string                   `json:"-"`
 }
 
 type channelState struct {
 	Sleeping bool `json:"sleeping"`
+}
+
+type Timeout struct {
+	Until time.Time `json:"until"`
 }
 
 type Voicemail struct {
@@ -96,6 +101,7 @@ func LoadState() *State {
 		Channels:   make(map[string]*channelState),
 		Voicemails: make(map[string][]*Voicemail),
 		Patscher:   make(map[string]*Patscher),
+		Timeouts:   make(map[string]*Timeout),
 	}
 
 	filename := localStatePath
@@ -310,4 +316,26 @@ func (s *State) HasFishBeenFedToday(t time.Time) bool {
 
 func (s *State) FeedFish(t time.Time) {
 	s.LastFishFeeding = t
+}
+
+func (s *State) GetTimeout(username string) *Timeout {
+	_, present := s.Timeouts[username]
+
+	if !present {
+		s.Timeouts[username] = &Timeout{}
+	}
+
+	return s.Timeouts[username]
+}
+
+func (s *State) Timeout(username string, until time.Time) {
+	timeout := s.GetTimeout(username)
+	timeout.Until = until
+	s.Timeouts[username] = timeout
+}
+
+func (s *State) IsTimedOut(username string, t time.Time) {
+	timeout := s.GetTimeout(username)
+
+	return timeout.Until.Before(t)
 }
