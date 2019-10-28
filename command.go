@@ -41,19 +41,21 @@ func NewCommandEx(name, re string, trigger TriggerFunction, ignoreSleep bool) *C
 // Trigger is used to trigger a commmand
 func (c *Command) Trigger(cmdState *CommandState) bool {
 	if c.IgnoreSleep || !cmdState.IsSleeping {
-		match := c.re.FindAllStringSubmatch(cmdState.Message, -1)
-		if match == nil {
-			return false
+		if !cmdState.IsTimedOut || cmdState.IsOwner {
+			match := c.re.FindAllStringSubmatch(cmdState.Message, -1)
+			if match == nil {
+				return false
+			}
+
+			log := c.getLogger(cmdState)
+
+			log.Debug().
+				Interface("match", match).
+				Str("command", c.Name).
+				Msg("Found matching command")
+
+			return c.trigger(cmdState, log, match)
 		}
-
-		log := c.getLogger(cmdState)
-
-		log.Debug().
-			Interface("match", match).
-			Str("command", c.Name).
-			Msg("Found matching command")
-
-		return c.trigger(cmdState, log, match)
 	}
 
 	return false
@@ -66,6 +68,7 @@ type CommandState struct {
 	IsBroadcaster bool
 	IsOwner       bool
 	IsBot         bool
+	IsTimedOut    bool
 
 	Channel string
 	Message string
