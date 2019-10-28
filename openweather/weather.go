@@ -52,6 +52,8 @@ type Weather struct {
 		Degree    int
 		Speed     float64
 	}
+
+	Time time.Time
 }
 
 type WeatherCondition struct {
@@ -65,6 +67,8 @@ type WeatherCondition struct {
 // Everything is optinal and some values may get transformed or processed.
 // TODO: make everything optional
 func NewWeatherFromWeatherDataResponse(resp weatherDataResponse) (*Weather, error) {
+	var err error
+
 	w := &Weather{
 		Sunrise:    time.Unix(resp.Sys.Sunrise, 0),
 		Sunset:     time.Unix(resp.Sys.Sunset, 0),
@@ -72,6 +76,13 @@ func NewWeatherFromWeatherDataResponse(resp weatherDataResponse) (*Weather, erro
 		Pressure:   resp.Main.Pressure,
 		CloudCover: resp.Clouds.All,
 		Conditions: []WeatherCondition{},
+	}
+
+	if resp.Time != "" {
+		w.Time, err = time.Parse("2006-01-02 15:04:05", resp.Time)
+		if err != nil {
+			return w, err
+		}
 	}
 
 	w.Temperature.Current = resp.Main.Temp
@@ -90,11 +101,10 @@ func NewWeatherFromWeatherDataResponse(resp weatherDataResponse) (*Weather, erro
 	w.Wind.Degree = resp.Wind.Deg
 	w.Wind.Speed = resp.Wind.Speed
 
-	direction, err := DegreeToCompass(resp.Wind.Deg)
+	w.Wind.Direction, err = DegreeToCompass(resp.Wind.Deg)
 	if err != nil {
 		return w, err
 	}
-	w.Wind.Direction = direction
 
 	for _, c := range resp.WeatherConditions {
 		w.Conditions = append(w.Conditions, WeatherCondition{

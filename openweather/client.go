@@ -60,6 +60,8 @@ type weatherDataResponse struct {
 		Deg   int     `json:"deg"`
 		Speed float64 `json:"speed"`
 	} `json:"wind"`
+
+	Time string `json:"dt_txt"`
 }
 
 type currentWeatherResponse struct {

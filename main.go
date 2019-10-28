@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/akamensky/argparse"
+	"github.com/chronophylos/chb3/openweather"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -46,7 +47,11 @@ var (
 	twitchToken    string
 
 	imgurClientID string
+
+	openweatherAppID string
 )
+
+var openweatherClient *openweather.OpenWeatherClient
 
 func main() {
 	// Commandline Flags {{{
@@ -116,6 +121,11 @@ func main() {
 		log.Fatal().Msg("Imgur ClientID is not set.")
 	}
 	imgurClientID = viper.GetString("imgur.clientid")
+
+	if !viper.IsSet("openweather.appid") {
+		log.Fatal().Msg("OpenWeather AppID is not set.")
+	}
+	openweatherAppID = viper.GetString("openweather.appid")
 	// }}}
 
 	log.Info().Msgf("Starting CHB3 %s", Version)
@@ -139,14 +149,19 @@ func main() {
 	// Panics {{{
 	defer func() {
 		if err := recover(); err != nil {
-			log.Error().
-				Interface("panic", err).
-				Msg("Ignoring Panic!")
+			log.Panic().
+				Interface("error", err).
+				Msg("Panic!")
 		}
 	}()
 	// }}}
 
 	state := LoadState()
+
+	log.Info().
+		Str("appid", censor(openweatherAppID)).
+		Msg("Creating new OpenWeather Client.")
+	openweatherClient = openweather.NewOpenWeatherClient(openweatherAppID)
 
 	analytics, err := NewAnalytics()
 	if err != nil {
@@ -382,7 +397,20 @@ func main() {
 		return true
 	})
 
-	/// weather
+	newCommand("weather", `(?i)^wie ist das wetter in (\w+)\??`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
+		city := match[0][1]
+
+		log.Info().
+			Str("city", city).
+			Msg("Checking weather")
+
+		weatherMessage := getWeather(city)
+		if weatherMessage != "" {
+			client.Say(cmdState.Channel, weatherMessage)
+		}
+
+		return true
+	})
 
 	newCommand("math", `(?i)^!math (.*)$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
 		exprString := match[0][1]
@@ -799,11 +827,60 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 
 // }}}
 // weather {{{
-const weatherText = "Das Aktuelle Wetter für %s: %s bei %d°C. Der Wind kommt aus %s mit %dm/s. Morgen wird es %s bis %s bei %d°C bis %d°C."
+const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s. Morgen wird es %s bei %.1f°C bis %.1f°C."
 
 func getWeather(city string) string {
+	currentWeather, err := openweatherClient.GetCurrentWeatherByName(city)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("city", city).
+			Msg("Error getting current weather.")
+		return ""
+	}
 
-	return ""
+	conditions := []string{}
+	for _, condition := range currentWeather.Conditions {
+		conditions = append(conditions, condition.Description)
+	}
+
+	currentCondition := strings.Join(conditions, " und ")
+
+	weatherForecast, err := openweatherClient.GetWeatherForecastByName(city)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("city", city).
+			Msg("Error getting weather forecast.")
+	}
+
+	var tomorrowsWeather *openweather.Weather
+	year, month, day := time.Now().Date()
+	tomorrow := time.Date(year, month, day, 12, 0, 0, 0, time.UTC)
+	for _, weather := range weatherForecast {
+		if weather.Time == tomorrow {
+			tomorrowsWeather = weather
+			log.Debug().Msg("found it")
+		}
+	}
+
+	conditions = []string{}
+	for _, condition := range tomorrowsWeather.Conditions {
+		conditions = append(conditions, condition.Description)
+	}
+
+	tomorrowsConditions := strings.Join(conditions, " und ")
+
+	return fmt.Sprintf(weatherText,
+		currentWeather.City.Name,
+		currentCondition,
+		currentWeather.Temperature.Current,
+		currentWeather.Wind.Direction,
+		currentWeather.Wind.Speed,
+		tomorrowsConditions,
+		tomorrowsWeather.Temperature.Min,
+		tomorrowsWeather.Temperature.Max,
+	)
 }
 
 // }}}
