@@ -578,6 +578,7 @@ func main() {
 			IsBroadcaster: message.User.Name == message.Channel,
 			IsOwner:       message.User.ID == chronophylosID,
 			IsBot:         checkIfBotname(message.User.Name),
+			IsTimedOut:    state.IsTimedOut(username, message.Time),
 
 			Channel: message.Channel,
 			Message: message.Message,
@@ -589,7 +590,7 @@ func main() {
 
 		commandRegistry.Trigger(cmdState)
 
-		if !cmdState.IsSleeping {
+		if !cmdState.IsSleeping && !cmdState.IsTimedOut {
 			checkForVoicemails(client, state, message.User.Name, message.Channel)
 		}
 	})
