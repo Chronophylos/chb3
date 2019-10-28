@@ -589,7 +589,9 @@ func main() {
 
 		commandRegistry.Trigger(cmdState)
 
-		checkForVoicemails(client, state, message.User.Name, message.Channel)
+		if !cmdState.IsSleeping {
+			checkForVoicemails(client, state, message.User.Name, message.Channel)
+		}
 	})
 
 	client.OnReconnectMessage(func(message twitch.ReconnectMessage) {
