@@ -798,6 +798,15 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 }
 
 // }}}
+// weather {{{
+const weatherText = "Das Aktuelle Wetter für %s: %s bei %d°C. Der Wind kommt aus %s mit %dm/s. Morgen wird es %s bis %s bei %d°C bis %d°C."
+
+func getWeather(city string) string {
+
+	return ""
+}
+
+// }}}
 // }}}
 
 // Helper Functions {{{
