@@ -184,6 +184,7 @@ func main() {
 
 	// Commands {{{
 	aC := func(c Command) {
+		c.Init()
 		commands = append(commands, &c)
 	}
 
@@ -284,9 +285,9 @@ func main() {
 
 	// Voicemails {{{
 	aC(Command{
-		name:     "leave voicemail",
-		re:       rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
-		cooldown: 30 * time.Second,
+		name:   "leave voicemail",
+		re:     rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
+		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
 			username := strings.ToLower(c.Match[0][1])
 			message := c.Match[0][2]
@@ -379,9 +380,10 @@ func main() {
 	})
 
 	aC(Command{
-		name:     "^",
-		re:       rl(`^\^`),
-		cooldown: 5 * time.Second,
+		name:      "^",
+		re:        rl(`^\^`),
+		channelCD: 1 * time.Second,
+		userCD:    5 * time.Second,
 		callback: func(c *CommandEvent) {
 			client.Say(c.Channel, "^")
 		},
