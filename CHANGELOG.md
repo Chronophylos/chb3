@@ -6,6 +6,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.2.0]
+
 ### Added
 
 * cooldowns for `^` and voicemails
@@ -111,7 +113,8 @@ Working but some features from v1 and v2 are missing:
 * Analytics Log
 
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.1.4..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.2.0..HEAD
+[3.2.0]: https://github.com/Chronophylos/chb3/compare/v3.1.4..v3.2.0
 [3.1.4]: https://github.com/Chronophylos/chb3/compare/v3.1.3..v3.1.4
 [3.1.3]: https://github.com/Chronophylos/chb3/compare/v3.1.2..v3.1.3
 [3.1.2]: https://github.com/Chronophylos/chb3/compare/v3.1.1..v3.1.2

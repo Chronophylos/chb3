@@ -31,7 +31,7 @@ const (
 
 // Build Infos
 var (
-	Version = "3.1.4"
+	Version = "3.2.0"
 )
 
 // Flags
