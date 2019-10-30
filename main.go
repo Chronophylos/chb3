@@ -284,8 +284,9 @@ func main() {
 
 	// Voicemails {{{
 	aC(Command{
-		name: "leave voicemail",
-		re:   rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
+		name:     "leave voicemail",
+		re:       rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
+		cooldown: 30 * time.Second,
 		callback: func(c *CommandEvent) {
 			username := strings.ToLower(c.Match[0][1])
 			message := c.Match[0][2]
@@ -378,8 +379,9 @@ func main() {
 	})
 
 	aC(Command{
-		name: "^",
-		re:   rl(`^\^`),
+		name:     "^",
+		re:       rl(`^\^`),
+		cooldown: 5 * time.Second,
 		callback: func(c *CommandEvent) {
 			client.Say(c.Channel, "^")
 		},
@@ -402,8 +404,9 @@ func main() {
 	})
 
 	aC(Command{
-		name: "weather",
-		re:   rl(`(?i)^wie ist das wetter in (\w+)\??`),
+		name:     "weather",
+		disabled: true,
+		re:       rl(`(?i)^wie ist das wetter in (\w+)\??`),
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][1]
 
