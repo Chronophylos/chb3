@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * a crash when voicemails are too long
 * replaying voicemails didnt show how many
 * replaying voicemails respects sleep
+* voicemails don't get replayed if your first message is a command
 
 
 ## [3.1.4] - 2019-10-25
