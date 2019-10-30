@@ -24,19 +24,29 @@ type Command struct {
 	name       string
 	re         []*regexp.Regexp
 	permission Permission
+	cooldown   time.Duration
 
 	ignoreSleep bool
 	reactToBots bool
+	disabled    bool
 
 	callback func(c *CommandEvent)
+
+	lastTriggered map[string]time.Time
 }
 
 // Trigger is used to trigger a commmand
 func (c *Command) Trigger(s *CommandState) bool {
+	if c.disabled {
+		return false
+	}
 	if !c.ignoreSleep && s.IsSleeping {
 		return false
 	}
 	if s.IsTimedOut && !s.IsOwner {
+		return false
+	}
+	if c.isCoolingDown(s.Channel, s.Time) {
 		return false
 	}
 	if s.GetPermission() < c.permission {
@@ -76,9 +86,19 @@ func (c *Command) Trigger(s *CommandState) bool {
 
 	if r.Skipped {
 		log.Debug().Msg("Command got skipped")
+	} else {
+		c.lastTriggered[s.Channel] = s.Time
 	}
 
 	return !r.Skipped
+}
+
+func (c *Command) isCoolingDown(channel string, t time.Time) bool {
+	zeit, present := c.lastTriggered[channel]
+	if !present {
+		return false
+	}
+	return t.Sub(zeit) < c.cooldown
 }
 
 func (c *Command) getLogger(s *CommandState) zerolog.Logger {
