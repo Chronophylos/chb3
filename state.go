@@ -334,7 +334,7 @@ func (s *State) Timeout(username string, until time.Time) {
 	s.Timeouts[username] = timeout
 }
 
-func (s *State) IsTimedOut(username string, t time.Time) {
+func (s *State) IsTimedOut(username string, t time.Time) bool {
 	timeout := s.GetTimeout(username)
 
 	return timeout.Until.Before(t)

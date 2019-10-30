@@ -9,65 +9,96 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Match [][]string
+type Permission int
 
-// TriggerFunction is a functions called when a command is triggered that provides all required information.
-// The function should return true if the command was successfull and false if not and the next command should be tried
-type TriggerFunction func(cmdState *CommandState, log zerolog.Logger, match Match) bool
+const (
+	Everyone Permission = iota
+	Subscriber
+	Regular
+	Moderator
+	Broadcaster
+	Owner
+)
 
-// Command holds a function that can be triggered with Command#Trigger and a regex
 type Command struct {
-	Name        string
-	re          *regexp.Regexp
-	trigger     TriggerFunction
-	IgnoreSleep bool
-}
+	name       string
+	re         []*regexp.Regexp
+	permission Permission
 
-// NewCommand creates a new command from a regex string and a TriggerFunction returning the new command
-func NewCommand(name, re string, trigger TriggerFunction) *Command {
-	return &Command{
-		Name:    name,
-		re:      regexp.MustCompile(re),
-		trigger: trigger,
-	}
-}
+	ignoreSleep bool
+	reactToBots bool
 
-func NewCommandEx(name, re string, trigger TriggerFunction, ignoreSleep bool) *Command {
-	cmd := NewCommand(name, re, trigger)
-	cmd.IgnoreSleep = ignoreSleep
-	return cmd
+	callback func(c *CommandEvent)
 }
 
 // Trigger is used to trigger a commmand
-func (c *Command) Trigger(cmdState *CommandState) bool {
-	if c.IgnoreSleep || !cmdState.IsSleeping {
-		if !cmdState.IsTimedOut || cmdState.IsOwner {
-			match := c.re.FindAllStringSubmatch(cmdState.Message, -1)
-			if match == nil {
-				return false
-			}
-
-			log := c.getLogger(cmdState)
-
-			log.Debug().
-				Interface("match", match).
-				Str("command", c.Name).
-				Msg("Found matching command")
-
-			return c.trigger(cmdState, log, match)
-		}
+func (c *Command) Trigger(s *CommandState) bool {
+	if !c.ignoreSleep && s.IsSleeping {
+		return false
+	}
+	if s.IsTimedOut && !s.IsOwner {
+		return false
+	}
+	if s.GetPermission() < c.permission {
+		return false
 	}
 
-	return false
+	// Check all regexps and stop if a match is found
+	var found bool
+	var match [][]string
+	for _, re := range c.re {
+		match = re.FindAllStringSubmatch(s.Message, -1)
+		if match != nil {
+			found = true
+			break
+		}
+	}
+	// quit if no match is found
+	if !found {
+		return false
+	}
+
+	// only get logger if we actually need it
+	log := c.getLogger(s)
+
+	log.Debug().
+		Interface("match", match).
+		Msg("Found matching command")
+
+	r := &CommandEvent{
+		CommandState: *s,
+		Logger:       log,
+		Match:        match,
+	}
+
+	// call the callback
+	c.callback(r)
+
+	if r.Skipped {
+		log.Debug().Msg("Command got skipped")
+	}
+
+	return !r.Skipped
+}
+
+func (c *Command) getLogger(s *CommandState) zerolog.Logger {
+	return log.With().
+		Str("command", c.name).
+		Str("channel", s.Channel).
+		Str("username", s.User.Name).
+		Str("msg", s.Message).
+		Logger()
 }
 
 // CommandState holds information that represent the state of a command. e.g. wheather the invoker is mod what channel and so on
 type CommandState struct {
 	IsSleeping    bool
 	IsMod         bool
+	IsSubscriber  bool
 	IsBroadcaster bool
 	IsOwner       bool
 	IsBot         bool
+	IsBotChannel  bool
 	IsTimedOut    bool
 
 	Channel string
@@ -78,37 +109,31 @@ type CommandState struct {
 	Raw *twitch.PrivateMessage
 }
 
-// CommandRegistry is used to register commands and trigger all registered commands
-type CommandRegistry struct {
-	commands []*Command
-}
-
-// NewCommandRegistry creates and returns a new CommandRegistry
-func NewCommandRegistry() *CommandRegistry {
-	return &CommandRegistry{}
-}
-
-// Register registers a command in the registry
-func (r *CommandRegistry) Register(command *Command) {
-	r.commands = append(r.commands, command)
-}
-
-// Trigger checks the regex of all commands in order and triggers a command
-// if the regex matches. If that command returns true,
-// signaling a successfull execution, it returns otherwise tries the command.
-func (r *CommandRegistry) Trigger(cmdState *CommandState) {
-	for _, command := range r.commands {
-		if command.Trigger(cmdState) {
-			break
-		}
+func (s *CommandState) GetPermission() Permission {
+	if s.IsOwner {
+		return Owner
 	}
+	if s.IsBroadcaster {
+		return Broadcaster
+	}
+	if s.IsMod {
+		return Moderator
+	}
+	// TODO: check if regular
+	if s.IsSubscriber {
+		return Subscriber
+	}
+	return Everyone
 }
 
-func (c *Command) getLogger(cmdState *CommandState) zerolog.Logger {
-	return log.With().
-		Str("command", c.Name).
-		Str("channel", cmdState.Channel).
-		Str("username", cmdState.User.Name).
-		Str("msg", cmdState.Message).
-		Logger()
+type CommandEvent struct {
+	CommandState
+	Match [][]string
+
+	Logger  zerolog.Logger
+	Skipped bool
+}
+
+func (c *CommandEvent) Skip() {
+	c.Skipped = true
 }

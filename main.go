@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"os"
 	"os/signal"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -51,9 +52,16 @@ var (
 	openweatherAppID string
 )
 
-var openweatherClient *openweather.OpenWeatherClient
+// Globals
+var (
+	openweatherClient *openweather.OpenWeatherClient
+	state             *State
+	client            *twitch.Client
+)
 
 func main() {
+	commands := []*Command{}
+
 	// Commandline Flags {{{
 	// Create new parser
 	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
@@ -156,7 +164,7 @@ func main() {
 	}()
 	// }}}
 
-	state := LoadState()
+	state = LoadState()
 
 	log.Info().
 		Str("appid", censor(openweatherAppID)).
@@ -172,348 +180,378 @@ func main() {
 		Str("username", twitchUsername).
 		Str("token", censor(twitchToken)).
 		Msg("Creating new Twitch Client.")
-	client := twitch.NewClient(twitchUsername, twitchToken)
-
-	log.Info().Msg("Creating Command Registry")
-	commandRegistry := NewCommandRegistry()
-
-	log.Info().Msg("Registering State Commands")
+	client = twitch.NewClient(twitchUsername, twitchToken)
 
 	// Commands {{{
-	newCommand := func(name, re string, trigger TriggerFunction) {
-		commandRegistry.Register(NewCommand(name, re, trigger))
-	}
-
-	newCommandEx := func(name, re string, trigger TriggerFunction, ignoreSleep bool) {
-		commandRegistry.Register(NewCommandEx(name, re, trigger, ignoreSleep))
+	aC := func(c Command) {
+		commands = append(commands, &c)
 	}
 
 	// State {{{
-	newCommand("go sleep", `(?i)^(shut up|go sleep) @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if !(cmdState.IsMod || cmdState.IsOwner) {
-			return false
-		}
+	aC(Command{
+		name:       "go sleep",
+		re:         rl(`(?i)^(shut up|go sleep) @?chronophylosbot`),
+		permission: Moderator,
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("Going to sleep")
 
-		log.Info().Msg("Going to sleep")
-
-		state.SetSleeping(cmdState.Channel, true)
-
-		return true
+			state.SetSleeping(c.Channel, true)
+		},
 	})
 
-	newCommandEx("wake up", `(?i)^wake up @?chronophylosbot`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if !(cmdState.IsMod || cmdState.IsOwner) {
-			return false
-		}
+	aC(Command{
+		name:        "wake up",
+		re:          rl(`(?i)^wake up @?chronophylosbot`),
+		ignoreSleep: true,
+		permission:  Moderator,
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("Waking up")
 
-		log.Info().Msg("Waking up")
-
-		state.SetSleeping(cmdState.Channel, false)
-
-		return true
-	}, true)
+			state.SetSleeping(c.Channel, false)
+		},
+	})
 	// }}}
 
 	// Admin Commands {{{
-	newCommand("join", `(?i)^join (my channel|\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		joinChannel := match[0][1]
+	aC(Command{
+		name: "join",
+		re:   rl(`(?i)^join (my channel|\w+) pls$`),
+		callback: func(c *CommandEvent) {
+			joinChannel := strings.ToLower(c.Match[0][1])
 
-		if cmdState.Channel == twitchUsername {
-			if joinChannel == "my channel" {
-				if state.HasChannel(cmdState.User.Name) {
-					client.Say(cmdState.Channel, "I'm already in your channel.")
-				} else {
-					join(client, state, log, cmdState.User.Name)
-					client.Say(cmdState.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
+			if c.IsBotChannel {
+				if joinChannel == "my channel" {
+					if state.HasChannel(c.User.Name) {
+						client.Say(c.Channel, "I'm already in your channel.")
+					} else {
+						join(client, state, c.Logger, c.User.Name)
+						client.Say(c.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
+					}
+				} else if c.IsOwner {
+					if state.HasChannel(joinChannel) {
+						client.Say(c.Channel, "I'm already in that channel.")
+					} else {
+						join(client, state, c.Logger, joinChannel)
+						client.Say(c.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
+					}
 				}
-			} else if cmdState.IsOwner {
-				if state.HasChannel(joinChannel) {
-					client.Say(cmdState.Channel, "I'm already in that channel.")
-				} else {
-					join(client, state, log, joinChannel)
-					client.Say(cmdState.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
-				}
+			} else {
+				c.Skip()
 			}
-			return true
-		}
-		return false
+		},
 	})
 
-	newCommandEx("leave", `(?i)^@?chronophylosbot leave this channel pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if !(cmdState.IsMod || cmdState.IsOwner) {
-			return false
-		}
+	aC(Command{
+		name:        "leave",
+		re:          rl(`(?i)^@?chronophylosbot leave this channel pls$`),
+		permission:  Moderator,
+		ignoreSleep: true,
+		callback: func(c *CommandEvent) {
+			client.Say(c.Channel, "ppPoof")
 
-		client.Say(cmdState.Channel, "ppPoof")
-		part(client, state, log, cmdState.Channel)
+			part(client, state, c.Logger, c.Channel)
+		},
+	})
 
-		return true
-	}, true)
+	aC(Command{
+		name: "leave",
+		re:   rl(`(?i)^leave (\w+) pls$`),
+		callback: func(c *CommandEvent) {
+			partChannel := strings.ToLower(c.Match[0][1])
 
-	newCommand("leave", `(?i)^leave (\w+) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		partChannel := match[0][1]
-		if cmdState.Channel == twitchUsername {
-			part(client, state, log, partChannel)
-			client.Say(cmdState.Channel, "I left "+partChannel+".")
-
-			return true
-		}
-
-		return false
+			if c.IsBotChannel {
+				if c.IsOwner || c.User.Name == partChannel {
+					part(client, state, c.Logger, partChannel)
+					client.Say(c.Channel, "I left "+partChannel+".")
+				}
+			} else {
+				c.Skip()
+			}
+		},
 	})
 	// }}}
 
 	// Version Command {{{
-	newCommand("version", `(?i)^chronophylosbot\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		client.Say(cmdState.Channel, "I'm a bot by Chronophylos. Version: "+Version)
-		log.Info().Msg("Sending Version")
-		return true
+	aC(Command{
+		name: "version",
+		re:   rl(`(?i)^chronophylosbot\?`),
+		callback: func(c *CommandEvent) {
+			client.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
+			c.Logger.Info().Msg("Sending Version")
+		},
 	})
 	// }}}
 
 	// Voicemails {{{
-	newCommand("leave voicemail", `(?i)@?chronophylosbot tell (\w+) (.*)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		username := match[0][1]
-		message := match[0][2]
+	aC(Command{
+		name: "leave voicemail",
+		re:   rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
+		callback: func(c *CommandEvent) {
+			username := strings.ToLower(c.Match[0][1])
+			message := c.Match[0][2]
 
-		if username == twitchUsername {
-			return false
-		}
+			if username == twitchUsername {
+				c.Skip()
+				return
+			}
 
-		log.Info().
-			Str("username", username).
-			Str("voicemessage", message).
-			Str("creator", cmdState.User.Name).
-			Msg("Leaving a voicemail")
+			c.Logger.Info().
+				Str("username", username).
+				Str("voicemessage", message).
+				Str("creator", c.User.Name).
+				Msg("Leaving a voicemail")
 
-		state.AddVoicemail(username, cmdState.Channel, cmdState.User.Name, message, cmdState.Time)
-		client.Say(cmdState.Channel, "I'll forward this message to "+username+" when they type something in chat")
-
-		return true
+			state.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time)
+			client.Say(c.Channel, "I'll forward this message to "+username+" when they type something in chat")
+		},
 	})
 	//}}}
 
 	// patscheck {{{
-	newCommand("patscheck", `(?i)habe ich heute schon gepatscht\?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		patscher := state.GetPatscher(cmdState.User.Name)
+	aC(Command{
+		name: "patscheck",
+		re:   rl(`(?i)habe ich heute schon gepatscht\?`, `(?i)hihsg\?`),
+		callback: func(c *CommandEvent) {
+			patscher := state.GetPatscher(c.User.Name)
 
-		log.Info().
-			Interface("patscher", patscher).
-			Msg("Checking Patscher")
+			c.Logger.Info().
+				Interface("patscher", patscher).
+				Msg("Checking Patscher")
 
-		if patscher.Count == 0 {
-			client.Say(cmdState.Channel, "You've never patted the fish before. You should do that now.")
-			return true
-		}
+			if patscher.Count == 0 {
+				client.Say(c.Channel, "You've never patted the fish before. You should do that now.")
+				return
+			}
 
-		streak := "Your current streak is " + strconv.Itoa(patscher.Streak) + "."
-		if patscher.Streak == 0 {
-			streak = "You don't have a streak ongoing."
-		}
+			streak := "Your current streak is " + strconv.Itoa(patscher.Streak) + "."
+			if patscher.Streak == 0 {
+				streak = "You don't have a streak ongoing."
+			}
 
-		total := " In total you patted " + strconv.Itoa(patscher.Count) + " times."
-		if patscher.Count == 0 {
-			total = ""
-		}
+			total := " In total you patted " + strconv.Itoa(patscher.Count) + " times."
+			if patscher.Count == 0 {
+				total = ""
+			}
 
-		if patscher.HasPatschedToday(cmdState.Time) {
-			client.Say(cmdState.Channel, "You already patted today. "+streak+total)
-		} else {
-			client.Say(cmdState.Channel, "You have not yet patted today. "+streak+total)
-		}
-
-		return true
+			if patscher.HasPatschedToday(c.Time) {
+				client.Say(c.Channel, "You already patted today. "+streak+total)
+			} else {
+				client.Say(c.Channel, "You have not yet patted today. "+streak+total)
+			}
+		},
 	})
 
-	newCommand("anfüttern", `trilluxeANFUETTERN (fischPatsch|fishPat)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.Channel != "furzbart" && !(*debug && cmdState.Channel == twitchUsername) {
-			return false
-		}
+	aC(Command{
+		name: "patsch",
+		re:   rl(`fischPatsch|fishPat`),
+		callback: func(c *CommandEvent) {
+			if c.Channel != "furzbart" && !(*debug && c.IsBotChannel) {
+				c.Skip()
+				return
+			}
 
-		if state.HasFishBeenFedToday(cmdState.Time) {
-			client.Say(cmdState.Channel, "Bitte überfüttere den Fisch nicht. Danke :)")
+			if len(c.Match) > 1 {
+				client.Say(c.Channel, "/timeout "+c.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
+				return
+			}
 
-			log.Info().Msg("Der Fisch wurde schon gefüttert")
+			if state.HasPatschedToday(c.User.Name, c.Time) {
+				client.Say(c.Channel, "Du hast heute schon gepatscht.")
+				return
+			}
 
-			return true
-		}
-
-		state.FeedFish(cmdState.Time)
-		log.Info().Msg("Der Fisch ist jetzt satt")
-
-		client.Say(cmdState.Channel, "Der Fisch sieht glücklich aus :)")
-
-		return true
-	})
-
-	newCommand("patsch", `fischPatsch|fishPat`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.Channel != "furzbart" && !(*debug && cmdState.Channel == twitchUsername) {
-			return false
-		}
-
-		if len(match) > 1 {
-			client.Say(cmdState.Channel, "/timeout "+cmdState.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
-			return false
-		}
-
-		if state.HasPatschedToday(cmdState.User.Name, cmdState.Time) {
-			client.Say(cmdState.Channel, "Du hast heute schon gepatscht.")
-			return false
-		}
-
-		state.Patsch(cmdState.User.Name, cmdState.Time)
-		log.Info().Msg("Patsch!")
-
-		return true
+			state.Patsch(c.User.Name, c.Time)
+			c.Logger.Info().Msg("Patsch!")
+		},
 	})
 	// }}}
 
 	// Useful Commands {{{
-	newCommand("vanish reply", `^!vanish`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.IsMod {
-			log.Info().Msgf("Telling %s how to use !vanish", cmdState.User.Name)
-			client.Say(cmdState.Channel, "Try /unmod"+cmdState.User.Name+" first weSmart")
-			return true
-		}
-		return false
+	aC(Command{
+		name:       "vanish reply",
+		re:         rl(`^!vanish`),
+		permission: Moderator,
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msgf("Telling %s how to use !vanish", c.User.Name)
+			client.Say(c.Channel, "Try /unmod"+c.User.Name+" first weSmart")
+		},
 	})
 
-	newCommand("^", `^\^`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if !cmdState.IsBot {
-			client.Say(cmdState.Channel, "^")
-			return true
-		}
-		return false
+	aC(Command{
+		name: "^",
+		re:   rl(`^\^`),
+		callback: func(c *CommandEvent) {
+			client.Say(c.Channel, "^")
+		},
 	})
 
-	newCommand("rate", `(?i)^rate (.*) pls$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		key := match[0][1]
-		rating := rate(key)
-		log.Info().
-			Str("key", key).
-			Str("rating", rating).
-			Msg("Rating something")
-		client.Say(cmdState.Channel, "I rate "+key+" "+rating+"/10")
-		return true
+	aC(Command{
+		name: "rate",
+		re:   rl(`(?i)^rate (.*) pls$`),
+		callback: func(c *CommandEvent) {
+			key := c.Match[0][1]
+			rating := rate(key)
+
+			c.Logger.Info().
+				Str("key", key).
+				Str("rating", rating).
+				Msg("Rating something")
+
+			client.Say(c.Channel, "I rate "+key+" "+rating+"/10")
+		},
 	})
 
-	newCommand("weather", `(?i)^wie ist das wetter in (\w+)\??`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		city := match[0][1]
+	aC(Command{
+		name: "weather",
+		re:   rl(`(?i)^wie ist das wetter in (\w+)\??`),
+		callback: func(c *CommandEvent) {
+			city := c.Match[0][1]
 
-		log.Info().
-			Str("city", city).
-			Msg("Checking weather")
+			c.Logger.Info().
+				Str("city", city).
+				Msg("Checking weather")
 
-		weatherMessage := getWeather(city)
-		if weatherMessage != "" {
-			client.Say(cmdState.Channel, weatherMessage)
-		}
-
-		return true
+			weatherMessage := getWeather(city)
+			if weatherMessage != "" {
+				client.Say(c.Channel, weatherMessage)
+			}
+		},
 	})
 
-	newCommand("math", `(?i)^!math (.*)$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		exprString := match[0][1]
+	aC(Command{
+		name: "math",
+		re:   rl(`(?i)^!math (.*)$`),
+		callback: func(c *CommandEvent) {
+			exprString := c.Match[0][1]
 
-		expr, err := govaluate.NewEvaluableExpression(exprString)
-		if err != nil {
-			log.Error().
-				Err(err).
+			expr, err := govaluate.NewEvaluableExpression(exprString)
+			if err != nil {
+				c.Logger.Error().
+					Err(err).
+					Str("expression", exprString).
+					Msg("Error parsing expression")
+				client.Say(c.Channel, fmt.Sprintf("Error: %v", err))
+				return
+			}
+
+			result, err := expr.Evaluate(nil)
+			if err != nil {
+				c.Logger.Error().
+					Err(err).
+					Str("expression", exprString).
+					Msg("Error evaluating expression")
+				return
+			}
+
+			c.Logger.Info().
 				Str("expression", exprString).
-				Msg("Error parsing expression")
-			client.Say(cmdState.Channel, fmt.Sprintf("Error: %v", err))
-			return true
-		}
+				Interface("result", result).
+				Msg("Evaluated Math Expression")
 
-		result, err := expr.Evaluate(nil)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("expression", exprString).
-				Msg("Error evaluating expression")
-			return true
-		}
-
-		log.Info().
-			Str("expression", exprString).
-			Interface("result", result).
-			Msg("Evaluated Math Expression")
-
-		client.Say(cmdState.Channel, fmt.Sprintf("%v", result))
-
-		return true
+			client.Say(c.Channel, fmt.Sprintf("%v", result))
+		},
 	})
 	// }}}
 
 	// Arguably Useful Commands {{{
-	newCommand("er dr", `er dr`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.User.Name == "nightbot" {
-			log.Info().Msg("Robert pressed two keys.")
-			client.Say(cmdState.Channel, "ückt voll oft zwei tasten LuL")
-			return true
-		}
-		return false
+	aC(Command{
+		name:        "er dr",
+		re:          rl(`er dr`),
+		reactToBots: true,
+		callback: func(c *CommandEvent) {
+			if c.User.Name == "nightbot" {
+				log.Info().Msg("Robert pressed two keys.")
+				client.Say(c.Channel, "ückt voll oft zwei tasten LuL")
+			} else {
+				c.Skip()
+			}
+		},
 	})
 
-	newCommand("hello user", `(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		log.Info().Msgf("Greeting %s.", cmdState.User.DisplayName)
-		client.Say(cmdState.Channel, "Hello "+cmdState.User.DisplayName+"👋")
-		return true
+	aC(Command{
+		name: "hello user",
+		re:   rl(`(?i)(hey|hi|h[ea]llo) @?chronop(phylos(bot)?)?`),
+		callback: func(c *CommandEvent) {
+
+			log.Info().Msgf("Greeting %s.", c.User.DisplayName)
+			client.Say(c.Channel, "Hello "+c.User.DisplayName+"👋")
+		},
 	})
 
-	newCommand("hello stirnbot", `^I'm here FeelsGoodMan$`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.User.Name == "stirnbot" {
-			log.Info().Msg("Greeting StirnBot.")
-			client.Say(cmdState.Channel, "StirnBot MrDestructoid /")
-			return true
-		}
-		return false
+	aC(Command{
+		name:        "hello stirnbot",
+		re:          rl(`^I'm here FeelsGoodMan$`),
+		reactToBots: true,
+		callback: func(c *CommandEvent) {
+			if c.User.Name == "stirnbot" {
+				c.Logger.Info().Msg("Greeting StirnBot")
+
+				client.Say(c.Channel, "StirnBot MrDestructoid /")
+			} else {
+				c.Skip()
+			}
+		},
 	})
 
-	newCommand("robert and wsd", `(?i)(wsd|weisserschattendrache|louis)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		if cmdState.User.Name == "n0valis" {
-			log.Info().Msg("Confusing robert.")
-			client.Say(cmdState.Channel, "did you mean me?")
-			return true
-		}
-		return false
+	aC(Command{
+		name: "robert and wsd",
+		re:   rl(`(?i)(wsd|weisserschattendraChe|louis)`),
+		callback: func(c *CommandEvent) {
+			if c.User.Name == "n0valis" {
+				c.Logger.Info().Msg("Confusing robert")
+
+				client.Say(c.Channel, "did you mean me?")
+			} else {
+				c.Skip()
+			}
+		},
 	})
 
-	newCommand("the age of marc", `(?i)(\bmarc alter\b)|(\balter marc\b)`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		log.Info().Msg("Gratulating marc for his birthday.")
-		client.Say(cmdState.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
-		return true
+	aC(Command{
+		name: "the age of marc",
+		re:   rl(`(?i)(\bmarc alter\b)|(\balter marc\b)`),
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("Gratulating marc for his birthday")
+
+			client.Say(c.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
+		},
 	})
 
-	newCommand("kleiwe", `(?i)\bkleiwe\b`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		log.Info().Msgf("Missspelling %s.", cmdState.User.DisplayName)
-		client.Say(cmdState.Channel, jumble(cmdState.User.DisplayName))
-		return true
+	aC(Command{
+		name: "kleiwe",
+		re:   rl(`(?i)\bkleiwe\b`),
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msgf("Missspelling %s", c.User.DisplayName)
+
+			client.Say(c.Channel, jumble(c.User.DisplayName))
+		},
 	})
 	// }}}
 
 	// Hardly Useful Commands {{{
-	newCommand("reupload", `((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`, func(cmdState *CommandState, log zerolog.Logger, match Match) bool {
-		link := match[0][1]
+	aC(Command{
+		name: "reupload",
+		re:   rl(`((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`),
+		callback: func(c *CommandEvent) {
+			link := c.Match[0][1]
 
-		// Fix links
-		if !strings.HasPrefix("https://", link) {
-			if !strings.HasPrefix("http://", link) {
-				link = strings.TrimPrefix(link, "http://")
+			// Fix links
+			if !strings.HasPrefix("https://", link) {
+				if !strings.HasPrefix("http://", link) {
+					link = strings.TrimPrefix(link, "http://")
+				}
+				link = "https://" + link
 			}
-			link = "https://" + link
-		}
 
-		log.Info().
-			Str("link", link).
-			Msg("Reuploading a link to imgur")
+			c.Logger.Info().
+				Str("link", link).
+				Msg("Reuploading a link to imgur")
 
-		newURL := reupload(link)
-		if newURL != "" {
-			client.Say(cmdState.Channel, "Did you mean "+newURL+" ?")
-			return true
-		}
-		return false
+			newURL := reupload(link)
+			if newURL != "" {
+				client.Say(c.Channel, "Did you mean "+newURL+" ?")
+			}
+		},
 	})
 	// }}}
 
@@ -559,6 +597,7 @@ func main() {
 		analytics.Log().
 			Time("sent", message.Time).
 			Str("channel", message.Channel).
+			Interface("tags", message.Tags).
 			Str("username", message.User.Name).
 			Str("msg-id", message.ID).
 			Str("msg", message.Message).
@@ -571,14 +610,17 @@ func main() {
 		}
 
 		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
+		message.Message = strings.TrimSpace(message.Message)
 
-		cmdState := &CommandState{
+		s := &CommandState{
 			IsSleeping:    state.IsSleeping(message.Channel),
-			IsMod:         false,
+			IsMod:         message.Tags["mod"] == "1",
+			IsSubscriber:  message.Tags["subscriber"] != "0",
 			IsBroadcaster: message.User.Name == message.Channel,
 			IsOwner:       message.User.ID == chronophylosID,
 			IsBot:         checkIfBotname(message.User.Name),
-			IsTimedOut:    state.IsTimedOut(username, message.Time),
+			IsBotChannel:  message.Channel == twitchUsername,
+			IsTimedOut:    state.IsTimedOut(message.User.Name, message.Time),
 
 			Channel: message.Channel,
 			Message: message.Message,
@@ -588,9 +630,13 @@ func main() {
 			Raw: &message,
 		}
 
-		commandRegistry.Trigger(cmdState)
+		for _, c := range commands {
+			if c.Trigger(s) {
+				return
+			}
+		}
 
-		if !cmdState.IsSleeping && !cmdState.IsTimedOut {
+		if !s.IsSleeping && !s.IsTimedOut {
 			checkForVoicemails(client, state, message.User.Name, message.Channel)
 		}
 	})
@@ -689,7 +735,7 @@ func rate(key string) string {
 
 // }}}
 // jumble {{{
-// jumble uses the Fisher-Yates shuffle to shuffle a string in place
+// jumble uses the Fisher-Yates shuffle to shuffle a string in plaCe
 func jumble(name string) string {
 	a := strings.Split(name, "")
 	l := len(a)
@@ -890,6 +936,16 @@ func getWeather(city string) string {
 // }}}
 
 // Helper Functions {{{
+func rl(re ...string) []*regexp.Regexp {
+	res := []*regexp.Regexp{}
+
+	for _, r := range re {
+		res = append(res, regexp.MustCompile(r))
+	}
+
+	return res
+}
+
 func censor(text string) string {
 	if *showSecrets && !*daemon {
 		return text
