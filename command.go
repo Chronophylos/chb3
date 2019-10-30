@@ -24,7 +24,9 @@ type Command struct {
 	name       string
 	re         []*regexp.Regexp
 	permission Permission
-	cooldown   time.Duration
+
+	userCD    time.Duration
+	channelCD time.Duration
 
 	ignoreSleep bool
 	reactToBots bool
@@ -32,7 +34,15 @@ type Command struct {
 
 	callback func(c *CommandEvent)
 
-	lastTriggered map[string]time.Time
+	lastTriggered struct {
+		channels map[string]time.Time
+		users    map[string]time.Time
+	}
+}
+
+func (c *Command) Init() {
+	c.lastTriggered.channels = make(map[string]time.Time)
+	c.lastTriggered.users = make(map[string]time.Time)
 }
 
 // Trigger is used to trigger a commmand
@@ -46,7 +56,7 @@ func (c *Command) Trigger(s *CommandState) bool {
 	if s.IsTimedOut && !s.IsOwner {
 		return false
 	}
-	if c.isCoolingDown(s.Channel, s.Time) {
+	if c.isCoolingDown(s.Channel, s.User.Name, s.Time) {
 		return false
 	}
 	if s.GetPermission() < c.permission {
@@ -87,18 +97,34 @@ func (c *Command) Trigger(s *CommandState) bool {
 	if r.Skipped {
 		log.Debug().Msg("Command got skipped")
 	} else {
-		c.lastTriggered[s.Channel] = s.Time
+		c.resetCooldown(s.Channel, s.User.Name, s.Time)
 	}
 
 	return !r.Skipped
 }
 
-func (c *Command) isCoolingDown(channel string, t time.Time) bool {
-	zeit, present := c.lastTriggered[channel]
+func (c *Command) isCoolingDown(channel, username string, t time.Time) bool {
+	return c.isChannelCoolingDown(channel, t) || c.isUserCoolingDown(username, t)
+}
+
+func (c *Command) isChannelCoolingDown(channel string, t time.Time) bool {
+	zeit, present := c.lastTriggered.channels[channel]
 	if !present {
 		return false
 	}
-	return t.Sub(zeit) < c.cooldown
+	return t.Sub(zeit) < c.channelCD
+}
+
+func (c *Command) isUserCoolingDown(username string, t time.Time) bool {
+	zeit, present := c.lastTriggered.users[username]
+	if !present {
+		return false
+	}
+	return t.Sub(zeit) < c.userCD
+}
+
+func (c *Command) resetCooldown(channel, username string, t time.Time) {
+
 }
 
 func (c *Command) getLogger(s *CommandState) zerolog.Logger {
