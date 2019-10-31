@@ -359,6 +359,7 @@ func main() {
 
 			if state.HasPatschedToday(c.User.Name, c.Time) {
 				client.Say(c.Channel, "Du hast heute schon gepatscht.")
+				state.BreakStreak(c.User.Name)
 				return
 			}
 

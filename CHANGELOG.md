@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * Command#Trigger returns an error with more information than bool
+* patsch streaks get reset if you patsch to much
 
 ### Fixed
 
