@@ -637,7 +637,10 @@ func main() {
 
 		for _, c := range commands {
 			if err := c.Trigger(s); err != nil {
-				if err.Error() == "no match found" {
+				switch err.Error() {
+				case "not enough permissions":
+					fallthrough
+				case "no match found":
 					continue
 				}
 
