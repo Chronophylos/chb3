@@ -893,6 +893,13 @@ const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt
 func getWeather(city string) string {
 	currentWeather, err := openweatherClient.GetCurrentWeatherByName(city)
 	if err != nil {
+		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
+			log.Warn().
+				Err(err).
+				Str("city", city).
+				Msg("City not found")
+			return fmt.Sprintf("Ich kann %s nicht finden", city)
+		}
 		log.Error().
 			Err(err).
 			Str("city", city).
