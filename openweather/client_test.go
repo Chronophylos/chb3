@@ -8,18 +8,31 @@ import (
 )
 
 func TestGetCurrentWeatherByName(t *testing.T) {
-	assert := assert.New(t)
 
 	ow := NewOpenWeatherClient(os.Getenv("OPENWEATHERMAP_APPID"))
-	got, err := ow.GetCurrentWeatherByName("London")
 
-	if !assert.NoError(err) {
-		t.FailNow()
-	}
-	assert.Equal("London", got.City.Name)
-	assert.Equal("GB", got.City.Country)
-	assert.Equal(51.51, got.Position.Latitude)
-	assert.Equal(-0.13, got.Position.Longitude)
+	t.Run("existing city", func(t *testing.T) {
+		assert := assert.New(t)
+
+		got, err := ow.GetCurrentWeatherByName("London")
+
+		if !assert.NoError(err) {
+			t.FailNow()
+		}
+		assert.Equal("London", got.City.Name)
+		assert.Equal("GB", got.City.Country)
+		assert.Equal(51.51, got.Position.Latitude)
+		assert.Equal(-0.13, got.Position.Longitude)
+	})
+
+	t.Run("nonexisting city", func(t *testing.T) {
+		assert := assert.New(t)
+
+		_, err := ow.GetCurrentWeatherByName("calu321")
+
+		assert.EqualError(err, "OpenWeather API returned an error with code 404: city not found")
+	})
+
 }
 
 func TestGetWeatherForecastByName(t *testing.T) {
