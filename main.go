@@ -408,7 +408,7 @@ func main() {
 	aC(Command{
 		name: "weather",
 		//disabled: true,
-		re: rl(`(?i)^wie ist das wetter in (\w+)\??`),
+		re: rl(`(?i)^wie ist das wetter in (.*)\?`),
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][1]
 
