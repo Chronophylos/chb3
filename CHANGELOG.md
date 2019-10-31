@@ -15,6 +15,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * Command#Trigger returns an error with more information than bool
 
+### Fixed
+
+* crash when calling weather with a nonexisting city
+
 
 ## [3.2.0]
 
