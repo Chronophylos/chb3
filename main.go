@@ -643,6 +643,7 @@ func main() {
 
 				log.Debug().
 					Err(err).
+					Str("command", c.name).
 					Msg("Command did not get executed")
 			}
 		}
