@@ -70,12 +70,22 @@ type currentWeatherResponse struct {
 
 	weatherDataResponse
 
-	Code    int    `json:"cod"`
-	Message string `json:"message"`
+	Code    interface{} `json:"cod"`
+	Message string      `json:"message"`
 }
 
 func (r currentWeatherResponse) GetCode() int {
-	return r.Code
+	switch v := r.Code.(type) {
+	case int:
+		return v
+	case string:
+		code, _ := strconv.Atoi(v)
+		return code
+	case float64:
+		return int(v)
+	default:
+		panic(fmt.Sprintf("code is neither int nor string but: %T", v))
+	}
 }
 
 func (r currentWeatherResponse) GetMessage() string {
