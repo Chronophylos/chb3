@@ -34,6 +34,10 @@ type Timeout struct {
 	Until time.Time `json:"until"`
 }
 
+func (t *Timeout) IsTimedOut(z time.Time) bool {
+	return t.Until.After(z)
+}
+
 type Voicemail struct {
 	Created time.Time `json:"created"`
 	Message string    `json:"message"`
@@ -335,7 +339,5 @@ func (s *State) Timeout(username string, until time.Time) {
 }
 
 func (s *State) IsTimedOut(username string, t time.Time) bool {
-	timeout := s.GetTimeout(username)
-
-	return timeout.Until.After(t)
+	return s.GetTimeout(username).IsTimedOut(t)
 }
