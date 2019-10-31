@@ -406,9 +406,9 @@ func main() {
 	})
 
 	aC(Command{
-		name:     "weather",
-		disabled: true,
-		re:       rl(`(?i)^wie ist das wetter in (\w+)\??`),
+		name: "weather",
+		//disabled: true,
+		re: rl(`(?i)^wie ist das wetter in (\w+)\??`),
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][1]
 
@@ -881,7 +881,7 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 
 // }}}
 // weather {{{
-const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s. Morgen wird es %s bei %.1f°C bis %.1f°C."
+const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
 
 func getWeather(city string) string {
 	currentWeather, err := openweatherClient.GetCurrentWeatherByName(city)
@@ -889,7 +889,7 @@ func getWeather(city string) string {
 		log.Error().
 			Err(err).
 			Str("city", city).
-			Msg("Error getting current weather.")
+			Msg("Error getting current weather")
 		return ""
 	}
 
@@ -905,7 +905,7 @@ func getWeather(city string) string {
 		log.Error().
 			Err(err).
 			Str("city", city).
-			Msg("Error getting weather forecast.")
+			Msg("Error getting weather forecast")
 	}
 
 	var tomorrowsWeather *openweather.Weather
@@ -914,7 +914,7 @@ func getWeather(city string) string {
 	for _, weather := range weatherForecast {
 		if weather.Time == tomorrow {
 			tomorrowsWeather = weather
-			log.Debug().Msg("found it")
+			break
 		}
 	}
 
