@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * crash when calling weather with a nonexisting city
 * city names getting splitted at umlauts and other special characters
 * everyone beeing timeout
+* the bot wont repeat `^` from another bot
 
 
 ## [3.2.0]
