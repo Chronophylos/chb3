@@ -307,6 +307,11 @@ func (s *State) Patsch(username string, t time.Time) {
 	s.save()
 }
 
+func (s *State) BreakStreak(username string) {
+	s.GetPatscher(username).Streak = 0
+	s.save()
+}
+
 func (s *State) HasPatschedToday(username string, t time.Time) bool {
 	return s.GetPatscher(username).HasPatschedToday(t)
 }
