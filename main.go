@@ -386,6 +386,10 @@ func main() {
 		channelCD: 1 * time.Second,
 		userCD:    5 * time.Second,
 		callback: func(c *CommandEvent) {
+			if c.IsBot {
+				c.Skip()
+				return
+			}
 			client.Say(c.Channel, "^")
 		},
 	})
