@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * some aliases in german for state controls
 
+### Changed
+
+* Command#Trigger returns an error with more information than bool
+
 
 ## [3.2.0]
 
