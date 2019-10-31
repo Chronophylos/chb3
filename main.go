@@ -191,7 +191,7 @@ func main() {
 	// State {{{
 	aC(Command{
 		name:       "go sleep",
-		re:         rl(`(?i)^(shut up|go sleep) @?chronophylosbot`),
+		re:         rl(`(?i)^(shut up|go sleep) @?chronophylosbot`, `(?i)^@?chronophylosbot sei ruhig`),
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Going to sleep")
@@ -202,7 +202,7 @@ func main() {
 
 	aC(Command{
 		name:        "wake up",
-		re:          rl(`(?i)^wake up @?chronophylosbot`),
+		re:          rl(`(?i)^(wake up|wach auf) @?chronophylosbot`),
 		ignoreSleep: true,
 		permission:  Moderator,
 		callback: func(c *CommandEvent) {
