@@ -637,6 +637,10 @@ func main() {
 
 		for _, c := range commands {
 			if err := c.Trigger(s); err != nil {
+				if err.Error() == "no match found" {
+					continue
+				}
+
 				log.Debug().
 					Err(err).
 					Msg("Command did not get executed")
