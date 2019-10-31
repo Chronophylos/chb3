@@ -12,6 +12,7 @@ import (
 	"os"
 	"os/signal"
 	"regexp"
+	dbg "runtime/debug"
 	"strconv"
 	"strings"
 	"time"
@@ -157,9 +158,10 @@ func main() {
 	// Panics {{{
 	defer func() {
 		if err := recover(); err != nil {
-			log.Panic().
+			log.Error().
 				Interface("error", err).
 				Msg("Panic!")
+			dbg.PrintStack()
 		}
 	}()
 	// }}}
