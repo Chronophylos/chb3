@@ -20,6 +20,7 @@ import (
 	"github.com/akamensky/argparse"
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/gempir/go-twitch-irc/v2"
+	"github.com/mattn/go-isatty"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -40,7 +41,6 @@ var (
 	showSecrets *bool
 	debug       *bool
 	logLevel    *string
-	daemon      *bool
 )
 
 // Config
@@ -69,9 +69,6 @@ func main() {
 
 	debug = parser.Flag("", "debug",
 		&argparse.Options{Help: "Enable debugging. Sets --level=DEBUG."})
-
-	daemon = parser.Flag("", "daemon",
-		&argparse.Options{Help: "Run as a daemon."})
 
 	logLevel = parser.Selector("", "level",
 		[]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL", "PANIC"},
@@ -1002,7 +999,6 @@ func part(client *twitch.Client, state *State, log zerolog.Logger, channel strin
 }
 
 func setGlobalLogger() {
-	zerolog.TimeFieldFormat = time.StampMilli
 	level := zerolog.InfoLevel
 
 	if *debug {
@@ -1034,7 +1030,7 @@ func setGlobalLogger() {
 	// Set Log Level
 	zerolog.SetGlobalLevel(level)
 
-	if !*daemon {
+	if isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd()) {
 		// Pretty logging
 		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
 		log.Logger = log.Output(output)
