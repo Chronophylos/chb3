@@ -636,8 +636,10 @@ func main() {
 		}
 
 		for _, c := range commands {
-			if c.Trigger(s) {
-				return
+			if err := c.Trigger(s); err != nil {
+				log.Debug().
+					Err(err).
+					Msg("Command did not get executed")
 			}
 		}
 

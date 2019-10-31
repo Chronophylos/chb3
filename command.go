@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"regexp"
 	"time"
 
@@ -46,21 +47,21 @@ func (c *Command) Init() {
 }
 
 // Trigger is used to trigger a commmand
-func (c *Command) Trigger(s *CommandState) bool {
+func (c *Command) Trigger(s *CommandState) error {
 	if c.disabled {
-		return false
+		return errors.New("command is disabled")
 	}
 	if !c.ignoreSleep && s.IsSleeping {
-		return false
+		return errors.New("bot is sleeping")
 	}
 	if s.IsTimedOut && !s.IsOwner {
-		return false
+		return errors.New("user is timed out")
 	}
 	if c.isCoolingDown(s.Channel, s.User.Name, s.Time) {
-		return false
+		return errors.New("command is cooling down")
 	}
 	if s.GetPermission() < c.permission {
-		return false
+		return errors.New("not enough permissions")
 	}
 
 	// Check all regexps and stop if a match is found
@@ -75,7 +76,7 @@ func (c *Command) Trigger(s *CommandState) bool {
 	}
 	// quit if no match is found
 	if !found {
-		return false
+		return errors.New("no match found")
 	}
 
 	// only get logger if we actually need it
@@ -96,11 +97,12 @@ func (c *Command) Trigger(s *CommandState) bool {
 
 	if r.Skipped {
 		log.Debug().Msg("Command got skipped")
-	} else {
-		c.resetCooldown(s.Channel, s.User.Name, s.Time)
+		return errors.New("command got skipped")
 	}
 
-	return !r.Skipped
+	c.resetCooldown(s.Channel, s.User.Name, s.Time)
+
+	return nil
 }
 
 func (c *Command) isCoolingDown(channel, username string, t time.Time) bool {
