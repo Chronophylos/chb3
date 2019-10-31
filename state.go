@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,6 +10,8 @@ import (
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -16,6 +19,12 @@ const (
 	localStatePath   = "."
 	stateFilename    = "state.json"
 )
+
+type StateClient struct {
+	state  *State
+	client *mongo.Client
+	ctx    context.Context
+}
 
 type State struct {
 	Channels        map[string]*channelState `json:"channels"`
@@ -100,7 +109,7 @@ func (p *Patscher) Patsch(t time.Time) {
 	p.Count++
 }
 
-func LoadState() *State {
+func LoadJSONState() *State {
 	state := State{
 		Channels:   make(map[string]*channelState),
 		Voicemails: make(map[string][]*Voicemail),
@@ -161,6 +170,41 @@ func LoadState() *State {
 	return &state
 }
 
+func CreateStateClient(uri string) (error, *StateClient) {
+	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		return err, &StateClient{}
+	}
+
+	if err = client.Ping(ctx, readpref.Primary()); err != nil {
+		return nil, &StateClient{}
+	}
+
+	return nil, &StateClient{client: client, ctx: ctx}
+}
+
+func (sc *StateClient) DoesDatabaseExist() (error, bool) {
+	dbNames, err := sc.client.ListDatabaseNames(sc.ctx, nil)
+	if err != nil {
+		return err, false
+	}
+
+	for _, name := range dbNames {
+		if name == "chb3" {
+			return true
+		}
+	}
+
+	return false
+}
+
+func (sc *StateClient) Migrate() {
+	s := LoadJSONState()
+}
+
+// Deprecated: not needed since mongo always saves
 func (s *State) save() {
 	bytes, err := json.Marshal(s)
 	if err != nil {
