@@ -70,3 +70,27 @@ func TestPatscherHasPatsched(t *testing.T) {
 	assert.True(p.HasPatschedLately(now))
 	assert.True(p.HasPatschedToday(now))
 }
+
+func TestIsTimedOut(t *testing.T) {
+	assert := assert.New(t)
+
+	yesterday := time.Date(2010, time.November, 9, 23, 0, 0, 0, time.UTC)
+	now := time.Date(2010, time.November, 10, 10, 0, 0, 0, time.UTC)
+	tomorrow := time.Date(2010, time.November, 11, 23, 0, 0, 0, time.UTC)
+
+	to := Timeout{}
+
+	assert.False(to.IsTimedOut(now))
+
+	to.Until = yesterday
+
+	assert.False(to.IsTimedOut(now))
+
+	to.Until = now
+
+	assert.False(to.IsTimedOut(now))
+
+	to.Until = tomorrow
+
+	assert.True(to.IsTimedOut(now))
+}
