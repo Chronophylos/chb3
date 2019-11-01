@@ -19,6 +19,7 @@ import (
 
 	"github.com/akamensky/argparse"
 	"github.com/chronophylos/chb3/openweather"
+	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/mattn/go-isatty"
 	"github.com/rs/zerolog"
@@ -56,7 +57,7 @@ var (
 // Globals
 var (
 	openweatherClient *openweather.OpenWeatherClient
-	state             *State
+	state             *state.Client
 	client            *twitch.Client
 )
 
@@ -163,7 +164,14 @@ func main() {
 	}()
 	// }}}
 
-	state = LoadState()
+	state, err = state.NewClient("mongodb://localhost:27017")
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Could not create state client")
+	}
+
+	log.Info().Msg("Created state client")
 
 	log.Info().
 		Str("appid", censor(openweatherAppID)).
