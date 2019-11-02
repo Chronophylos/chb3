@@ -321,28 +321,35 @@ func main() {
 		name: "patscheck",
 		re:   rl(`(?i)habe ich heute schon gepatscht\?`, `(?i)hihsg\?`),
 		callback: func(c *CommandEvent) {
-			patscher := state.GetPatscher(c.User.Name)
+			user, err := stateClient.GetUserByID(c.User.ID)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Str("id", c.User.ID).
+					Msg("Could not get user")
+				return
+			}
 
 			c.Logger.Info().
 				Interface("patscher", patscher).
 				Msg("Checking Patscher")
 
-			if patscher.Count == 0 {
+			if user.PatschCount == 0 {
 				client.Say(c.Channel, "You've never patted the fish before. You should do that now.")
 				return
 			}
 
-			streak := "Your current streak is " + strconv.Itoa(patscher.Streak) + "."
-			if patscher.Streak == 0 {
+			streak := "Your current streak is " + strconv.Itoa(user.PatschStreak) + "."
+			if user.PatschStreak == 0 {
 				streak = "You don't have a streak ongoing."
 			}
 
-			total := " In total you patted " + strconv.Itoa(patscher.Count) + " times."
-			if patscher.Count == 0 {
+			total := " In total you patted " + strconv.Itoa(user.PatschCount) + " times."
+			if user.PatschCount == 0 {
 				total = ""
 			}
 
-			if patscher.HasPatschedToday(c.Time) {
+			if user.HasPatschedToday(c.Time) {
 				client.Say(c.Channel, "You already patted today. "+streak+total)
 			} else {
 				client.Say(c.Channel, "You have not yet patted today. "+streak+total)
@@ -364,13 +371,29 @@ func main() {
 				return
 			}
 
-			if state.HasPatschedToday(c.User.Name, c.Time) {
+			user, err := stateClient.GetUserByID(c.User.ID)
+			if err != nil {
+				log.Error().
+					Err(err).
+					Str("id", c.User.ID).
+					Msg("Could not get user")
+				return
+			}
+
+			if user.HasPatschedToday(c.Time) {
 				client.Say(c.Channel, "Du hast heute schon gepatscht.")
 				state.BreakStreak(c.User.Name)
 				return
 			}
 
-			state.Patsch(c.User.Name, c.Time)
+			user.Patsch(c.Time)
+			if err := stateClient.UpdateUser(user); err != nil {
+				log.Error().
+					Err(err).
+					Str("id", c.User.ID).
+					Msg("Could not update user")
+				return
+			}
 			c.Logger.Info().Msg("Patsch!")
 		},
 	})
