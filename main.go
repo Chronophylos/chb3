@@ -57,7 +57,7 @@ var (
 // Globals
 var (
 	openweatherClient *openweather.OpenWeatherClient
-	state             *state.Client
+	stateClient       *state.Client
 	client            *twitch.Client
 )
 
@@ -164,7 +164,7 @@ func main() {
 	}()
 	// }}}
 
-	state, err = state.NewClient("mongodb://localhost:27017")
+	stateClient, err = state.NewClient("mongodb://localhost:27017")
 	if err != nil {
 		log.Fatal().
 			Err(err).
