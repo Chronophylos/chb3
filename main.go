@@ -670,6 +670,8 @@ func main() {
 			Raw: &message,
 		}
 
+		stateClient.BumpUser(message.User, message.Time)
+
 		for _, c := range commands {
 			if err := c.Trigger(s); err != nil {
 				switch err.Error() {
@@ -756,12 +758,12 @@ func main() {
 
 	log.Info().
 		Str("own-channel", twitchUsername).
-		Interface("channels", state.GetChannels()).
+		Interface("channels", state.GetJoinedChannels()).
 		Msg("Joining Channels")
 	// Make sure the bot is always in it's own channel
 	client.Join(twitchUsername)
-	state.AddChannel(twitchUsername)
-	client.Join(state.GetChannels()...)
+	state.JoinChannel(twitchUsername, true)
+	client.Join(state.GetJoinedChannels()...)
 
 	log.Info().Msg("Connecting to irc.twitch.tv")
 	err = client.Connect()
@@ -1019,13 +1021,13 @@ func pluralize(text string, times int64) string {
 
 func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
 	client.Join(channel)
-	state.AddChannel(channel)
+	state.JoinChannel(channel, true)
 	log.Info().Str("channel", channel).Msg("Joined new channel")
 }
 
 func part(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
 	client.Depart(channel)
-	state.RemoveChannel(channel)
+	state.JoinChannel(channel, false)
 	log.Info().Str("channel", channel).Msg("Parted from channel")
 }
 
