@@ -535,6 +535,16 @@ func main() {
 			client.Say(c.Channel, jumble(c.User.DisplayName))
 		},
 	})
+
+	aC(Command{
+		name: "time",
+		re:   rl(`(?i)what time is it\?`),
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("Checking the time")
+
+			client.Say(c.Channel, "The current time is: "+time.Now().Format(time.RFC3339))
+		},
+	})
 	// }}}
 
 	// Hardly Useful Commands {{{
