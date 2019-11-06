@@ -983,7 +983,7 @@ func rl(re ...string) []*regexp.Regexp {
 }
 
 func censor(text string) string {
-	if *showSecrets && !*daemon {
+	if *showSecrets {
 		return text
 	}
 	return "[REDACTED]"
