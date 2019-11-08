@@ -9,6 +9,15 @@ type Voicemail struct {
 	creator string
 }
 
+func NewVoicemail(message, channel, creator string, created time.Time) *Voicemail {
+	return &Voicemail{
+		created: created,
+		message: message,
+		channel: channel,
+		creator: creator,
+	}
+}
+
 func (v *Voicemail) String() string {
 	return v.created.Format(time.Stamp) + " " + v.creator + ": " + v.message
 }
@@ -75,4 +84,18 @@ func (u *User) Patsch(now time.Time) {
 
 	u.lastPatsched = now
 	u.patschCount++
+}
+
+func (u *User) PopVoicemails() []*Voicemail {
+	voicemails = s.voicemails
+	u.voicemails = []*Voicemail{}
+	return voicemails
+}
+
+func (u *User) HasVoicemails() bool {
+	return len(s.voicemails) > 0
+}
+
+func (u *User) AddVoicemail(voicemail *Voicemail) {
+	u.voicemails = append(u.voicemails, voicemail)
 }
