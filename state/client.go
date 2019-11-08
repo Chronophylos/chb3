@@ -1,3 +1,5 @@
+// Package state binds a mongo database and exports functions for interacting
+// with said database.
 package state
 
 import (
@@ -16,7 +18,8 @@ type StateClient struct {
 	ctx    context.Context
 }
 
-func NewClient(uri string) (error, *StateClient) {
+// NewClient connects to the mongo database located at uri and pings it.
+func NewClient(uri string) (*StateClient, error) {
 	ctx, _ := context.WithTimeout(context.Background(), 10*time.Second)
 
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
@@ -25,12 +28,14 @@ func NewClient(uri string) (error, *StateClient) {
 	}
 
 	if err = client.Ping(ctx, readpref.Primary()); err != nil {
-		return nil, &StateClient{}
+		return err, &StateClient{}
 	}
 
 	return nil, &StateClient{client: client, ctx: ctx}
 }
 
+// BumpUser makes sure the twitch user u exists in the database and creates it
+// if needed. Either way it sets lastseen to t.
 func (sc *StateClient) BumpUser(u twitch.User, t time.Time) error {
 	c := sc.client.Database("chb3").Collection("users")
 
@@ -65,6 +70,7 @@ func (sc *StateClient) BumpUser(u twitch.User, t time.Time) error {
 	return nil
 }
 
+// GetUserByID returns the user with id id from the database.
 func (sc *StateClient) GetUserByID(id string) (User, error) {
 	c := sc.client.Database("chb3").Collection("users")
 	var user User
@@ -75,6 +81,7 @@ func (sc *StateClient) GetUserByID(id string) (User, error) {
 	return user, err
 }
 
+// UpdateUser updates the user user in the mongo database.
 func (sc *StateClient) UpdateUser(user User) error {
 	c := sc.client.Database("chb3").Collection("users")
 
@@ -91,6 +98,7 @@ func (sc *StateClient) UpdateUser(user User) error {
 	return nil
 }
 
+// SetSleeping sets sleeping.
 func (sc *StateClient) SetSleeping(channelName string, sleeping bool) error {
 	c := sc.client.Database("chb3").Collection("channels")
 
@@ -116,6 +124,7 @@ func (sc *StateClient) SetSleeping(channelName string, sleeping bool) error {
 	return nil
 }
 
+// GetJoinedChannels returns all currentyl joined channels.
 func (sc *StateClient) GetJoinedChannels() ([]string, error) {
 	c := sc.client.Database("chb3").Collection("channels")
 	channels := []string{}
@@ -145,6 +154,7 @@ func (sc *StateClient) GetJoinedChannels() ([]string, error) {
 	return channels, nil
 }
 
+// JoinChannel sets joined.
 func (sc *StateClient) JoinChannel(channelName string, joined bool) error {
 	c := sc.client.Database("chb3").Collection("channels")
 
