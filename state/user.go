@@ -3,23 +3,23 @@ package state
 import "time"
 
 type Voicemail struct {
-	created time.Time
-	message string
-	channel string
-	creator string
+	Created time.Time
+	Message string
+	Channel string
+	Creator string
 }
 
 func NewVoicemail(channel, creator, message string, created time.Time) *Voicemail {
 	return &Voicemail{
-		created: created,
-		message: message,
-		channel: channel,
-		creator: creator,
+		Created: created,
+		Message: message,
+		Channel: channel,
+		Creator: creator,
 	}
 }
 
 func (v *Voicemail) String() string {
-	return v.created.Format(time.Stamp) + " " + v.creator + ": " + v.message
+	return v.Created.Format(time.Stamp) + " " + v.Creator + ": " + v.Message
 }
 
 type User struct {

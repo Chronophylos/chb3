@@ -164,28 +164,28 @@ func main() {
 	}()
 	// }}}
 
+	log.Info().Msg("Creating State Client")
 	stateClient, err = state.NewClient("mongodb://localhost:27017")
 	if err != nil {
 		log.Fatal().
 			Err(err).
-			Msg("Could not create state client")
+			Msg("Could not create State Client")
 	}
-	log.Info().Msg("Created state client")
 
 	log.Info().
 		Str("appid", censor(openweatherAppID)).
-		Msg("Creating new OpenWeather Client.")
+		Msg("Creating new OpenWeather Client")
 	owClient = openweather.NewOpenWeatherClient(openweatherAppID)
 
 	analytics, err := NewAnalytics()
 	if err != nil {
-		log.Fatal().Msg("Error creating analytics logger.")
+		log.Fatal().Msg("Error creating analytics logger")
 	}
 
 	log.Info().
 		Str("username", twitchUsername).
 		Str("token", censor(twitchToken)).
-		Msg("Creating new Twitch Client.")
+		Msg("Creating new Twitch Client")
 	twitchClient = twitch.NewClient(twitchUsername, twitchToken)
 
 	// Commands {{{
@@ -303,13 +303,22 @@ func main() {
 				return
 			}
 
+			if username == c.User.Name {
+				return
+			}
+
 			c.Logger.Info().
 				Str("username", username).
 				Str("voicemessage", message).
 				Str("creator", c.User.Name).
 				Msg("Leaving a voicemail")
 
-			stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time)
+			if err := stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time); err != nil {
+				log.Error().
+					Err(err).
+					Msg("Adding Voicemail")
+				return
+			}
 			twitchClient.Say(c.Channel, "I'll forward this message to "+username+" when they type something in chat")
 		},
 	})
@@ -650,6 +659,15 @@ func main() {
 		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
 		message.Message = strings.TrimSpace(message.Message)
 
+		user, err := stateClient.BumpUser(message.User, message.Time)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("username", message.User.Name).
+				Msg("Bumping user")
+			return
+		}
+
 		sleeping, err := stateClient.IsSleeping(message.Channel)
 		if err != nil {
 			log.Error().
@@ -657,14 +675,6 @@ func main() {
 				Str("channel", message.Channel).
 				Msg("Checking if channel is sleeping")
 			return
-		}
-
-		timedout, err := stateClient.IsTimedout(message.User.Name, message.Time)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("username", message.User.Name).
-				Msg("Checking if user is timed out")
 		}
 
 		s := &CommandState{
@@ -675,7 +685,7 @@ func main() {
 			IsOwner:       message.User.ID == chronophylosID,
 			IsBot:         checkIfBotname(message.User.Name),
 			IsBotChannel:  message.Channel == twitchUsername,
-			IsTimedout:    timedout,
+			IsTimedout:    user.IsTimedout(message.Time),
 
 			Channel: message.Channel,
 			Message: message.Message,
@@ -684,8 +694,6 @@ func main() {
 
 			Raw: &message,
 		}
-
-		stateClient.BumpUser(message.User, message.Time)
 
 		for _, c := range commands {
 			if err := c.Trigger(s); err != nil {
@@ -704,7 +712,7 @@ func main() {
 		}
 
 		if !s.IsSleeping && !s.IsTimedout {
-			checkForVoicemails(message.User.Name, message.Channel)
+			checkForVoicemails(message.User.ID, message.User.Name, message.Channel)
 		}
 	})
 
@@ -725,8 +733,6 @@ func main() {
 			Str("channel", message.Channel).
 			Str("username", message.User).
 			Msg("USERJOIN")
-
-		//checkForVoicemails(client, state, message.User, message.Channel)
 	})
 
 	twitchClient.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
@@ -906,29 +912,26 @@ func reupload(link string) string {
 }
 
 // }}}
+
 // check for voicemails {{{
-func checkForVoicemails(id, channel string) {
-	user, err := stateClient.GetUserByID(id)
+func checkForVoicemails(id, username, channel string) {
+
+	voicemails, err := stateClient.CheckForVoicemails(id)
 	if err != nil {
-		// TODO: report
+		log.Error().
+			Err(err).
+			Str("id", id).
+			Msg("Failed to get Voicemails")
 		return
 	}
 
-	if user.HasVoicemails() {
-		voicemails := user.PopVoicemails()
-
-		err = stateClient.UpdateUser(user)
-		if err != nil {
-			// TODO: report
-			return
-		}
-
+	if len(voicemails) > 0 {
 		log.Info().
 			Int("count", len(voicemails)).
-			Str("username", user.Name).
-			Msg("Replaying voicemails")
+			Str("username", username).
+			Msg("Replaying Voicemails")
 
-		messages := []string{"@" + user.Name + ", " + pluralize("message", int64(len(voicemails))) + " for you: "}
+		messages := []string{"@" + username + ", " + pluralize("message", int64(len(voicemails))) + " for you: "}
 		i := 0
 		noDelimiter := true
 		var delimiter string
