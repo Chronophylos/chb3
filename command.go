@@ -54,7 +54,7 @@ func (c *Command) Trigger(s *CommandState) error {
 	if !c.ignoreSleep && s.IsSleeping {
 		return errors.New("bot is sleeping")
 	}
-	if s.IsTimedOut && !s.IsOwner {
+	if s.IsTimedout && !s.IsOwner {
 		return errors.New("user is timed out")
 	}
 	if c.isCoolingDown(s.Channel, s.User.Name, s.Time) {
@@ -147,7 +147,7 @@ type CommandState struct {
 	IsOwner       bool
 	IsBot         bool
 	IsBotChannel  bool
-	IsTimedOut    bool
+	IsTimedout    bool
 
 	Channel string
 	Message string

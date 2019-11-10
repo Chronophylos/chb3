@@ -56,9 +56,9 @@ var (
 
 // Globals
 var (
-	openweatherClient *openweather.OpenWeatherClient
-	stateClient       *state.Client
-	client            *twitch.Client
+	owClient     *openweather.OpenWeatherClient
+	stateClient  *state.Client
+	twitchClient *twitch.Client
 )
 
 func main() {
@@ -170,13 +170,12 @@ func main() {
 			Err(err).
 			Msg("Could not create state client")
 	}
-
 	log.Info().Msg("Created state client")
 
 	log.Info().
 		Str("appid", censor(openweatherAppID)).
 		Msg("Creating new OpenWeather Client.")
-	openweatherClient = openweather.NewOpenWeatherClient(openweatherAppID)
+	owClient = openweather.NewOpenWeatherClient(openweatherAppID)
 
 	analytics, err := NewAnalytics()
 	if err != nil {
@@ -187,7 +186,7 @@ func main() {
 		Str("username", twitchUsername).
 		Str("token", censor(twitchToken)).
 		Msg("Creating new Twitch Client.")
-	client = twitch.NewClient(twitchUsername, twitchToken)
+	twitchClient = twitch.NewClient(twitchUsername, twitchToken)
 
 	// Commands {{{
 	aC := func(c Command) {
@@ -203,7 +202,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Going to sleep")
 
-			state.SetSleeping(c.Channel, true)
+			stateClient.SetSleeping(c.Channel, true)
 		},
 	})
 
@@ -215,7 +214,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Waking up")
 
-			state.SetSleeping(c.Channel, false)
+			stateClient.SetSleeping(c.Channel, false)
 		},
 	})
 	// }}}
@@ -229,18 +228,18 @@ func main() {
 
 			if c.IsBotChannel {
 				if joinChannel == "my channel" {
-					if state.HasChannel(c.User.Name) {
-						client.Say(c.Channel, "I'm already in your channel.")
+					if joined, err := stateClient.IsChannelJoined(c.User.Name); err != nil && joined {
+						twitchClient.Say(c.Channel, "I'm already in your channel.")
 					} else {
-						join(client, state, c.Logger, c.User.Name)
-						client.Say(c.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
+						join(c.Logger, c.User.Name)
+						twitchClient.Say(c.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
 					}
 				} else if c.IsOwner {
-					if state.HasChannel(joinChannel) {
-						client.Say(c.Channel, "I'm already in that channel.")
+					if joined, err := stateClient.IsChannelJoined(joinChannel); err != nil && joined {
+						twitchClient.Say(c.Channel, "I'm already in that channel.")
 					} else {
-						join(client, state, c.Logger, joinChannel)
-						client.Say(c.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
+						join(c.Logger, joinChannel)
+						twitchClient.Say(c.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
 					}
 				}
 			} else {
@@ -255,9 +254,9 @@ func main() {
 		permission:  Moderator,
 		ignoreSleep: true,
 		callback: func(c *CommandEvent) {
-			client.Say(c.Channel, "ppPoof")
+			twitchClient.Say(c.Channel, "ppPoof")
 
-			part(client, state, c.Logger, c.Channel)
+			part(c.Logger, c.Channel)
 		},
 	})
 
@@ -269,8 +268,8 @@ func main() {
 
 			if c.IsBotChannel {
 				if c.IsOwner || c.User.Name == partChannel {
-					part(client, state, c.Logger, partChannel)
-					client.Say(c.Channel, "I left "+partChannel+".")
+					part(c.Logger, partChannel)
+					twitchClient.Say(c.Channel, "I left "+partChannel+".")
 				}
 			} else {
 				c.Skip()
@@ -284,7 +283,7 @@ func main() {
 		name: "version",
 		re:   rl(`(?i)^chronophylosbot\?`),
 		callback: func(c *CommandEvent) {
-			client.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
+			twitchClient.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 			c.Logger.Info().Msg("Sending Version")
 		},
 	})
@@ -310,8 +309,8 @@ func main() {
 				Str("creator", c.User.Name).
 				Msg("Leaving a voicemail")
 
-			state.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time)
-			client.Say(c.Channel, "I'll forward this message to "+username+" when they type something in chat")
+			stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time)
+			twitchClient.Say(c.Channel, "I'll forward this message to "+username+" when they type something in chat")
 		},
 	})
 	//}}}
@@ -331,11 +330,11 @@ func main() {
 			}
 
 			c.Logger.Info().
-				Interface("patscher", patscher).
+				Interface("user", user).
 				Msg("Checking Patscher")
 
 			if user.PatschCount == 0 {
-				client.Say(c.Channel, "You've never patted the fish before. You should do that now.")
+				twitchClient.Say(c.Channel, "You've never patted the fish before. You should do that now.")
 				return
 			}
 
@@ -350,9 +349,9 @@ func main() {
 			}
 
 			if user.HasPatschedToday(c.Time) {
-				client.Say(c.Channel, "You already patted today. "+streak+total)
+				twitchClient.Say(c.Channel, "You already patted today. "+streak+total)
 			} else {
-				client.Say(c.Channel, "You have not yet patted today. "+streak+total)
+				twitchClient.Say(c.Channel, "You have not yet patted today. "+streak+total)
 			}
 		},
 	})
@@ -367,7 +366,7 @@ func main() {
 			}
 
 			if len(c.Match) > 1 {
-				client.Say(c.Channel, "/timeout "+c.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
+				twitchClient.Say(c.Channel, "/timeout "+c.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
 				return
 			}
 
@@ -381,20 +380,19 @@ func main() {
 			}
 
 			if user.HasPatschedToday(c.Time) {
-				client.Say(c.Channel, "Du hast heute schon gepatscht.")
-				state.BreakStreak(c.User.Name)
-				return
+				twitchClient.Say(c.Channel, "Du hast heute schon gepatscht.")
+				user.PatschStreak = 0
+			} else {
+				user.Patsch(c.Time)
+				c.Logger.Info().Msg("Patsch!")
 			}
 
-			user.Patsch(c.Time)
 			if err := stateClient.UpdateUser(user); err != nil {
 				log.Error().
 					Err(err).
 					Str("id", c.User.ID).
 					Msg("Could not update user")
-				return
 			}
-			c.Logger.Info().Msg("Patsch!")
 		},
 	})
 	// }}}
@@ -406,7 +404,7 @@ func main() {
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msgf("Telling %s how to use !vanish", c.User.Name)
-			client.Say(c.Channel, "Try /unmod"+c.User.Name+" first weSmart")
+			twitchClient.Say(c.Channel, "Try /unmod"+c.User.Name+" first weSmart")
 		},
 	})
 
@@ -420,7 +418,7 @@ func main() {
 				c.Skip()
 				return
 			}
-			client.Say(c.Channel, "^")
+			twitchClient.Say(c.Channel, "^")
 		},
 	})
 
@@ -436,7 +434,7 @@ func main() {
 				Str("rating", rating).
 				Msg("Rating something")
 
-			client.Say(c.Channel, "I rate "+key+" "+rating+"/10")
+			twitchClient.Say(c.Channel, "I rate "+key+" "+rating+"/10")
 		},
 	})
 
@@ -453,7 +451,7 @@ func main() {
 
 			weatherMessage := getWeather(city)
 			if weatherMessage != "" {
-				client.Say(c.Channel, weatherMessage)
+				twitchClient.Say(c.Channel, weatherMessage)
 			}
 		},
 	})
@@ -470,7 +468,7 @@ func main() {
 					Err(err).
 					Str("expression", exprString).
 					Msg("Error parsing expression")
-				client.Say(c.Channel, fmt.Sprintf("Error: %v", err))
+				twitchClient.Say(c.Channel, fmt.Sprintf("Error: %v", err))
 				return
 			}
 
@@ -488,7 +486,7 @@ func main() {
 				Interface("result", result).
 				Msg("Evaluated Math Expression")
 
-			client.Say(c.Channel, fmt.Sprintf("%v", result))
+			twitchClient.Say(c.Channel, fmt.Sprintf("%v", result))
 		},
 	})
 	// }}}
@@ -501,7 +499,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			if c.User.Name == "nightbot" {
 				log.Info().Msg("Robert pressed two keys.")
-				client.Say(c.Channel, "ückt voll oft zwei tasten LuL")
+				twitchClient.Say(c.Channel, "ückt voll oft zwei tasten LuL")
 			} else {
 				c.Skip()
 			}
@@ -514,7 +512,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 
 			log.Info().Msgf("Greeting %s.", c.User.DisplayName)
-			client.Say(c.Channel, "Hello "+c.User.DisplayName+"👋")
+			twitchClient.Say(c.Channel, "Hello "+c.User.DisplayName+"👋")
 		},
 	})
 
@@ -526,7 +524,7 @@ func main() {
 			if c.User.Name == "stirnbot" {
 				c.Logger.Info().Msg("Greeting StirnBot")
 
-				client.Say(c.Channel, "StirnBot MrDestructoid /")
+				twitchClient.Say(c.Channel, "StirnBot MrDestructoid /")
 			} else {
 				c.Skip()
 			}
@@ -540,7 +538,7 @@ func main() {
 			if c.User.Name == "n0valis" {
 				c.Logger.Info().Msg("Confusing ***REMOVED***")
 
-				client.Say(c.Channel, "did you mean me?")
+				twitchClient.Say(c.Channel, "did you mean me?")
 			} else {
 				c.Skip()
 			}
@@ -553,7 +551,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Gratulating marc for his birthday")
 
-			client.Say(c.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
+			twitchClient.Say(c.Channel, "marc ist heute 16 geworden FeelsBirthdayMan Clap")
 		},
 	})
 
@@ -563,7 +561,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msgf("Missspelling %s", c.User.DisplayName)
 
-			client.Say(c.Channel, jumble(c.User.DisplayName))
+			twitchClient.Say(c.Channel, jumble(c.User.DisplayName))
 		},
 	})
 	// }}}
@@ -589,7 +587,7 @@ func main() {
 
 			newURL := reupload(link)
 			if newURL != "" {
-				client.Say(c.Channel, "Did you mean "+newURL+" ?")
+				twitchClient.Say(c.Channel, "Did you mean "+newURL+" ?")
 			}
 		},
 	})
@@ -598,7 +596,7 @@ func main() {
 	// }}}
 
 	// Twich Client Event Handling {{{
-	client.OnClearChatMessage(func(message twitch.ClearChatMessage) {
+	twitchClient.OnClearChatMessage(func(message twitch.ClearChatMessage) {
 		analytics.Log().
 			Time("sent", message.Time).
 			Str("channel", message.Channel).
@@ -607,7 +605,7 @@ func main() {
 			Msg("CLEARCHAT")
 	})
 
-	client.OnClearMessage(func(message twitch.ClearMessage) {
+	twitchClient.OnClearMessage(func(message twitch.ClearMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Str("invoker", message.Login).
@@ -616,13 +614,13 @@ func main() {
 			Msg("CLEARMSG")
 	})
 
-	client.OnNamesMessage(func(message twitch.NamesMessage) {
+	twitchClient.OnNamesMessage(func(message twitch.NamesMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Interface("users", message.Users)
 	})
 
-	client.OnNoticeMessage(func(message twitch.NoticeMessage) {
+	twitchClient.OnNoticeMessage(func(message twitch.NoticeMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Str("msg", message.Message).
@@ -630,10 +628,10 @@ func main() {
 			Msg("NOTICE")
 	})
 
-	client.OnPingMessage(func(message twitch.PingMessage) {})
-	client.OnPongMessage(func(message twitch.PongMessage) {})
+	twitchClient.OnPingMessage(func(message twitch.PingMessage) {})
+	twitchClient.OnPongMessage(func(message twitch.PongMessage) {})
 
-	client.OnPrivateMessage(func(message twitch.PrivateMessage) {
+	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		analytics.Log().
 			Time("sent", message.Time).
 			Str("channel", message.Channel).
@@ -652,15 +650,32 @@ func main() {
 		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
 		message.Message = strings.TrimSpace(message.Message)
 
+		sleeping, err := stateClient.IsSleeping(message.Channel)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("channel", message.Channel).
+				Msg("Checking if channel is sleeping")
+			return
+		}
+
+		timedout, err := stateClient.IsTimedout(message.User.Name, message.Time)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("username", message.User.Name).
+				Msg("Checking if user is timed out")
+		}
+
 		s := &CommandState{
-			IsSleeping:    state.IsSleeping(message.Channel),
+			IsSleeping:    sleeping,
 			IsMod:         message.Tags["mod"] == "1",
 			IsSubscriber:  message.Tags["subscriber"] != "0",
 			IsBroadcaster: message.User.Name == message.Channel,
 			IsOwner:       message.User.ID == chronophylosID,
 			IsBot:         checkIfBotname(message.User.Name),
 			IsBotChannel:  message.Channel == twitchUsername,
-			IsTimedOut:    state.IsTimedOut(message.User.Name, message.Time),
+			IsTimedout:    timedout,
 
 			Channel: message.Channel,
 			Message: message.Message,
@@ -688,16 +703,16 @@ func main() {
 			}
 		}
 
-		if !s.IsSleeping && !s.IsTimedOut {
-			checkForVoicemails(client, state, message.User.Name, message.Channel)
+		if !s.IsSleeping && !s.IsTimedout {
+			checkForVoicemails(message.User.Name, message.Channel)
 		}
 	})
 
-	client.OnReconnectMessage(func(message twitch.ReconnectMessage) {
+	twitchClient.OnReconnectMessage(func(message twitch.ReconnectMessage) {
 		analytics.Log().Msg("RECONNECT")
 	})
 
-	client.OnRoomStateMessage(func(message twitch.RoomStateMessage) {
+	twitchClient.OnRoomStateMessage(func(message twitch.RoomStateMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Str("msg", message.Message).
@@ -705,7 +720,7 @@ func main() {
 			Msg("ROOMSTATE")
 	})
 
-	client.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
+	twitchClient.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Str("username", message.User).
@@ -714,7 +729,7 @@ func main() {
 		//checkForVoicemails(client, state, message.User, message.Channel)
 	})
 
-	client.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
+	twitchClient.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
 		analytics.Log().
 			Time("sent", message.Time).
 			Str("channel", message.Channel).
@@ -725,14 +740,14 @@ func main() {
 			Msg("USERNOTICE")
 	})
 
-	client.OnUserPartMessage(func(message twitch.UserPartMessage) {
+	twitchClient.OnUserPartMessage(func(message twitch.UserPartMessage) {
 		analytics.Log().
 			Str("channel", message.Channel).
 			Str("username", message.User).
 			Msg("USERPARt")
 	})
 
-	client.OnUserStateMessage(func(message twitch.UserStateMessage) {
+	twitchClient.OnUserStateMessage(func(message twitch.UserStateMessage) {
 		analytics.Log().
 			Str("username", message.User.Name).
 			Str("channel", message.Channel).
@@ -741,7 +756,7 @@ func main() {
 			Msg("USERSTATE")
 	})
 
-	client.OnWhisperMessage(func(message twitch.WhisperMessage) {
+	twitchClient.OnWhisperMessage(func(message twitch.WhisperMessage) {
 		analytics.Log().
 			Str("username", message.User.Name).
 			Str("msg", message.Message).
@@ -750,23 +765,29 @@ func main() {
 			Msg("WHISPER")
 	})
 
-	client.OnConnect(func() {
+	twitchClient.OnConnect(func() {
 		analytics.Log().Msg("CONNECTED")
 		log.Info().Msg("Connected to irc.twitch.tv")
 	})
 	// }}}
 
+	joinedChannels, err := stateClient.GetJoinedChannels()
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Getting currently joined channels")
+	}
 	log.Info().
 		Str("own-channel", twitchUsername).
-		Interface("channels", state.GetJoinedChannels()).
+		Interface("channels", joinedChannels).
 		Msg("Joining Channels")
 	// Make sure the bot is always in it's own channel
-	client.Join(twitchUsername)
-	state.JoinChannel(twitchUsername, true)
-	client.Join(state.GetJoinedChannels()...)
+	twitchClient.Join(twitchUsername)
+	stateClient.JoinChannel(twitchUsername, true)
+	twitchClient.Join(joinedChannels...)
 
 	log.Info().Msg("Connecting to irc.twitch.tv")
-	err = client.Connect()
+	err = twitchClient.Connect()
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -886,17 +907,28 @@ func reupload(link string) string {
 
 // }}}
 // check for voicemails {{{
-func checkForVoicemails(client *twitch.Client, state *State, username, channel string) {
-	if state.HasVoicemail(username) {
+func checkForVoicemails(id, channel string) {
+	user, err := stateClient.GetUserByID(id)
+	if err != nil {
+		// TODO: report
+		return
+	}
 
-		voicemails := state.PopVoicemails(username)
+	if user.HasVoicemails() {
+		voicemails := user.PopVoicemails()
+
+		err = stateClient.UpdateUser(user)
+		if err != nil {
+			// TODO: report
+			return
+		}
 
 		log.Info().
 			Int("count", len(voicemails)).
-			Str("username", username).
+			Str("username", user.Name).
 			Msg("Replaying voicemails")
 
-		messages := []string{"@" + username + ", " + pluralize("message", int64(len(voicemails))) + " for you: "}
+		messages := []string{"@" + user.Name + ", " + pluralize("message", int64(len(voicemails))) + " for you: "}
 		i := 0
 		noDelimiter := true
 		var delimiter string
@@ -920,7 +952,7 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 		}
 
 		for _, message := range messages {
-			client.Say(channel, message)
+			twitchClient.Say(channel, message)
 		}
 
 	}
@@ -931,7 +963,7 @@ func checkForVoicemails(client *twitch.Client, state *State, username, channel s
 const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
 
 func getWeather(city string) string {
-	currentWeather, err := openweatherClient.GetCurrentWeatherByName(city)
+	currentWeather, err := owClient.GetCurrentWeatherByName(city)
 	if err != nil {
 		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
 			log.Warn().
@@ -954,7 +986,7 @@ func getWeather(city string) string {
 
 	currentCondition := strings.Join(conditions, " und ")
 
-	weatherForecast, err := openweatherClient.GetWeatherForecastByName(city)
+	weatherForecast, err := owClient.GetWeatherForecastByName(city)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -1006,7 +1038,7 @@ func rl(re ...string) []*regexp.Regexp {
 }
 
 func censor(text string) string {
-	if *showSecrets && !*daemon {
+	if *showSecrets {
 		return text
 	}
 	return "[REDACTED]"
@@ -1019,15 +1051,15 @@ func pluralize(text string, times int64) string {
 	return "one " + text
 }
 
-func join(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
-	client.Join(channel)
-	state.JoinChannel(channel, true)
+func join(log zerolog.Logger, channel string) {
+	twitchClient.Join(channel)
+	stateClient.JoinChannel(channel, true)
 	log.Info().Str("channel", channel).Msg("Joined new channel")
 }
 
-func part(client *twitch.Client, state *State, log zerolog.Logger, channel string) {
-	client.Depart(channel)
-	state.JoinChannel(channel, false)
+func part(log zerolog.Logger, channel string) {
+	twitchClient.Depart(channel)
+	stateClient.JoinChannel(channel, false)
 	log.Info().Str("channel", channel).Msg("Parted from channel")
 }
 
