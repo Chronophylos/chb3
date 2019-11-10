@@ -9,7 +9,7 @@ type Voicemail struct {
 	creator string
 }
 
-func NewVoicemail(message, channel, creator string, created time.Time) *Voicemail {
+func NewVoicemail(channel, creator, message string, created time.Time) *Voicemail {
 	return &Voicemail{
 		created: created,
 		message: message,
@@ -23,9 +23,9 @@ func (v *Voicemail) String() string {
 }
 
 type User struct {
-	id          string
-	name        string
-	displayName string
+	ID          string
+	Name        string
+	DisplayName string
 
 	isRegular bool
 
@@ -47,13 +47,13 @@ func (u *User) IsTimedout(now time.Time) bool {
 }
 
 // Timeout times out a user until t.
-func (u *User) Timeout(t time.time) {
+func (u *User) Timeout(t time.Time) {
 	u.timeout = t
 }
 
 // HasPatschedLately returns true if lastPatsched is no more then 48 hourse before now.
 func (u *User) HasPatschedLately(now time.Time) bool {
-	diff := t.Sub(p.lastPatsched)
+	diff := now.Sub(u.lastPatsched)
 	return diff.Hours() < 48
 }
 
@@ -72,28 +72,28 @@ func (u *User) Patsch(now time.Time) {
 	if u.HasPatschedLately(now) { // check if streak is broken
 		if !u.HasPatschedToday(now) { // check if user has patsched today already
 			// user has not patsched today -> increase streak
-			u.patschStreak++
+			u.PatschStreak++
 		} else {
 			// user has patsched today already -> reset streak
-			u.patschStreak = 0
+			u.PatschStreak = 0
 		}
 	} else {
 		// user forgot to patsch reset their streak
-		u.patschStreak = 0
+		u.PatschStreak = 0
 	}
 
 	u.lastPatsched = now
-	u.patschCount++
+	u.PatschCount++
 }
 
 func (u *User) PopVoicemails() []*Voicemail {
-	voicemails = s.voicemails
+	voicemails := u.voicemails
 	u.voicemails = []*Voicemail{}
 	return voicemails
 }
 
 func (u *User) HasVoicemails() bool {
-	return len(s.voicemails) > 0
+	return len(u.voicemails) > 0
 }
 
 func (u *User) AddVoicemail(voicemail *Voicemail) {
