@@ -73,10 +73,13 @@ func (c *Client) BumpUser(u twitch.User, t time.Time) (*User, error) {
 		_, err := col.InsertOne(ctx, user)
 		return user, err
 	}
-	// update last seen
+	// update
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
 			{Key: "lastseen", Value: t},
+			{Key: "id", Value: u.ID},
+			{Key: "name", Value: u.Name},
+			{Key: "dispayname", Value: u.DisplayName},
 		}},
 	}
 	err := col.FindOneAndUpdate(ctx, filter, update).Decode(&user)
