@@ -566,7 +566,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Checking the time")
 
-			client.Say(c.Channel, "The current time is: "+time.Now().Format(time.RFC3339))
+			twitchClient.Say(c.Channel, "The current time is: "+time.Now().Format(time.RFC3339))
 		},
 	})
 	// }}}
