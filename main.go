@@ -712,7 +712,7 @@ func main() {
 		}
 
 		if !s.IsSleeping && !s.IsTimedout {
-			checkForVoicemails(message.User.ID, message.User.Name, message.Channel)
+			checkForVoicemails(message.User.Name, message.Channel)
 		}
 	})
 
@@ -914,13 +914,13 @@ func reupload(link string) string {
 // }}}
 
 // check for voicemails {{{
-func checkForVoicemails(id, username, channel string) {
+func checkForVoicemails(username, channel string) {
 
-	voicemails, err := stateClient.CheckForVoicemails(id)
+	voicemails, err := stateClient.CheckForVoicemails(username)
 	if err != nil {
 		log.Error().
 			Err(err).
-			Str("id", id).
+			Str("username", username).
 			Msg("Failed to get Voicemails")
 		return
 	}

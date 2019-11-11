@@ -27,40 +27,40 @@ type User struct {
 	Name        string
 	DisplayName string
 
-	isRegular bool
+	IsRegular bool
 
-	firstseen time.Time
-	lastseen  time.Time
+	Firstseen time.Time
+	Lastseen  time.Time
 
-	timeout time.Time
+	Timeout time.Time
 
-	lastPatsched time.Time
+	LastPatsched time.Time
 	PatschStreak int
 	PatschCount  int
 
-	voicemails []*Voicemail
+	Voicemails []*Voicemail
 }
 
 // IsTimedout checks if a user is currently timed out.
 func (u *User) IsTimedout(now time.Time) bool {
-	return u.timeout.After(now)
+	return u.Timeout.After(now)
 }
 
-// Timeout times out a user until t.
-func (u *User) Timeout(t time.Time) {
-	u.timeout = t
+// SetTimeout times out a user until t.
+func (u *User) SetTimeout(t time.Time) {
+	u.Timeout = t
 }
 
 // HasPatschedLately returns true if lastPatsched is no more then 48 hourse before now.
 func (u *User) HasPatschedLately(now time.Time) bool {
-	diff := now.Sub(u.lastPatsched)
+	diff := now.Sub(u.LastPatsched)
 	return diff.Hours() < 48
 }
 
 // HasPatschedToday returns true if lastPatsched is on the same day as now.
 // It does this by truncating both lastPatsched and now by a day and then checking for equality.
 func (u *User) HasPatschedToday(now time.Time) bool {
-	lastPatsched := u.lastPatsched.Truncate(24 * time.Hour)
+	lastPatsched := u.LastPatsched.Truncate(24 * time.Hour)
 	now = now.Truncate(24 * time.Hour)
 
 	return lastPatsched.Equal(now)
@@ -82,20 +82,20 @@ func (u *User) Patsch(now time.Time) {
 		u.PatschStreak = 0
 	}
 
-	u.lastPatsched = now
+	u.LastPatsched = now
 	u.PatschCount++
 }
 
 func (u *User) PopVoicemails() []*Voicemail {
-	voicemails := u.voicemails
-	u.voicemails = []*Voicemail{}
+	voicemails := u.Voicemails
+	u.Voicemails = []*Voicemail{}
 	return voicemails
 }
 
 func (u *User) HasVoicemails() bool {
-	return len(u.voicemails) > 0
+	return len(u.Voicemails) > 0
 }
 
 func (u *User) AddVoicemail(voicemail *Voicemail) {
-	u.voicemails = append(u.voicemails, voicemail)
+	u.Voicemails = append(u.Voicemails, voicemail)
 }

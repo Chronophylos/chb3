@@ -50,7 +50,12 @@ func (c *Client) BumpUser(u twitch.User, t time.Time) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.D{{Key: "id", Value: u.ID}}
+	filter := bson.D{
+		{Key: "$or", Value: bson.A{
+			bson.D{{Key: "id", Value: u.ID}},
+			bson.D{{Key: "name", Value: u.Name}},
+		}},
+	}
 	if err := col.FindOne(ctx, filter).Err(); err != nil {
 		log.Info().
 			Str("id", u.ID).
@@ -61,8 +66,9 @@ func (c *Client) BumpUser(u twitch.User, t time.Time) (*User, error) {
 			ID:          u.ID,
 			Name:        u.Name,
 			DisplayName: u.DisplayName,
-			firstseen:   t,
-			lastseen:    t,
+			Firstseen:   t,
+			Lastseen:    t,
+			Voicemails:  []*Voicemail{},
 		}
 		_, err := col.InsertOne(ctx, user)
 		return user, err
@@ -278,7 +284,7 @@ func (c *Client) AddVoicemail(username, channel, creator, message string, create
 }
 
 // CheckForVoicemails pops all voicemails a user has
-func (c *Client) CheckForVoicemails(id string) ([]*Voicemail, error) {
+func (c *Client) CheckForVoicemails(name string) ([]*Voicemail, error) {
 	var voicemails []*Voicemail
 	var user User
 
@@ -286,14 +292,13 @@ func (c *Client) CheckForVoicemails(id string) ([]*Voicemail, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.D{{Key: "id", Value: id}}
+	filter := bson.D{{Key: "name", Value: name}}
 	update := bson.D{
 		{Key: "$pull", Value: bson.D{
 			{Key: "voicemails", Value: bson.D{}},
 		}},
 	}
 	opts := options.FindOneAndUpdate().
-		SetUpsert(true).
 		SetReturnDocument(options.Before)
 	err := col.FindOneAndUpdate(ctx, filter, update, opts).Decode(&user)
 	if err != nil {
