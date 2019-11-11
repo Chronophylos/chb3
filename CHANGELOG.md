@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.0] - 2019-11-11
+
 ### Added
 
 * some aliases in german for state controls
@@ -20,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * crash when calling weather with a nonexisting city
 * city names getting splitted at umlauts and other special characters
-* everyone beeing timeout
+* everyone beeing timedout
 * the bot wont repeat `^` from another bot
 
 
@@ -131,7 +133,8 @@ Working but some features from v1 and v2 are missing:
 * Analytics Log
 
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.2.0..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.3.0..HEAD
+[3.3.0]: https://github.com/Chronophylos/chb3/compare/v3.2.0..v3.3.0
 [3.2.0]: https://github.com/Chronophylos/chb3/compare/v3.1.4..v3.2.0
 [3.1.4]: https://github.com/Chronophylos/chb3/compare/v3.1.3..v3.1.4
 [3.1.3]: https://github.com/Chronophylos/chb3/compare/v3.1.2..v3.1.3
