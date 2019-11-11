@@ -300,8 +300,7 @@ func (c *Client) CheckForVoicemails(name string) ([]*Voicemail, error) {
 	}
 	opts := options.FindOneAndUpdate().
 		SetReturnDocument(options.Before)
-	err := col.FindOneAndUpdate(ctx, filter, update, opts).Decode(&user)
-	if err != nil {
+	if err := col.FindOneAndUpdate(ctx, filter, update, opts).Decode(&user); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return voicemails, nil
 		}
@@ -309,4 +308,34 @@ func (c *Client) CheckForVoicemails(name string) ([]*Voicemail, error) {
 	}
 
 	return user.PopVoicemails(), nil
+}
+
+func (c *Client) Patsch(id string, now time.Time) error {
+	col := c.mongo.Database("chb3").Collection("users")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	user, err := c.GetUserByID(id)
+	if err != nil {
+		return err
+	}
+
+	result := user.Patsch(now)
+
+	filter := bson.D{{Key: "id", Value: id}}
+	update := bson.D{
+		{Key: "$inc", Value: bson.D{{Key: "patschcount", Value: 1}}},
+		{Key: "$set", Value: bson.D{
+			{Key: "patschstreak", Value: user.PatschCount},
+			{Key: "lastpatsched", Value: now},
+		}},
+	}
+	if err := col.FindOneAndUpdate(ctx, filter, update).Err(); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return result
+		}
+		return err
+	}
+
+	return result
 }

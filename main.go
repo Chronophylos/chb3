@@ -30,6 +30,7 @@ import (
 
 const (
 	chronophylosID = "54946241"
+	botRe          = "@?chronophylosbot,?"
 )
 
 // Build Infos
@@ -197,7 +198,7 @@ func main() {
 	// State {{{
 	aC(Command{
 		name:       "go sleep",
-		re:         rl(`(?i)^(shut up|go sleep) @?chronophylosbot`, `(?i)^@?chronophylosbot sei ruhig`),
+		re:         rl(`(?i)^(shut up|go sleep) `+botRe, `(?i)^`+botRe+` sei ruhig`),
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Going to sleep")
@@ -208,7 +209,7 @@ func main() {
 
 	aC(Command{
 		name:        "wake up",
-		re:          rl(`(?i)^(wake up|wach auf) @?chronophylosbot`),
+		re:          rl(`(?i)^(wake up|wach auf) ` + botRe),
 		ignoreSleep: true,
 		permission:  Moderator,
 		callback: func(c *CommandEvent) {
@@ -281,7 +282,7 @@ func main() {
 	// Version Command {{{
 	aC(Command{
 		name: "version",
-		re:   rl(`(?i)^chronophylosbot\?`),
+		re:   rl(`(?i)^` + botRe + `\?`),
 		callback: func(c *CommandEvent) {
 			twitchClient.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 			c.Logger.Info().Msg("Sending Version")
@@ -292,7 +293,7 @@ func main() {
 	// Voicemails {{{
 	aC(Command{
 		name:   "leave voicemail",
-		re:     rl(`(?i)@?chronophylosbot tell (\w+) (.*)`),
+		re:     rl(`(?i)` + botRe + ` tell (\w+) (.*)`),
 		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
 			username := strings.ToLower(c.Match[0][1])
@@ -338,9 +339,7 @@ func main() {
 				return
 			}
 
-			c.Logger.Info().
-				Interface("user", user).
-				Msg("Checking Patscher")
+			c.Logger.Info().Msg("Checking Patscher")
 
 			if user.PatschCount == 0 {
 				twitchClient.Say(c.Channel, "You've never patted the fish before. You should do that now.")
@@ -379,29 +378,16 @@ func main() {
 				return
 			}
 
-			user, err := stateClient.GetUserByID(c.User.ID)
-			if err != nil {
-				log.Error().
-					Err(err).
-					Str("id", c.User.ID).
-					Msg("Could not get user")
-				return
+			if err := stateClient.Patsch(c.User.ID, c.Time); err != nil {
+				if err == state.ErrAlreadyPatsched {
+					twitchClient.Say(c.Channel, "Du hast heute schon gepatscht.")
+					return
+				} else if err == state.ErrForgotToPatsch {
+					// did not patsch
+				}
 			}
 
-			if user.HasPatschedToday(c.Time) {
-				twitchClient.Say(c.Channel, "Du hast heute schon gepatscht.")
-				user.PatschStreak = 0
-			} else {
-				user.Patsch(c.Time)
-				c.Logger.Info().Msg("Patsch!")
-			}
-
-			if err := stateClient.UpdateUser(user); err != nil {
-				log.Error().
-					Err(err).
-					Str("id", c.User.ID).
-					Msg("Could not update user")
-			}
+			c.Logger.Info().Msg("Patsch!")
 		},
 	})
 	// }}}
