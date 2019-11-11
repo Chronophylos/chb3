@@ -1,6 +1,15 @@
 package state
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+// These errors may occur
+var (
+	ErrAlreadyPatsched = errors.New("already patsched today")
+	ErrForgotToPatsch  = errors.New("fish was not patsched lately")
+)
 
 type Voicemail struct {
 	Created time.Time
@@ -68,7 +77,8 @@ func (u *User) HasPatschedToday(now time.Time) bool {
 
 // Patsch sets count as well as streak and lastPatsched if applicable.
 // A user must patsch every day but not more than once or their streak will be broken.
-func (u *User) Patsch(now time.Time) {
+func (u *User) Patsch(now time.Time) error {
+	var err error
 	if u.HasPatschedLately(now) { // check if streak is broken
 		if !u.HasPatschedToday(now) { // check if user has patsched today already
 			// user has not patsched today -> increase streak
@@ -76,14 +86,17 @@ func (u *User) Patsch(now time.Time) {
 		} else {
 			// user has patsched today already -> reset streak
 			u.PatschStreak = 0
+			err = ErrAlreadyPatsched
 		}
 	} else {
-		// user forgot to patsch reset their streak
+		// user forgot to patsch -> reset their streak
 		u.PatschStreak = 0
+		err = ErrForgotToPatsch
 	}
 
-	u.LastPatsched = now
 	u.PatschCount++
+
+	return err
 }
 
 func (u *User) PopVoicemails() []*Voicemail {
