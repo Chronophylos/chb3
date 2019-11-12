@@ -329,7 +329,7 @@ func (c *Client) Patsch(id string, now time.Time) error {
 	update := bson.D{
 		{Key: "$inc", Value: bson.D{{Key: "patschcount", Value: 1}}},
 		{Key: "$set", Value: bson.D{
-			{Key: "patschstreak", Value: user.PatschCount},
+			{Key: "patschstreak", Value: user.PatschStreak},
 			{Key: "lastpatsched", Value: now},
 		}},
 	}
