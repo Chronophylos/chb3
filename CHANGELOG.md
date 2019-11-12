@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * migrated users were missing their ids
 * a bug where the state client wrote the total count of patschers to the streak
+* the filter when getting joined channels
 
 
 ## [3.3.0] - 2019-11-11
