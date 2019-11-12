@@ -194,7 +194,7 @@ func (c *Client) GetJoinedChannels() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.D{{Key: "Joined", Value: "true"}}
+	filter := bson.D{{Key: "joined", Value: true}}
 	cur, err := col.Find(ctx, filter)
 	if err != nil {
 		return channels, err
@@ -207,6 +207,10 @@ func (c *Client) GetJoinedChannels() ([]string, error) {
 		if err := cur.Decode(&channel); err != nil {
 			return channels, err
 		}
+
+		log.Debug().
+			Interface("channel", channel).
+			Send()
 
 		channels = append(channels, channel.Name)
 	}
