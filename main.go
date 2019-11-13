@@ -399,7 +399,7 @@ func main() {
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msgf("Telling %s how to use !vanish", c.User.Name)
-			twitchClient.Say(c.Channel, "Try /unmod"+c.User.Name+" first weSmart")
+			twitchClient.Say(c.Channel, "Try /unmod "+c.User.Name+" first weSmart")
 		},
 	})
 
