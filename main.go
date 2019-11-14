@@ -178,11 +178,6 @@ func main() {
 		Msg("Creating new OpenWeather Client")
 	owClient = openweather.NewOpenWeatherClient(openweatherAppID)
 
-	analytics, err := NewAnalytics()
-	if err != nil {
-		log.Fatal().Msg("Error creating analytics logger")
-	}
-
 	log.Info().
 		Str("username", twitchUsername).
 		Str("token", censor(twitchToken)).
@@ -601,52 +596,7 @@ func main() {
 	// }}}
 
 	// Twich Client Event Handling {{{
-	twitchClient.OnClearChatMessage(func(message twitch.ClearChatMessage) {
-		analytics.Log().
-			Time("sent", message.Time).
-			Str("channel", message.Channel).
-			Int("duration", message.BanDuration).
-			Str("target", message.TargetUsername).
-			Msg("CLEARCHAT")
-	})
-
-	twitchClient.OnClearMessage(func(message twitch.ClearMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Str("invoker", message.Login).
-			Str("msg", message.Message).
-			Str("target-message-id", message.TargetMsgID).
-			Msg("CLEARMSG")
-	})
-
-	twitchClient.OnNamesMessage(func(message twitch.NamesMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Interface("users", message.Users)
-	})
-
-	twitchClient.OnNoticeMessage(func(message twitch.NoticeMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Str("msg", message.Message).
-			Str("msg-id", message.MsgID).
-			Msg("NOTICE")
-	})
-
-	twitchClient.OnPingMessage(func(message twitch.PingMessage) {})
-	twitchClient.OnPongMessage(func(message twitch.PongMessage) {})
-
 	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
-		analytics.Log().
-			Time("sent", message.Time).
-			Str("channel", message.Channel).
-			Interface("tags", message.Tags).
-			Str("username", message.User.Name).
-			Str("msg-id", message.ID).
-			Str("msg", message.Message).
-			Interface("tags", message.Tags).
-			Msg("PRIVMSG")
-
 		// Don't listen to messages sent by the bot
 		if message.User.Name == twitchUsername {
 			return
@@ -712,63 +662,7 @@ func main() {
 		}
 	})
 
-	twitchClient.OnReconnectMessage(func(message twitch.ReconnectMessage) {
-		analytics.Log().Msg("RECONNECT")
-	})
-
-	twitchClient.OnRoomStateMessage(func(message twitch.RoomStateMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Str("msg", message.Message).
-			Interface("state", message.State).
-			Msg("ROOMSTATE")
-	})
-
-	twitchClient.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Str("username", message.User).
-			Msg("USERJOIN")
-	})
-
-	twitchClient.OnUserNoticeMessage(func(message twitch.UserNoticeMessage) {
-		analytics.Log().
-			Time("sent", message.Time).
-			Str("channel", message.Channel).
-			Str("msg", message.Message).
-			Str("msg-id", message.MsgID).
-			Interface("msg-params", message.MsgParams).
-			Str("system-msg", message.SystemMsg).
-			Msg("USERNOTICE")
-	})
-
-	twitchClient.OnUserPartMessage(func(message twitch.UserPartMessage) {
-		analytics.Log().
-			Str("channel", message.Channel).
-			Str("username", message.User).
-			Msg("USERPARt")
-	})
-
-	twitchClient.OnUserStateMessage(func(message twitch.UserStateMessage) {
-		analytics.Log().
-			Str("username", message.User.Name).
-			Str("channel", message.Channel).
-			Str("msg", message.Message).
-			Interface("emotesets", message.EmoteSets).
-			Msg("USERSTATE")
-	})
-
-	twitchClient.OnWhisperMessage(func(message twitch.WhisperMessage) {
-		analytics.Log().
-			Str("username", message.User.Name).
-			Str("msg", message.Message).
-			Str("msg-id", message.MessageID).
-			Str("thread-id", message.ThreadID).
-			Msg("WHISPER")
-	})
-
 	twitchClient.OnConnect(func() {
-		analytics.Log().Msg("CONNECTED")
 		log.Info().Msg("Connected to irc.twitch.tv")
 	})
 	// }}}
