@@ -392,7 +392,7 @@ func registerCommands(commands []*Command) {
 		},
 	})
 
-	ac(Command{
+	aC(Command{
 		name: "marc likes u-bahnen",
 		re:   rl(`(?i)md7H /`),
 		callback: func(c *CommandEvent) {
@@ -401,7 +401,7 @@ func registerCommands(commands []*Command) {
 				return
 			}
 
-			c.Logger().Info().Msg("greeting marcs u-bahn")
+			c.Logger.Info().Msg("greeting marcs u-bahn")
 			twitchClient.Say(c.Channel, "marc U-Bahn /")
 		},
 	})
@@ -410,8 +410,8 @@ func registerCommands(commands []*Command) {
 		name: "nymnCREB",
 		re:   rl(`(?i)nymnCREB (\w+) IS GONE nymnCREB`),
 		callback: func(c *CommandEvent) {
-			c.Logger().Info().Msg("nymnCREB")
-			twitchClient.Say(c.Channel, "nymnCREB "+match[0][1]+" IS GONE nymnCREB")
+			c.Logger.Info().Msg("nymnCREB")
+			twitchClient.Say(c.Channel, "nymnCREB "+c.Match[0][1]+" IS GONE nymnCREB")
 		},
 	})
 	// }}}
