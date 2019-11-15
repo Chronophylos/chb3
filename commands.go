@@ -405,6 +405,15 @@ func registerCommands(commands []*Command) {
 			twitchClient.Say(c.Channel, "marc U-Bahn /")
 		},
 	})
+
+	aC(Command{
+		name: "nymnCREB",
+		re:   rl(`(?i)nymnCREB (\w+) IS GONE nymnCREB`),
+		callback: func(c *CommandEvent) {
+			c.Logger().Info().Msg("nymnCREB")
+			twitchClient.Say(c.Channel, "nymnCREB "+match[0][1]+" IS GONE nymnCREB")
+		},
+	})
 	// }}}
 
 	// Hardly Useful Commands {{{
