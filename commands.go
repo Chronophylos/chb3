@@ -391,6 +391,20 @@ func registerCommands(commands []*Command) {
 			twitchClient.Say(c.Channel, "The current time is: "+time.Now().Format(time.RFC3339))
 		},
 	})
+
+	ac(Command{
+		name: "marc likes u-bahnen",
+		re:   rl(`(?i)md7H /`),
+		callback: func(c *CommandEvent) {
+			if c.User.Name != "marc_yoyo" {
+				c.Skip()
+				return
+			}
+
+			c.Logger().Info().Msg("greeting marcs u-bahn")
+			twitchClient.Say(c.Channel, "marc U-Bahn /")
+		},
+	})
 	// }}}
 
 	// Hardly Useful Commands {{{
