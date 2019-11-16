@@ -3,6 +3,7 @@ module github.com/chronophylos/chb3
 go 1.12
 
 require (
+	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/akamensky/argparse v0.0.0-20191006154803-1427fe674291
 	github.com/gempir/go-twitch-irc/v2 v2.2.0
 	github.com/golang/snappy v0.0.1 // indirect
