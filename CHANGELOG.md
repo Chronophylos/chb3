@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * a bug where the state client wrote the total count of patschers to the streak
 * the bot not joining any channels on start
 * missing space in vanish command
+* bot crashing if you check the weather after 12:00
 
 ### Removed
 

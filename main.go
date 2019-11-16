@@ -911,7 +911,7 @@ func getWeather(city string) string {
 
 	var tomorrowsWeather *openweather.Weather
 	year, month, day := time.Now().Date()
-	tomorrow := time.Date(year, month, day, 12, 0, 0, 0, time.UTC)
+	tomorrow := time.Date(year, month, day+1, 12, 0, 0, 0, time.UTC)
 	for _, weather := range weatherForecast {
 		if weather.Time == tomorrow {
 			tomorrowsWeather = weather
