@@ -976,7 +976,7 @@ func setGlobalLogger() {
 
 	if isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd()) {
 		// Pretty logging
-		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.StampMilli}
+		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.Stamp}
 		log.Logger = log.Output(output)
 	}
 }
