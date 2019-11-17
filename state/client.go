@@ -79,7 +79,7 @@ func (c *Client) BumpUser(u twitch.User, t time.Time) (*User, error) {
 			{Key: "lastseen", Value: t},
 			{Key: "id", Value: u.ID},
 			{Key: "name", Value: u.Name},
-			{Key: "dispayname", Value: u.DisplayName},
+			{Key: "displayname", Value: u.DisplayName},
 		}},
 	}
 	err := col.FindOneAndUpdate(ctx, filter, update).Decode(&user)
