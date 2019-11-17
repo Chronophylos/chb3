@@ -19,6 +19,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * analytics
 
+### Changed
+
+* removed milliseconds from logs
+
 
 ## [3.3.0] - 2019-11-11
 
