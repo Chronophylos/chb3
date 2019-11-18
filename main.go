@@ -401,8 +401,8 @@ func main() {
 	aC(Command{
 		name:      "^",
 		re:        rl(`^\^`),
-		channelCD: 1 * time.Second,
-		userCD:    5 * time.Second,
+		channelCD: 10 * time.Second,
+		userCD:    30 * time.Second,
 		callback: func(c *CommandEvent) {
 			if c.IsBot || c.Channel == "moondye7" {
 				c.Skip()

@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * removed milliseconds from logs
 * disabled `^` in `#moondye7`
+* increased cooldown for `^`
 
 
 ## [3.3.0] - 2019-11-11
