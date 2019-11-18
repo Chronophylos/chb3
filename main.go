@@ -404,7 +404,7 @@ func main() {
 		channelCD: 1 * time.Second,
 		userCD:    5 * time.Second,
 		callback: func(c *CommandEvent) {
-			if c.IsBot {
+			if c.IsBot || c.Channel == "moondye7" {
 				c.Skip()
 				return
 			}
