@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * the bot not joining any channels on start
 * missing space in vanish command
 * bot crashing if you check the weather after 12:00
+* cooldowns not working
 
 ### Removed
 
