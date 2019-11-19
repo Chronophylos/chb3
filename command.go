@@ -114,7 +114,8 @@ func (c *Command) isChannelCoolingDown(channel string, t time.Time) bool {
 	if !present {
 		return false
 	}
-	return t.Sub(zeit) < c.channelCD
+	diff := t.Sub(zeit)
+	return diff < c.channelCD
 }
 
 func (c *Command) isUserCoolingDown(username string, t time.Time) bool {
@@ -122,11 +123,14 @@ func (c *Command) isUserCoolingDown(username string, t time.Time) bool {
 	if !present {
 		return false
 	}
-	return t.Sub(zeit) < c.userCD
+	diff := t.Sub(zeit)
+	return diff < c.userCD
 }
 
+// resetCooldown sets lastTriggered
 func (c *Command) resetCooldown(channel, username string, t time.Time) {
-
+	c.lastTriggered.channels[channel] = t
+	c.lastTriggered.users[username] = t
 }
 
 func (c *Command) getLogger(s *CommandState) zerolog.Logger {
