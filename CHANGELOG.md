@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * alias quickmafs as math
 
+### Changed
+
+* removed milliseconds from logs
+* disabled `^` in `#moondye7`
+* increased cooldown for `^`
+
+### Removed
+
+* analytics
+
 ### Fixed
 
 * migrated users were missing their ids
@@ -20,15 +30,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * bot crashing if you check the weather after 12:00
 * cooldowns not working
 
-### Removed
-
-* analytics
-
-### Changed
-
-* removed milliseconds from logs
-* disabled `^` in `#moondye7`
-* increased cooldown for `^`
 
 
 ## [3.3.0] - 2019-11-11
@@ -93,10 +94,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.2] - 2019-10-21
 
-### Fixed
-
-* streaks will work now
-
 ### Added
 
 * basic math command
@@ -105,19 +102,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * some command outputs
 
+### Fixed
+
+* streaks will work now
+
 
 ## [3.1.1] - The release that should be 3.2.0
 
 State files are incompatible with [3.1.0]
 
-### Fixed
-
-* makefile installation path
-
 ### Added
 
 * fischPatsch and fishPat statistics
 * voicemails aka leave a message for a user
+
+### Fixed
+
+* makefile installation path
 
 
 ## [3.1.0]
@@ -136,14 +137,14 @@ State files are incompatible with [3.1.0]
 
 ## [3.0.1]
 
-### Fixed
-
-* Bot detection
-
 ### Added
 
 * join and leave commands
 * owner only join and leave commands
+
+### Fixed
+
+* Bot detection
 
 
 ## [3.0.0]
