@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.3.1] - 2019-11-22
+
 ### Added
 
 * alias quickmafs as math
@@ -159,7 +161,8 @@ Working but some features from v1 and v2 are missing:
 * Analytics Log
 
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.3.0..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.3.1..HEAD
+[3.3.1]: https://github.com/Chronophylos/chb3/compare/v3.2.0..v3.3.1
 [3.3.0]: https://github.com/Chronophylos/chb3/compare/v3.2.0..v3.3.0
 [3.2.0]: https://github.com/Chronophylos/chb3/compare/v3.1.4..v3.2.0
 [3.1.4]: https://github.com/Chronophylos/chb3/compare/v3.1.3..v3.1.4
