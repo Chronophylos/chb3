@@ -587,6 +587,20 @@ func main() {
 			twitchClient.Say(c.Channel, "nymnCREB "+c.Match[0][1]+" IS GONE nymnCREB")
 		},
 	})
+
+	aC(Command{
+		name: "latertonnennotregal",
+		re:   rl(`(?i)\bregal\b`),
+		callback: func(c *CommandEvent) {
+			if c.User.Name != "nightbot" {
+				c.Skip()
+				return
+			}
+
+			c.Logger.Info().Msg("latertonnennotregal")
+			twitchClient.Say(c.Channel, "lager")
+		},
+	})
 	// }}}
 
 	// Hardly Useful Commands {{{
