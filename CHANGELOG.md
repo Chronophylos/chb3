@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* answer regal with lager if nightbot writes it
+
 ## [3.3.1] - 2019-11-22
 
 ### Added
