@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * answer regal with lager if nightbot writes it
 
+### Changed
+
+* compare users by id not name
+
 ## [3.3.1] - 2019-11-22
 
 ### Added

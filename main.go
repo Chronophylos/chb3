@@ -29,9 +29,13 @@ import (
 )
 
 const (
-	chronophylosID = "54946241"
-	botRe          = "@?chronophylosbot,?"
+	botRe = "@?chronophylosbot,?"
 )
+
+var idStore = map[string]string{
+	"marc_yoyo":    "89131006",
+	"chronophylos": "54946241",
+}
 
 // Build Infos
 var (
@@ -569,7 +573,7 @@ func main() {
 		name: "marc likes u-bahnen",
 		re:   rl(`(?i)md7H /`),
 		callback: func(c *CommandEvent) {
-			if c.User.Name != "marc_yoyo" {
+			if c.User.ID != idStore["marc_yoyo"] {
 				c.Skip()
 				return
 			}
@@ -664,7 +668,7 @@ func main() {
 			IsMod:         message.Tags["mod"] == "1",
 			IsSubscriber:  message.Tags["subscriber"] != "0",
 			IsBroadcaster: message.User.Name == message.Channel,
-			IsOwner:       message.User.ID == chronophylosID,
+			IsOwner:       message.User.ID == idStore["chronophylos"],
 			IsBot:         checkIfBotname(message.User.Name),
 			IsBotChannel:  message.Channel == twitchUsername,
 			IsTimedout:    user.IsTimedout(message.Time),
