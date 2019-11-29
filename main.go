@@ -292,34 +292,40 @@ func main() {
 	// Voicemails {{{
 	aC(Command{
 		name:   "leave voicemail",
-		re:     rl(`(?i)` + botRe + ` tell (\w+) (.*)`),
+		re:     rl(`(?i)` + botRe + ` tell ((\w+)( and (\w+))*) (.*)`),
 		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
-			username := strings.ToLower(c.Match[0][1])
-			message := c.Match[0][2]
+			match := c.Match[0]
+			usernames := []string{}
+			message := match[5]
 
-			if username == twitchUsername {
-				c.Skip()
-				return
-			}
+			for _, username := range strings.Split(match[1], " and ") {
+				if username == twitchUsername {
+					continue
+				}
 
-			if username == c.User.Name {
-				return
+				if username == c.User.Name {
+					continue
+				}
+
+				usernames = append(usernames, strings.ToLower(username))
 			}
 
 			c.Logger.Info().
-				Str("username", username).
+				Strs("usernames", usernames).
 				Str("voicemessage", message).
 				Str("creator", c.User.Name).
 				Msg("Leaving a voicemail")
 
-			if err := stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time); err != nil {
-				log.Error().
-					Err(err).
-					Msg("Adding Voicemail")
-				return
+			for _, username := range usernames {
+				if err := stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time); err != nil {
+					log.Error().
+						Err(err).
+						Msg("Adding Voicemail")
+					return
+				}
 			}
-			twitchClient.Say(c.Channel, "I'll forward this message to "+username+" when they type something in chat")
+			twitchClient.Say(c.Channel, "I'll forward this message to "+match[1]+" when they type something in chat")
 		},
 	})
 	//}}}
