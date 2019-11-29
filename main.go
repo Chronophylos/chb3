@@ -608,7 +608,7 @@ func main() {
 
 	aC(Command{
 		name: "scambot",
-		re:   rl(`(?i)\scambot\b`),
+		re:   rl(`(?i)\bscambot\b`),
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("not a scambot")
 			twitchClient.Say(c.Channel, "FeelsNotsureMan")
