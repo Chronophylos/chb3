@@ -596,13 +596,22 @@ func main() {
 		name: "latertonnennotregal",
 		re:   rl(`(?i)\bregal\b`),
 		callback: func(c *CommandEvent) {
-			if c.User.Name != "nightbot" {
+			if c.User.Name == "nightbot" {
 				c.Skip()
 				return
 			}
 
 			c.Logger.Info().Msg("latertonnennotregal")
 			twitchClient.Say(c.Channel, "lager")
+		},
+	})
+
+	aC(Command{
+		name: "scambot",
+		re:   rl(`(?i)\scambot\b`),
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("not a scambot")
+			twitchClient.Say(c.Channel, "FeelsNotsureMan")
 		},
 	})
 	// }}}
