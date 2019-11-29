@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * answer regal with lager if nightbot writes it
 * you can now patsch with fishPaste
+* scambot reply
 
 ### Changed
 
