@@ -365,7 +365,7 @@ func main() {
 
 	aC(Command{
 		name: "patsch",
-		re:   rl(`fischPatsch|fishPat|fishPaste`),
+		re:   rl(`fischPatsch|fishPat`),
 		callback: func(c *CommandEvent) {
 			if c.Channel != "furzbart" && !(*debug && c.IsBotChannel) {
 				c.Skip()
