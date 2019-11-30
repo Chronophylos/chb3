@@ -22,7 +22,6 @@ import (
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
-	"github.com/mattn/go-isatty"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -484,7 +483,7 @@ func main() {
 			c.Logger.Info().
 				Str("expression", exprString).
 				Interface("result", result).
-				Msg("Evaluated Math Expression")
+				Msg("doing math")
 
 			twitchClient.Say(c.Channel, fmt.Sprintf("%v", result))
 		},
@@ -1007,11 +1006,11 @@ func setGlobalLogger() {
 	// Set Log Level
 	zerolog.SetGlobalLevel(level)
 
-	if isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd()) {
-		// Pretty logging
-		output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.Stamp}
-		log.Logger = log.Output(output)
-	}
+	//if isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd()) {
+	// Pretty logging
+	output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.Stamp}
+	log.Logger = log.Output(output)
+	//}
 }
 func rl(re ...string) []*regexp.Regexp {
 	res := []*regexp.Regexp{}
