@@ -7,18 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* the delimiter for voicemail recipients to `&&`
+* always log with pretty print on
+
 ## [3.3.2] - 2019-11-29
 
 ### Added
 
 * answer regal with lager if nightbot writes it
 * scambot reply
-* the ability to leave multiple voicemails by joining the recipients with ` && `
+* leave multiple voicemails by joining the recipients with `and`
 
 ### Changed
 
 * compare users by id not name
-* dont log json when no tty is detected
 
 ## [3.3.1] - 2019-11-22
 
