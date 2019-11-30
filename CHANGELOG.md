@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * compare users by id not name
+* dont log json when no tty is detected
 
 ## [3.3.1] - 2019-11-22
 
