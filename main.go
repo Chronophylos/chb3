@@ -291,7 +291,7 @@ func main() {
 	// Voicemails {{{
 	aC(Command{
 		name:   "leave voicemail",
-		re:     rl(`(?i)` + botRe + ` tell ((\w+)( and (\w+))*) (.*)`),
+		re:     rl(`(?i)` + botRe + ` tell ((\w+)( && (\w+))*) (.*)`),
 		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
 			match := c.Match[0]
