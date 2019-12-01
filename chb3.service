@@ -10,8 +10,5 @@ RestartSec=10
 
 ExecStart=/usr/bin/chb3
 
-StandardOutput=syslog
-StandardError=syslog
-
 [Install]
 WantedBy=multi-user.target
