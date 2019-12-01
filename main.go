@@ -447,7 +447,17 @@ func main() {
 		name: "math",
 		re:   rl(`(?i)^!(math|quickmafs) (.*)$`),
 		callback: func(c *CommandEvent) {
-			exprString := c.Match[0][1]
+			exprString := c.Match[0][2]
+
+			defer func() {
+				if r := recover(); r != nil {
+					c.Logger.Info().
+						Str("expression", exprString).
+						Msg("failed to do math")
+
+					twitchClient.Say(c.Channel, "I can't calculate that :(")
+				}
+			}()
 
 			expr, err := govaluate.NewEvaluableExpression(exprString)
 			if err != nil {
