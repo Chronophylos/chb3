@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * the delimiter for voicemail recipients to `&&`
 * always log with pretty print on
+* let golang print panics
 
 ## [3.3.2] - 2019-11-29
 

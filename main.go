@@ -157,17 +157,6 @@ func main() {
 	}()
 	// }}}
 
-	// Panics {{{
-	defer func() {
-		if err := recover(); err != nil {
-			log.Error().
-				Interface("error", err).
-				Msg("Panic!")
-			dbg.PrintStack()
-		}
-	}()
-	// }}}
-
 	log.Info().Msg("Creating State Client")
 	stateClient, err = state.NewClient("mongodb://localhost:27017")
 	if err != nil {
