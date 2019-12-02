@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -30,8 +29,7 @@ import (
 )
 
 const (
-	botRe        = "@?chronophylosbot,?"
-	badWordsFile = "bad_words.txt"
+	botRe = "@?chronophylosbot,?"
 )
 
 var idStore = map[string]string{
@@ -59,6 +57,8 @@ var (
 	imgurClientID string
 
 	openweatherAppID string
+
+	swears []string
 )
 
 // Globals
@@ -141,6 +141,8 @@ func main() {
 		log.Fatal().Msg("OpenWeather AppID is not set.")
 	}
 	openweatherAppID = viper.GetString("openweather.appid")
+
+	swears = viper.GetStringSlice("chb3.swears")
 	// }}}
 
 	log.Info().Msgf("Starting CHB3 %s", Version)
@@ -193,13 +195,11 @@ func main() {
 			Msg("Created new Twitch Client")
 	}()
 
+	// why did i make this concurrent?
 	go func() {
-		swearfilter, err = loadSwearfilter(badWordsFile)
-		if err != nil {
-			log.Fatal().Err(err).Msg("Could not load Swearfilter")
-		}
+		swearfilter = &sw.SwearFilter{BlacklistedWords: swears}
 		wg.Done()
-		log.Info().Str("source", badWordsFile).Msg("Loaded Swearfilter")
+		log.Info().Strs("swears", swears).Msg("Loaded Swearfilter")
 	}()
 
 	wg.Wait()
@@ -1108,24 +1108,6 @@ func truncate(s string, i int) string {
 		return string(runes[:i])
 	}
 	return s
-}
-
-func loadSwearfilter(path string) (*sw.SwearFilter, error) {
-	swears := []string{}
-
-	file, err := os.Open(badWordsFile)
-	if err != nil {
-		return &sw.SwearFilter{}, err
-	}
-	defer file.Close()
-
-	scanner := bufio.NewScanner(file)
-
-	for scanner.Scan() {
-		swears = append(swears, scanner.Text())
-	}
-
-	return &sw.SwearFilter{BlacklistedWords: swears}, nil
 }
 
 // }}}
