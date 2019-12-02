@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"crypto/md5"
 	"encoding/json"
 	"fmt"
@@ -14,8 +15,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
+	sw "github.com/JoshuaDoes/gofuckyourself"
 	"github.com/Knetic/govaluate"
 	"github.com/akamensky/argparse"
 	"github.com/chronophylos/chb3/openweather"
@@ -27,7 +30,8 @@ import (
 )
 
 const (
-	botRe = "@?chronophylosbot,?"
+	botRe        = "@?chronophylosbot,?"
+	badWordsFile = "bad_words.txt"
 )
 
 var idStore = map[string]string{
@@ -62,6 +66,7 @@ var (
 	owClient     *openweather.OpenWeatherClient
 	stateClient  *state.Client
 	twitchClient *twitch.Client
+	swearfilter  *sw.SwearFilter
 )
 
 func main() {
@@ -156,24 +161,48 @@ func main() {
 	}()
 	// }}}
 
-	log.Info().Msg("Creating State Client")
-	stateClient, err = state.NewClient("mongodb://localhost:27017")
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("Could not create State Client")
-	}
+	wg := sync.WaitGroup{}
 
-	log.Info().
-		Str("appid", censor(openweatherAppID)).
-		Msg("Creating new OpenWeather Client")
-	owClient = openweather.NewOpenWeatherClient(openweatherAppID)
+	wg.Add(4)
 
-	log.Info().
-		Str("username", twitchUsername).
-		Str("token", censor(twitchToken)).
-		Msg("Creating new Twitch Client")
-	twitchClient = twitch.NewClient(twitchUsername, twitchToken)
+	go func() {
+		stateClient, err = state.NewClient("mongodb://localhost:27017")
+		if err != nil {
+			log.Fatal().
+				Err(err).
+				Msg("Could not create State Client")
+		}
+		wg.Done()
+		log.Info().Msg("Created State Client")
+	}()
+
+	go func() {
+		owClient = openweather.NewOpenWeatherClient(openweatherAppID)
+		wg.Done()
+		log.Info().
+			Str("appid", censor(openweatherAppID)).
+			Msg("Created new OpenWeather Client")
+	}()
+
+	go func() {
+		twitchClient = twitch.NewClient(twitchUsername, twitchToken)
+		wg.Done()
+		log.Info().
+			Str("username", twitchUsername).
+			Str("token", censor(twitchToken)).
+			Msg("Created new Twitch Client")
+	}()
+
+	go func() {
+		swearfilter, err = loadSwearfilter(badWordsFile)
+		if err != nil {
+			log.Fatal().Err(err).Msg("Could not load Swearfilter")
+		}
+		wg.Done()
+		log.Info().Str("source", badWordsFile).Msg("Loaded Swearfilter")
+	}()
+
+	wg.Wait()
 
 	// Commands {{{
 	aC := func(c Command) {
@@ -675,6 +704,20 @@ func main() {
 			return
 		}
 
+		foundASwear, swearsFound, err := swearfilter.Check(message.Message)
+		if err != nil {
+			log.Error().
+				Str("message", message.Message).
+				Msg("Checking message for swears")
+			return
+		}
+		if foundASwear {
+			log.Info().
+				Strs("swears", swearsFound).
+				Msg("Found forbidden words")
+			return
+		}
+
 		s := &CommandState{
 			IsSleeping:    sleeping,
 			IsMod:         message.Tags["mod"] == "1",
@@ -1065,6 +1108,24 @@ func truncate(s string, i int) string {
 		return string(runes[:i])
 	}
 	return s
+}
+
+func loadSwearfilter(path string) (*sw.SwearFilter, error) {
+	swears := []string{}
+
+	file, err := os.Open(badWordsFile)
+	if err != nil {
+		return &sw.SwearFilter{}, err
+	}
+	defer file.Close()
+
+	scanner := bufio.NewScanner(file)
+
+	for scanner.Scan() {
+		swears = append(swears, scanner.Text())
+	}
+
+	return &sw.SwearFilter{BlacklistedWords: swears}, nil
 }
 
 // }}}
