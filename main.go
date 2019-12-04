@@ -327,6 +327,10 @@ func main() {
 				usernames = append(usernames, strings.ToLower(username))
 			}
 
+			if len(usernames) <= 0 {
+				return
+			}
+
 			c.Logger.Info().
 				Strs("usernames", usernames).
 				Str("voicemessage", message).
