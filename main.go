@@ -315,7 +315,7 @@ func main() {
 			usernames := []string{}
 			message := match[5]
 
-			for _, username := range strings.Split(match[1], " and ") {
+			for _, username := range strings.Split(match[1], " && ") {
 				if username == twitchUsername {
 					continue
 				}
