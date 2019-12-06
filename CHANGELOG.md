@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * simple swearfilter for racist slurs
 * humidity to weather report
+* command to get a cities location
 
 ### Changed
 

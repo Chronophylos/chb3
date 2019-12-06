@@ -469,9 +469,24 @@ func main() {
 				Str("city", city).
 				Msg("Checking weather")
 
-			weatherMessage := getWeather(city)
-			if weatherMessage != "" {
+			if weatherMessage := getWeather(city); weatherMessage != "" {
 				twitchClient.Say(c.Channel, weatherMessage)
+			}
+		},
+	})
+
+	aC(Command{
+		name: "location",
+		re:   rl(`(?i)^wo (ist|liegt) (.*)\?`),
+		callback: func(c *CommandEvent) {
+			city := c.Match[0][2]
+
+			c.Logger.Info().
+				Str("city", city).
+				Msg("Checking Coordinates")
+
+			if locationMessage := getLocation(city); locationMessage != "" {
+				twitchClient.Say(c.Channel, locationMessage)
 			}
 		},
 	})
@@ -952,7 +967,7 @@ func checkForVoicemails(username, channel string) {
 
 // }}}
 // weather {{{
-const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
+const weatherText = "Das aktuelle Wetter für %s, %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
 
 func getWeather(city string) string {
 	currentWeather, err := owClient.GetCurrentWeatherByName(city)
@@ -1005,6 +1020,7 @@ func getWeather(city string) string {
 
 	return fmt.Sprintf(weatherText,
 		currentWeather.City.Name,
+		currentWeather.City.Country,
 		currentCondition,
 		currentWeather.Temperature.Current,
 		currentWeather.Wind.Direction,
@@ -1013,6 +1029,30 @@ func getWeather(city string) string {
 		tomorrowsConditions,
 		tomorrowsWeather.Temperature.Min,
 		tomorrowsWeather.Temperature.Max,
+	)
+}
+
+func getLocation(city string) string {
+	currentWeather, err := owClient.GetCurrentWeatherByName(city)
+	if err != nil {
+		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
+			log.Warn().
+				Err(err).
+				Str("city", city).
+				Msg("City not found")
+			return fmt.Sprintf("Ich kann %s nicht finden", city)
+		}
+		log.Error().
+			Err(err).
+			Str("city", city).
+			Msg("Error getting current weather")
+		return ""
+	}
+
+	return fmt.Sprintf(
+		"https://www.google.com/maps/@%f,%f,10z",
+		currentWeather.Position.Latitude,
+		currentWeather.Position.Longitude,
 	)
 }
 
