@@ -952,7 +952,7 @@ func checkForVoicemails(username, channel string) {
 
 // }}}
 // weather {{{
-const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
+const weatherText = "Das aktuelle Wetter für %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
 
 func getWeather(city string) string {
 	currentWeather, err := owClient.GetCurrentWeatherByName(city)
@@ -1009,6 +1009,7 @@ func getWeather(city string) string {
 		currentWeather.Temperature.Current,
 		currentWeather.Wind.Direction,
 		currentWeather.Wind.Speed,
+		currentWeather.Humidity,
 		tomorrowsConditions,
 		tomorrowsWeather.Temperature.Min,
 		tomorrowsWeather.Temperature.Max,
