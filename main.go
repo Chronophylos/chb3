@@ -477,7 +477,7 @@ func main() {
 
 	aC(Command{
 		name: "location",
-		re:   rl(`(?i)^wo (ist|liegt) (.*)\?`),
+		re:   rl(`(?i)^wo (ist|liegt) (.*)\?+`),
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][2]
 
