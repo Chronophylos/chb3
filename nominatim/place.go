@@ -1,5 +1,7 @@
 package nominatim
 
+import "strconv"
+
 type Place struct {
 	Type     string
 	Category string
@@ -18,7 +20,7 @@ func newPlaceFromAPI(p apiPlace) *Place {
 		Name:     p.Name,
 		Lat:      p.Lat,
 		Lon:      p.Lon,
-		URL:      "https://www.google.com/maps/search/" + p.Lat + "," + p.Lon,
+		URL:      "https://www.google.com/maps/search/" + strconv.FormatFloat(p.Lat, 'g', -1, 64) + "," + strconv.FormatFloat(p.Lon, 'g', -1, 64),
 	}
 }
 
