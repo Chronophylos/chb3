@@ -1,0 +1,40 @@
+package nominatim
+
+import (
+	"io/ioutil"
+	"net/http"
+)
+
+type Client struct {
+	UserAgent string
+}
+
+func (c *Client) GetPlace(location string) (*Place, error) {
+	client := &http.Client{}
+
+	req, err := http.NewRequest("GET", "https://nominatim.openstreetmap.org/search", nil)
+	if err != nil {
+		return &Place{}, err
+	}
+
+	req.Header.Set("User-Agent", c.UserAgent)
+	req.Header.Set("Accept-Language", "de_DE")
+	req.Header.Set("Referer", "irc.twitch.tv")
+	req.Header.Set("DNT", "1")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return &Place{}, err
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return &Place{}, err
+	}
+
+	var p []apiPlace
+	json.Unmarshall(body, &p)
+
+	return newPlaceFromAPI(p[0]), nil
+}

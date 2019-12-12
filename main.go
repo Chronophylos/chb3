@@ -67,6 +67,7 @@ var (
 	stateClient  *state.Client
 	twitchClient *twitch.Client
 	swearfilter  *sw.SwearFilter
+	osmClient    *nominatim.Client
 )
 
 func main() {
@@ -165,7 +166,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	wg.Add(4)
+	wg.Add(5)
 
 	go func() {
 		stateClient, err = state.NewClient("mongodb://localhost:27017")
@@ -200,6 +201,12 @@ func main() {
 		swearfilter = &sw.SwearFilter{BlacklistedWords: swears}
 		wg.Done()
 		log.Info().Strs("swears", swears).Msg("Loaded Swearfilter")
+	}()
+
+	go func() {
+		osmClient = &nominatim.Client{UserAgent: "ChronophylosBot/" + Version}
+		wg.Done()
+		log.Info().Msg("Created OpenStreetMaps Client")
 	}()
 
 	wg.Wait()
