@@ -15,7 +15,7 @@ type Place struct {
 }
 
 func newPlaceFromAPI(p *apiPlace) *Place {
-	url, _ := url.Parse("https://www.google.com/maps/search/" + p.Name)
+	url, _ := url.Parse("https://www.openstreetmap.org/" + p.Type + "/" + p.ID)
 
 	place := &Place{
 		Name: p.Name,
@@ -28,14 +28,14 @@ func newPlaceFromAPI(p *apiPlace) *Place {
 }
 
 type apiPlace struct {
-	ID      int    `json:"place_id"`
 	License string `json:"license"`
 
 	Lat string `json:"lat"`
 	Lon string `json:"lon"`
 
 	Category string `json:"category"`
-	Type     string `json:"type"`
+	Type     string `json:"osm_type"`
+	ID       int    `json:"osm_id"`
 	Rank     int    `json:"place_rank"`
 
 	Name string `json:"display_name"`
