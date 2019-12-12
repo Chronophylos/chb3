@@ -6,9 +6,7 @@ import (
 )
 
 type Place struct {
-	Type     string
-	Category string
-	Name     string
+	Name string
 
 	Lat float64
 	Lon float64
@@ -16,14 +14,12 @@ type Place struct {
 	URL string
 }
 
-func newPlaceFromAPI(p apiPlace) *Place {
+func newPlaceFromAPI(p *apiPlace) *Place {
 	url, _ := url.Parse("https://www.google.com/maps/search/" + p.Name)
 
 	place := &Place{
-		Type:     p.Type,
-		Category: p.Category,
-		Name:     p.Name,
-		URL:      url.String(),
+		Name: p.Name,
+		URL:  url.String(),
 	}
 	place.Lat, _ = strconv.ParseFloat(p.Lat, 64)
 	place.Lon, _ = strconv.ParseFloat(p.Lon, 64)
@@ -40,6 +36,13 @@ type apiPlace struct {
 
 	Category string `json:"category"`
 	Type     string `json:"type"`
+	Rank     int    `json:"place_rank"`
 
 	Name string `json:"display_name"`
 }
+
+type apiPlaces []*apiPlace
+
+func (p apiPlaces) Len() int           { return len(p) }
+func (p apiPlaces) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
+func (p apiPlaces) Less(i, j int) bool { return p[i].Rank < p[j].Rank }
