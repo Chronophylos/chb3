@@ -15,7 +15,7 @@ type Place struct {
 }
 
 func newPlaceFromAPI(p *apiPlace) *Place {
-	url, _ := url.Parse("https://www.openstreetmap.org/" + p.Type + "/" + p.ID)
+	url, _ := url.Parse("https://www.openstreetmap.org/" + p.Type + "/" + string(p.ID))
 
 	place := &Place{
 		Name: p.Name,
