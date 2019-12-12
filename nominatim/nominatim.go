@@ -12,7 +12,7 @@ type Client struct {
 func (c *Client) GetPlace(location string) (*Place, error) {
 	client := &http.Client{}
 
-	req, err := http.NewRequest("GET", "https://nominatim.openstreetmap.org/search", nil)
+	req, err := http.NewRequest("GET", getSearchURL(location), nil)
 	if err != nil {
 		return &Place{}, err
 	}
@@ -37,4 +37,8 @@ func (c *Client) GetPlace(location string) (*Place, error) {
 	json.Unmarshall(body, &p)
 
 	return newPlaceFromAPI(p[0]), nil
+}
+
+func getSearchURL(location string) string {
+	return "https://nominatim.openstreetmap.org/search?q=" + location + "&format=jsonv2"
 }
