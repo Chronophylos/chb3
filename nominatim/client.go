@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -38,16 +39,20 @@ func (c *Client) GetPlace(location string) (*Place, error) {
 		return &Place{}, err
 	}
 
-	var p []apiPlace
+	// TODO: sort places
+	var p apiPlaces
 	json.Unmarshal(body, &p)
 
 	if len(p) == 0 {
 		return &Place{}, errors.New("no place found")
 	}
 
+	sort.Sort(p)
+
 	return newPlaceFromAPI(p[0]), nil
 }
 
+// TODO: parse better
 func getSearchURL(location string) string {
-	return "https://nominatim.openstreetmap.org/search?q=" + location + "&format=jsonv2"
+	return "https://nominatim.openstreetmap.org/search?format=jsonv2&q=" + location
 }
