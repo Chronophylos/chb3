@@ -2,6 +2,7 @@ package nominatim
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -39,6 +40,10 @@ func (c *Client) GetPlace(location string) (*Place, error) {
 
 	var p []apiPlace
 	json.Unmarshal(body, &p)
+
+	if len(p) == 0 {
+		return &Place{}, errors.New("no place found")
+	}
 
 	return newPlaceFromAPI(p[0]), nil
 }
