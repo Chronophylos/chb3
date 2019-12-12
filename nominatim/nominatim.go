@@ -1,8 +1,10 @@
 package nominatim
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type Client struct {
@@ -10,7 +12,9 @@ type Client struct {
 }
 
 func (c *Client) GetPlace(location string) (*Place, error) {
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: time.Second * 30,
+	}
 
 	req, err := http.NewRequest("GET", getSearchURL(location), nil)
 	if err != nil {
@@ -34,7 +38,7 @@ func (c *Client) GetPlace(location string) (*Place, error) {
 	}
 
 	var p []apiPlace
-	json.Unmarshall(body, &p)
+	json.Unmarshal(body, &p)
 
 	return newPlaceFromAPI(p[0]), nil
 }
