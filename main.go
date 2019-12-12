@@ -20,6 +20,7 @@ import (
 	sw "github.com/JoshuaDoes/gofuckyourself"
 	"github.com/Knetic/govaluate"
 	"github.com/akamensky/argparse"
+	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -488,13 +489,19 @@ func main() {
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][2]
 
+			place, err := osmClient.GetPlace(city)
+			if err != nil {
+				c.Logger.Error().Err(err).Msg("Could not get place")
+				return
+			}
+
+			twitchClient.Say(c.Channel, place.URL)
+
 			c.Logger.Info().
 				Str("city", city).
+				Float64("lat", place.Lat).
+				Float64("lon", place.Lon).
 				Msg("Checking Coordinates")
-
-			if locationMessage := getLocation(city); locationMessage != "" {
-				twitchClient.Say(c.Channel, locationMessage)
-			}
 		},
 	})
 
