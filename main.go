@@ -492,6 +492,7 @@ func main() {
 			place, err := osmClient.GetPlace(city)
 			if err != nil {
 				c.Logger.Error().Err(err).Msg("Could not get place")
+				twitchClient.Say(c.Channel, "Ich kann "+city+" nicht finden")
 				return
 			}
 
