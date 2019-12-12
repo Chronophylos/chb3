@@ -20,6 +20,7 @@ import (
 	sw "github.com/JoshuaDoes/gofuckyourself"
 	"github.com/Knetic/govaluate"
 	"github.com/akamensky/argparse"
+	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -67,6 +68,7 @@ var (
 	stateClient  *state.Client
 	twitchClient *twitch.Client
 	swearfilter  *sw.SwearFilter
+	osmClient    *nominatim.Client
 )
 
 func main() {
@@ -165,7 +167,7 @@ func main() {
 
 	wg := sync.WaitGroup{}
 
-	wg.Add(4)
+	wg.Add(5)
 
 	go func() {
 		stateClient, err = state.NewClient("mongodb://localhost:27017")
@@ -200,6 +202,12 @@ func main() {
 		swearfilter = &sw.SwearFilter{BlacklistedWords: swears}
 		wg.Done()
 		log.Info().Strs("swears", swears).Msg("Loaded Swearfilter")
+	}()
+
+	go func() {
+		osmClient = &nominatim.Client{UserAgent: "ChronophylosBot/" + Version}
+		wg.Done()
+		log.Info().Msg("Created OpenStreetMaps Client")
 	}()
 
 	wg.Wait()
@@ -481,13 +489,20 @@ func main() {
 		callback: func(c *CommandEvent) {
 			city := c.Match[0][2]
 
+			place, err := osmClient.GetPlace(city)
+			if err != nil {
+				c.Logger.Error().Err(err).Msg("Could not get place")
+				twitchClient.Say(c.Channel, "Ich kann "+city+" nicht finden")
+				return
+			}
+
+			twitchClient.Say(c.Channel, place.URL)
+
 			c.Logger.Info().
 				Str("city", city).
+				Float64("lat", place.Lat).
+				Float64("lon", place.Lon).
 				Msg("Checking Coordinates")
-
-			if locationMessage := getLocation(city); locationMessage != "" {
-				twitchClient.Say(c.Channel, locationMessage)
-			}
 		},
 	})
 
