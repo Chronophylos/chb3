@@ -1,6 +1,9 @@
 package nominatim
 
-import "strconv"
+import (
+	"net/url"
+	"strconv"
+)
 
 type Place struct {
 	Type     string
@@ -14,22 +17,26 @@ type Place struct {
 }
 
 func newPlaceFromAPI(p apiPlace) *Place {
-	return &Place{
+	url, _ := url.Parse("https://www.google.com/maps/search/" + p.Name)
+
+	place := &Place{
 		Type:     p.Type,
 		Category: p.Category,
 		Name:     p.Name,
-		Lat:      p.Lat,
-		Lon:      p.Lon,
-		URL:      "https://www.google.com/maps/search/" + strconv.FormatFloat(p.Lat, 'g', -1, 64) + "," + strconv.FormatFloat(p.Lon, 'g', -1, 64),
+		URL:      url.String(),
 	}
+	place.Lat, _ = strconv.ParseFloat(p.Lat, 64)
+	place.Lon, _ = strconv.ParseFloat(p.Lon, 64)
+
+	return place
 }
 
 type apiPlace struct {
 	ID      int    `json:"place_id"`
 	License string `json:"license"`
 
-	Lat float64 `json:"lat"`
-	Lon float64 `json:"lon"`
+	Lat string `json:"lat"`
+	Lon string `json:"lon"`
 
 	Category string `json:"category"`
 	Type     string `json:"type"`
