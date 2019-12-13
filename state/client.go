@@ -57,7 +57,7 @@ func (c *Client) BumpUser(u twitch.User, t time.Time) (*User, error) {
 		}},
 	}
 	if err := col.FindOne(ctx, filter).Err(); err != nil {
-		log.Info().
+		log.Debug().
 			Str("id", u.ID).
 			Str("username", u.Name).
 			Msg("Inserting new User to database")
