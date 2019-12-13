@@ -309,7 +309,7 @@ func main() {
 			channel := strings.ToLower(c.Match[0][1])
 
 			if c.IsBotChannel {
-				stateClient.JoinChannel(channel, true)
+				twitchClient.Join(channel)
 				stateClient.SetLurking(channel, true)
 				stateClient.JoinChannel(channel, true)
 
