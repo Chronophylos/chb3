@@ -5,4 +5,5 @@ type Channel struct {
 
 	Joined   bool
 	Sleeping bool
+	Lurking  bool
 }
