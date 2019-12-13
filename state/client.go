@@ -186,6 +186,46 @@ func (c *Client) IsSleeping(channelName string) (bool, error) {
 	return channel.Sleeping, nil
 }
 
+// IsLurking return true if the bot is just lurking in a channel.
+func (c *Client) IsLurking(channelName string) (bool, error) {
+	var channel Channel
+
+	col := c.mongo.Database("chb3").Collection("channels")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.D{{Key: "name", Value: channelName}}
+	err := col.FindOne(ctx, filter).Decode(&channel)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return false, nil
+		}
+		return false, err
+	}
+
+	return channel.Lurking, nil
+}
+
+// SetLurking sets lurking.
+func (c *Client) SetLurking(channelName string, lurking bool) error {
+	col := c.mongo.Database("chb3").Collection("channels")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.D{{Key: "name", Value: channelName}}
+	update := bson.D{
+		{Key: "$set", Value: bson.D{
+			{Key: "name", Value: channelName},
+			{Key: "lurking", Value: lurking},
+		}},
+	}
+	opts := options.FindOneAndUpdate()
+	opts.Upsert = c.upsert
+	col.FindOneAndUpdate(ctx, filter, update, opts)
+
+	return nil
+}
+
 // GetJoinedChannels returns all currentyl joined channels.
 func (c *Client) GetJoinedChannels() ([]string, error) {
 	channels := []string{}

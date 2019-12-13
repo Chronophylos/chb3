@@ -300,6 +300,25 @@ func main() {
 			}
 		},
 	})
+
+	aC(Command{
+		name:       "lurk",
+		re:         rl(`(?i)^lurk in (\w+) pls$`),
+		permission: Moderator,
+		callback: func(c *CommandEvent) {
+			channel := strings.ToLower(c.Match[0][1])
+
+			if c.IsBotChannel {
+				stateClient.JoinChannel(channel, true)
+				stateClient.SetLurking(channel, true)
+				stateClient.JoinChannel(channel, true)
+
+				c.Logger.Info().Str("channel", channel).Msg("Lurking in new channel")
+
+				twitchClient.Say(c.Channel, "I'm lurking in "+channel+" now.")
+			}
+		},
+	})
 	// }}}
 
 	// Version Command {{{
@@ -726,6 +745,19 @@ func main() {
 				Err(err).
 				Str("username", message.User.Name).
 				Msg("Bumping user")
+			return
+		}
+
+		isLurking, err := stateClient.IsLurking(message.Channel)
+		if err != nil {
+			log.Error().
+				Err(err).
+				Str("channel", message.Channel).
+				Msg("Checking if bot is lurking")
+			return
+		}
+
+		if isLurking {
 			return
 		}
 
