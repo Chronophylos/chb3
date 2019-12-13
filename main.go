@@ -710,7 +710,7 @@ func main() {
 	// }}}
 	// }}}
 
-	// Twich Client Event Handling {{{
+	// Twitch Client Event Handling {{{
 	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		// Don't listen to messages sent by the bot
 		if message.User.Name == twitchUsername {
