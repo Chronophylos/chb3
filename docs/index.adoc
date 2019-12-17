@@ -1,0 +1,3 @@
+= This is the Documentation for my bot
+
+link:commands.html[Commands]
