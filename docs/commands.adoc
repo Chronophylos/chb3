@@ -1,0 +1,63 @@
+= Chronophylos Bot Version 3
+Nikolai Zimmermann
+v1.0, 2019-12-17
+:icons: font
+:data-uri:
+:toc:
+
+This is a collection of all available commands. Some have some history which I try to explain.
+
+== State Commands
+
+IMPORTANT: These commands require you to be at least mod.
+
+CAUTION: While sleeping the bot will not register any patschers.
+
+=== How to pause the bot
+
+* `go sleep chronophylosbot`
+* `shut up chronophylosbot`
+* or `sei ruhig chronophylosbot`
+
+All of these make the bot '`sleep`' and not react to anything in the chat.
+
+=== How to resume the bot
+
+* `wake up chronophylosbot`
+* or `wach auf chronophylosbot`
+
+This is the only command you can use while the bot is '`asleep`'.
+
+== Admin Commands
+
+These commands allow you to add and remove the bot from your channel.
+Some of these commands require you to be in the bots channel.
+
+=== Join a Channel
+
+IMPORTANT: You need to be in the bots channel
+
+* `join my channel pls` and the bot will join your channel
+* as the owner I can just write `join <channel name> pls`
+
+=== Leave a Channel
+
+* In any channel where you are a moderator: `chronophylosbot leave this channel pls`
+
+* In the bots channel:
+  `leave <your name> pls`
++
+For example:
+
+ chronophylos: leave chronophylos pls
+
+=== Set the bot to lurk
+
+WARNING: I have not added a command to reverse this image:https://cdn.frankerfacez.com/6cc98cf377eb36651f39add2ef73fbcf.png[4HEad,32,32]
+
+If you are a mod in my channel you can send the bot to any channel to lurk with
+`lurk in <channel name> pls`
+
+
+
+// vim: set ft=asciidoctor spell spl=en:
