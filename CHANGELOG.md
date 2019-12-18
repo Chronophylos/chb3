@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * leave voicemail command now uses prefix
 * patscheck now uses prefix
 * rate uses prefix
+* math uses prefix
 
 ### Removed
 
