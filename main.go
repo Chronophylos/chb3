@@ -224,7 +224,7 @@ func main() {
 	// State {{{
 	aC(Command{
 		name:       "go sleep",
-		re:         rl(`(?i)^(shut up|go sleep) `+botRe, `(?i)^`+botRe+` sei ruhig`),
+		re:         rl(`(?i)^`+prefix+`(shut up|go sleep)`, `(?i)^`+prefix+`sei ruhig`),
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Going to sleep")
@@ -235,7 +235,7 @@ func main() {
 
 	aC(Command{
 		name:        "wake up",
-		re:          rl(`(?i)^(wake up|wach auf) ` + botRe),
+		re:          rl(`(?i)^` + prefix + `(wake up|wach auf)`),
 		ignoreSleep: true,
 		permission:  Moderator,
 		callback: func(c *CommandEvent) {
@@ -249,7 +249,7 @@ func main() {
 	// Admin Commands {{{
 	aC(Command{
 		name: "join",
-		re:   rl(`(?i)^join (my channel|\w+) pls$`),
+		re:   rl(`(?i)^` + prefix + `join (my channel|\w+)$`),
 		callback: func(c *CommandEvent) {
 			joinChannel := strings.ToLower(c.Match[0][1])
 
@@ -289,7 +289,7 @@ func main() {
 
 	aC(Command{
 		name: "leave",
-		re:   rl(`(?i)^leave (\w+) pls$`),
+		re:   rl(`(?i)^` + prefix + `leave (\w+)$`),
 		callback: func(c *CommandEvent) {
 			partChannel := strings.ToLower(c.Match[0][1])
 
@@ -306,7 +306,7 @@ func main() {
 
 	aC(Command{
 		name:       "lurk",
-		re:         rl(`(?i)^lurk in (\w+) pls$`),
+		re:         rl(`(?i)^` + prefix + `lurk in (\w+)$`),
 		permission: Moderator,
 		callback: func(c *CommandEvent) {
 			channel := strings.ToLower(c.Match[0][1])
@@ -501,7 +501,7 @@ func main() {
 
 	aC(Command{
 		name: "rate",
-		re:   rl(`(?i)^~rate (.*) pls$`),
+		re:   rl(`(?i)^~rate (.*)$`),
 		callback: func(c *CommandEvent) {
 			key := c.Match[0][1]
 			rating := rate(key)
