@@ -557,7 +557,7 @@ func main() {
 
 	aC(Command{
 		name: "math",
-		re:   rl(`(?i)^` + prefi + `(math|quickmafs) (.*)$`),
+		re:   rl(`(?i)^` + prefix + `(math|quickmafs) (.*)$`),
 		callback: func(c *CommandEvent) {
 			exprString := c.Match[0][2]
 
