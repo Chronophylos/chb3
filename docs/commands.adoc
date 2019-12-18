@@ -7,57 +7,80 @@ v1.0, 2019-12-17
 
 This is a collection of all available commands. Some have some history which I try to explain.
 
-== State Commands
+== Admin Commands
 
 IMPORTANT: These commands require you to be at least mod.
 
 CAUTION: While sleeping the bot will not register any patschers.
 
+These commands allow you to add and remove the bot from your channel.
+As well as pausing and unpausing the bot.
+Some of these commands require you to be in the bots channel.
+
 === How to pause the bot
 
-* `go sleep chronophylosbot`
-* `shut up chronophylosbot`
-* or `sei ruhig chronophylosbot`
+* `~go sleep`
+* `~shut up`
+* or `~sei ruhig`
 
 All of these make the bot '`sleep`' and not react to anything in the chat.
 
 === How to resume the bot
 
-* `wake up chronophylosbot`
-* or `wach auf chronophylosbot`
+* `~wake up`
+* or `~wach auf`
 
 This is the only command you can use while the bot is '`asleep`'.
 
-== Admin Commands
-
-These commands allow you to add and remove the bot from your channel.
-Some of these commands require you to be in the bots channel.
 
 === Join a Channel
 
 IMPORTANT: You need to be in the bots channel
 
-* `join my channel pls` and the bot will join your channel
-* as the owner I can just write `join <channel name> pls`
+* `~join my channel` and the bot will join your channel
 
 === Leave a Channel
 
 * In any channel where you are a moderator: `chronophylosbot leave this channel pls`
 
 * In the bots channel:
-  `leave <your name> pls`
+  `~leave <your name>`
 +
 For example:
 
- chronophylos: leave chronophylos pls
+ chronophylos: ~leave chronophylos pls
+ chronophylosbot: I left chronophylos.
 
 === Set the bot to lurk
 
 WARNING: I have not added a command to reverse this image:https://cdn.frankerfacez.com/6cc98cf377eb36651f39add2ef73fbcf.png[4HEad,32,32]
 
 If you are a mod in my channel you can send the bot to any channel to lurk with
-`lurk in <channel name> pls`
+`~lurk in <channel name>`
 
 
+== User Commands
+
+=== Get the current Version
+
+* `~version`
+* `chronophylosbot?`
+
+=== Voicemails
+
+What I call voicemails are simple messages you can leave for a user.
+Whenever that user writes in chat again the bot will tell the user about all their messages.
+
+You can do this with `~tell <recipent> <message>`
+
+ chronophylos: ~tell marc_yoyo PepegSit
+ chronophylosbot: I'll forward this message to marc_yoyo when they type something in chat.
+ marc_yoyo: monkaS
+ chronophylosbot: @marc_yoyo, one message for you: chronophylos: PepegSit
+
+You can also send the same message to multiple recipents by appending their name with `&&`
+
+ chronophylos: ~tell StreamElements && moobot && Nightbot bots FeelsNotsureMan
+ chronophylosbot: I'll forward this message to StreamElements, moobot and Nightbot when they type something in chat.
 
 // vim: set ft=asciidoctor spell spl=en:

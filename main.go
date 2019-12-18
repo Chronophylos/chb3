@@ -402,7 +402,7 @@ func main() {
 					return
 				}
 			}
-			twitchClient.Say(c.Channel, "I'll forward this message to "+strings.Join(usernames, ", ")+" when they type something in chat")
+			twitchClient.Say(c.Channel, "I'll forward this message to "+strings.Join(usernames, ", ")+" when they type something in chat.")
 		},
 	})
 	//}}}
