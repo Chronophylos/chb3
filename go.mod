@@ -3,12 +3,12 @@ module github.com/chronophylos/chb3
 go 1.12
 
 require (
+	github.com/DataDog/zstd v1.4.4 // indirect
 	github.com/JoshuaDoes/gofuckyourself v0.0.0-20181118040300-9fac3800924b
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/akamensky/argparse v0.0.0-20191006154803-1427fe674291
 	github.com/gempir/go-twitch-irc/v2 v2.2.1
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/mattn/go-isatty v0.0.11
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/rs/zerolog v1.17.2
 	github.com/spf13/afero v1.2.2 // indirect
