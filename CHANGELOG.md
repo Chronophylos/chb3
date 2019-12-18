@@ -21,11 +21,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * patscheck now uses prefix
 * rate uses prefix
 * math uses prefix
+* state commands use prefix
+* admin commands use prefix
 
 ### Removed
 
 * log level flag
 * long patscheck variant
+* pls from commands with prefix
 
 
 ## [3.4.0] - 2019-12-12
