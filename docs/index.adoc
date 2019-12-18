@@ -1,5 +1,0 @@
-= Nothing here
-:page-permalink: /
-:!page-layout:
-
-Only this -> link:commands[Command Documentation]
