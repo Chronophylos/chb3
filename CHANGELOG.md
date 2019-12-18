@@ -18,10 +18,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * show location on osm not gmaps
 * added prefix version to version command
 * leave voicemail command now uses prefix
+* patscheck now uses prefix
+* rate uses prefix
 
 ### Removed
 
 * log level flag
+* long patscheck variant
 
 
 ## [3.4.0] - 2019-12-12
