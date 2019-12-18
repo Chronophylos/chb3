@@ -336,13 +336,11 @@ func main() {
 				zerolog.SetGlobalLevel(zerolog.DebugLevel)
 				c.Logger.Info().Msg("Enabled debugging")
 				twitchClient.Say(c.Channel, "Enabled debugging")
-				break
 			case "disable":
 				debug = &False
 				zerolog.SetGlobalLevel(zerolog.InfoLevel)
 				c.Logger.Info().Msg("Disabled debugging")
 				twitchClient.Say(c.Channel, "Disabled debugging")
-				break
 			}
 		},
 	})
@@ -762,6 +760,7 @@ func main() {
 		},
 	})
 	// }}}
+
 	// }}}
 
 	// Twitch Client Event Handling {{{
