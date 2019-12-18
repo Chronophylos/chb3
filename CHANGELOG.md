@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 * show location on osm not gmaps
+* added prefix version to version command
+* leave voicemail command now uses prefix
 
 ### Removed
 

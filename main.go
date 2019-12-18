@@ -351,7 +351,10 @@ func main() {
 	// Version Command {{{
 	aC(Command{
 		name: "version",
-		re:   rl(`(?i)^` + botRe + `\?`),
+		re: rl(
+			`(?i)^`+botRe+`\?`,
+			`(?i)`+prefix+`version`,
+		),
 		callback: func(c *CommandEvent) {
 			twitchClient.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
 			c.Logger.Info().Msg("Sending Version")
@@ -361,8 +364,10 @@ func main() {
 
 	// Voicemails {{{
 	aC(Command{
-		name:   "leave voicemail",
-		re:     rl(`(?i)` + botRe + ` tell ((\w+)( && (\w+))*) (.*)`),
+		name: "leave voicemail",
+		re: rl(
+			`(?i)` + prefix + `tell ((\w+)( && (\w+))*) (.*)`,
+		),
 		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
 			match := c.Match[0]
