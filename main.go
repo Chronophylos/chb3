@@ -325,7 +325,7 @@ func main() {
 
 	aC(Command{
 		name:       "debug",
-		re:         rl(prefix + `debug (\w+)`),
+		re:         rl(`(?i)^` + prefix + `debug (\w+)`),
 		permission: Owner,
 		callback: func(c *CommandEvent) {
 			action := strings.ToLower(c.Match[0][1])
@@ -353,7 +353,7 @@ func main() {
 		name: "version",
 		re: rl(
 			`(?i)^`+botRe+`\?`,
-			`(?i)`+prefix+`version`,
+			`(?i)^`+prefix+`version`,
 		),
 		callback: func(c *CommandEvent) {
 			twitchClient.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
@@ -366,7 +366,7 @@ func main() {
 	aC(Command{
 		name: "leave voicemail",
 		re: rl(
-			`(?i)` + prefix + `tell ((\w+)( && (\w+))*) (.*)`,
+			`(?i)^` + prefix + `tell ((\w+)( && (\w+))*) (.*)`,
 		),
 		userCD: 30 * time.Second,
 		callback: func(c *CommandEvent) {
@@ -412,7 +412,7 @@ func main() {
 	// patscheck {{{
 	aC(Command{
 		name: "patscheck",
-		re:   rl(`(?i)habe ich heute schon gepatscht\?`, `(?i)hihsg\?`),
+		re:   rl(`(?i)^` + prefix + `hihsg\?`),
 		callback: func(c *CommandEvent) {
 			user, err := stateClient.GetUserByID(c.User.ID)
 			if err != nil {
@@ -503,7 +503,7 @@ func main() {
 
 	aC(Command{
 		name: "rate",
-		re:   rl(`(?i)^rate (.*) pls$`),
+		re:   rl(`(?i)^~rate (.*) pls$`),
 		callback: func(c *CommandEvent) {
 			key := c.Match[0][1]
 			rating := rate(key)
