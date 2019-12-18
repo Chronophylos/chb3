@@ -1,3 +1,5 @@
-= This is the Documentation for my bot
+= Nothing here
+:page-permalink: /
+:!page-layout:
 
-link:commands.html[Commands]
+Only this -> link:commands[Command Documentation]

@@ -2,6 +2,8 @@
 Nikolai Zimmermann
 v1.0, 2019-12-17
 :icons: font
+:page-permalink: /commands/
+:!page-layout:
 :data-uri:
 :toc:
 
