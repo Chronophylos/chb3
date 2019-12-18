@@ -30,7 +30,8 @@ import (
 )
 
 const (
-	botRe = "@?chronophylosbot,?"
+	botRe  = "@?chronophylosbot,?"
+	prefix = "~"
 )
 
 var idStore = map[string]string{
@@ -47,7 +48,6 @@ var (
 var (
 	showSecrets *bool
 	debug       *bool
-	logLevel    *string
 )
 
 // Config
@@ -62,6 +62,11 @@ var (
 	swears []string
 )
 
+var (
+	True  = true
+	False = false
+)
+
 // Globals
 var (
 	owClient     *openweather.OpenWeatherClient
@@ -73,6 +78,8 @@ var (
 
 func main() {
 	commands := []*Command{}
+	True := true
+	False := false
 
 	// Commandline Flags {{{
 	// Create new parser
@@ -80,10 +87,6 @@ func main() {
 
 	debug = parser.Flag("", "debug",
 		&argparse.Options{Help: "Enable debugging. Sets --level=DEBUG."})
-
-	logLevel = parser.Selector("", "level",
-		[]string{"DEBUG", "INFO", "WARN", "ERROR", "FATAL", "PANIC"},
-		&argparse.Options{Default: "INFO", Help: "Set Log Level."})
 
 	showSecrets = parser.Flag("", "show-secrets",
 		&argparse.Options{Help: "Show secrets in log (eg. your twitch token)."})
@@ -316,6 +319,30 @@ func main() {
 				c.Logger.Info().Str("channel", channel).Msg("Lurking in new channel")
 
 				twitchClient.Say(c.Channel, "I'm lurking in "+channel+" now.")
+			}
+		},
+	})
+
+	aC(Command{
+		name:       "debug",
+		re:         rl(prefix + `debug (\w+)`),
+		permission: Owner,
+		callback: func(c *CommandEvent) {
+			action := strings.ToLower(c.Match[0][1])
+
+			switch action {
+			case "enable":
+				debug = &True
+				zerolog.SetGlobalLevel(zerolog.DebugLevel)
+				c.Logger.Info().Msg("Enabled debugging")
+				twitchClient.Say(c.Channel, "Enabled debugging")
+				break
+			case "disable":
+				debug = &False
+				zerolog.SetGlobalLevel(zerolog.InfoLevel)
+				c.Logger.Info().Msg("Disabled debugging")
+				twitchClient.Say(c.Channel, "Disabled debugging")
+				break
 			}
 		},
 	})
@@ -1115,38 +1142,16 @@ func setGlobalLogger() {
 
 	if *debug {
 		// Force log level to debug
-		*logLevel = "DEBUG"
+		level = zerolog.DebugLevel
 		// Add file and line number to log
 		log.Logger = log.With().Caller().Logger()
-	}
-
-	// Get zerolog.Level from stringimgurClientID
-	switch *logLevel {
-	case "DEBUG":
-		level = zerolog.DebugLevel
-		break
-	case "INFO":
-		level = zerolog.InfoLevel
-		break
-	case "WARN":
-		level = zerolog.WarnLevel
-		break
-	case "ERROR":
-		level = zerolog.ErrorLevel
-		break
-	case "PANIC":
-		level = zerolog.PanicLevel
-		break
 	}
 
 	// Set Log Level
 	zerolog.SetGlobalLevel(level)
 
-	//if isatty.IsTerminal(os.Stderr.Fd()) || isatty.IsCygwinTerminal(os.Stderr.Fd()) {
-	// Pretty logging
 	output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.Stamp}
 	log.Logger = log.Output(output)
-	//}
 }
 func rl(re ...string) []*regexp.Regexp {
 	res := []*regexp.Regexp{}
