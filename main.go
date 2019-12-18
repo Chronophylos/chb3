@@ -41,7 +41,7 @@ var idStore = map[string]string{
 
 // Build Infos
 var (
-	Version = "3.4.0"
+	Version = "3.5.0"
 )
 
 // Flags
