@@ -704,13 +704,16 @@ func main() {
 	// Hardly Useful Commands {{{
 	aC(Command{
 		name: "reupload",
-		re:   rl(`((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`),
+		re: rl(
+			`((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`,
+			`((https?:\/\/)?(puddelgaming.de\/upload)\/.*\.(png|jpe?g))`,
+		),
 		callback: func(c *CommandEvent) {
 			link := c.Match[0][1]
 
 			// Fix links
-			if !strings.HasPrefix("https://", link) {
-				if !strings.HasPrefix("http://", link) {
+			if !strings.HasPrefix(link, "https://") {
+				if !strings.HasPrefix(link, "https://") {
 					link = strings.TrimPrefix(link, "http://")
 				}
 				link = "https://" + link
