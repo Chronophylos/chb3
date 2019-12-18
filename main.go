@@ -354,7 +354,7 @@ func main() {
 			`(?i)^`+prefix+`version`,
 		),
 		callback: func(c *CommandEvent) {
-			twitchClient.Say(c.Channel, "I'm a bot by Chronophylos. Version: "+Version)
+			twitchClient.Say(c.Channel, "I'm a bot written by Chronophylos in Golang. Current Version is "+Version+".")
 			c.Logger.Info().Msg("Sending Version")
 		},
 	})
