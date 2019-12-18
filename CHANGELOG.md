@@ -11,10 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * lurk command
 * puddelgaming.com to reuploader
+* debug command to enable debugging
 
 ### Changed
 
 * show location on osm not gmaps
+
+### Removed
+
+* log level flag
+
 
 ## [3.4.0] - 2019-12-12
 
