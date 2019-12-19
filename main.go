@@ -556,6 +556,38 @@ func main() {
 	})
 
 	aC(Command{
+		name: "teamtrees",
+		re:   rl(`(?i)^` + prefix + `teamtrees`),
+		callback: func(c *CommandEvent) {
+			resp, err := http.Get("https://teamtrees.org")
+			if err != nil {
+				c.Logger.Error().
+					Err(err).
+					Msg("Could not get teamtrees.org")
+				return
+			}
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				c.Logger.Error().
+					Err(err).
+					Msg("Could not read body")
+				return
+			}
+
+			re := regexp.MustCompile(`<div id="totalTrees" class="counter" data-count="(\d+)">`)
+			matches := re.FindStringSubmatch(string(body[:]))
+
+			c.Logger.Info().
+				Str("trees", matches[1]).
+				Msg("Found trees")
+
+			twitchClient.Say(c.Channel, matches[1])
+		},
+	})
+
+	aC(Command{
 		name: "math",
 		re:   rl(`(?i)^` + prefix + `(math|quickmafs) (.*)$`),
 		callback: func(c *CommandEvent) {
