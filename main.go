@@ -665,6 +665,16 @@ func main() {
 	})
 
 	aC(Command{
+		name: "still underage",
+		re:   rl(`(?i)\balter maxiking\b`),
+		callback: func(c *CommandEvent) {
+			c.Logger.Info().Msg("Maxiking is still underage")
+
+			twitchClient.Say(c.Channel, "Maxiking still underage PepeLaugh")
+		},
+	})
+
+	aC(Command{
 		name: "kleiwe",
 		re:   rl(`(?i)\bkleiwe\b`),
 		callback: func(c *CommandEvent) {

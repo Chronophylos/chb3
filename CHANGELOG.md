@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * lurk command
 * puddelgaming.com to reuploader
 * debug command to enable debugging
+* personal command for DasMaxiking
 
 ### Changed
 
