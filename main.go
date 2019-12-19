@@ -670,7 +670,7 @@ func main() {
 		callback: func(c *CommandEvent) {
 			c.Logger.Info().Msg("Maxiking is still underage")
 
-			twitchClient.Say(c.Channel, "Maxiking still underage PepeLaugh")
+			twitchClient.Say(c.Channel, "Maxiking still underaged PepeLaugh")
 		},
 	})
 
