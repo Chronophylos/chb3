@@ -10,17 +10,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-type Permission int
-
-const (
-	Everyone Permission = iota
-	Subscriber
-	Regular
-	Moderator
-	Broadcaster
-	Owner
-)
-
 type Command struct {
 	name       string
 	re         []*regexp.Regexp
