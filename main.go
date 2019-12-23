@@ -18,8 +18,8 @@ import (
 	"time"
 
 	sw "github.com/JoshuaDoes/gofuckyourself"
-	"github.com/Knetic/govaluate"
 	"github.com/akamensky/argparse"
+	"github.com/chronophylos/chb3/cmd"
 	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
@@ -216,6 +216,11 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
+	manager := &cmd.Manager{
+		twitch: twitchClient,
+	}
+
+	/* Old Style Commands are DISABLED.
 	aC := func(c Command) {
 		c.Init()
 		commands = append(commands, &c)
@@ -770,7 +775,7 @@ func main() {
 		},
 	})
 	// }}}
-
+	*/
 	// }}}
 
 	// Twitch Client Event Handling {{{
@@ -828,6 +833,9 @@ func main() {
 			return
 		}
 
+		manager.RunActions(&message)
+
+		/* Old Style Command Invokation is DISABLED
 		s := &CommandState{
 			IsSleeping:    sleeping,
 			IsMod:         message.Tags["mod"] == "1",
@@ -861,6 +869,7 @@ func main() {
 					Msg("Command did not get executed")
 			}
 		}
+		*/
 
 		if !s.IsSleeping && !s.IsTimedout {
 			checkForVoicemails(message.User.Name, message.Channel)
