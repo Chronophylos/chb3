@@ -230,63 +230,6 @@ func main() {
 
 	// Admin Commands {{{
 	aC(Command{
-		name: "join",
-		re:   rl(`(?i)^` + prefix + `join (my channel|\w+)$`),
-		callback: func(c *CommandEvent) {
-			joinChannel := strings.ToLower(c.Match[0][1])
-
-			if c.IsBotChannel {
-				if joinChannel == "my channel" {
-					if joined, err := stateClient.IsChannelJoined(c.User.Name); err != nil && joined {
-						twitchClient.Say(c.Channel, "I'm already in your channel.")
-					} else {
-						join(c.Logger, c.User.Name)
-						twitchClient.Say(c.Channel, "I joined your channel. Type `@chronophylosbot leave this channel pls` in your channel and I'll leave again.")
-					}
-				} else if c.IsOwner {
-					if joined, err := stateClient.IsChannelJoined(joinChannel); err != nil && joined {
-						twitchClient.Say(c.Channel, "I'm already in that channel.")
-					} else {
-						join(c.Logger, joinChannel)
-						twitchClient.Say(c.Channel, "I joined "+joinChannel+". Type `leave "+joinChannel+" pls` in this channel and I'll leave again.")
-					}
-				}
-			} else {
-				c.Skip()
-			}
-		},
-	})
-
-	aC(Command{
-		name:        "leave",
-		re:          rl(`(?i)^@?chronophylosbot leave this channel pls$`),
-		permission:  Moderator,
-		ignoreSleep: true,
-		callback: func(c *CommandEvent) {
-			twitchClient.Say(c.Channel, "ppPoof")
-
-			part(c.Logger, c.Channel)
-		},
-	})
-
-	aC(Command{
-		name: "leave",
-		re:   rl(`(?i)^` + prefix + `leave (\w+)$`),
-		callback: func(c *CommandEvent) {
-			partChannel := strings.ToLower(c.Match[0][1])
-
-			if c.IsBotChannel {
-				if c.IsOwner || c.User.Name == partChannel {
-					part(c.Logger, partChannel)
-					twitchClient.Say(c.Channel, "I left "+partChannel+".")
-				}
-			} else {
-				c.Skip()
-			}
-		},
-	})
-
-	aC(Command{
 		name:       "lurk",
 		re:         rl(`(?i)^` + prefix + `lurk in (\w+)$`),
 		permission: Moderator,
