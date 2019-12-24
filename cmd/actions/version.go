@@ -6,8 +6,8 @@ import (
 
 type version struct{}
 
-func (a version) GetOptions() *ActionOptions {
-	return &ActionOptions{
+func (a version) GetOptions() *Options {
+	return &Options{
 		Name: "version",
 	}
 }

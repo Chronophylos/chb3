@@ -2,8 +2,8 @@ package actions
 
 type stateSleep struct{}
 
-func (a stateSleep) GetOptions() *ActionOptions {
-	return &ActionOptions{
+func (a stateSleep) GetOptions() *Options {
+	return &Options{
 		Name: "state.sleep",
 	}
 }
@@ -22,8 +22,8 @@ func (a stateSleep) Run(e *Event) error {
 
 type stateWake struct{}
 
-func (a stateWake) GetOptions() *ActionOptions {
-	return &ActionOptions{
+func (a stateWake) GetOptions() *Options {
+	return &Options{
 		Name:      "state.wake",
 		Sleepless: true,
 	}

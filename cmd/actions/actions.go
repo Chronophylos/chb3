@@ -4,14 +4,14 @@ import (
 	"regexp"
 )
 
-type ActionOptions struct {
+type Options struct {
 	Name      string
 	Sleepless bool
 }
 
 type Action interface {
 	Run(*Event) error
-	GetOptions() *ActionOptions
+	GetOptions() *Options
 }
 
 type ActionMap map[*regexp.Regexp]Action
