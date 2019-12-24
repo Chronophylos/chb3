@@ -1,4 +1,4 @@
-package cmd
+package actions
 
 import (
 	"regexp"
@@ -6,10 +6,13 @@ import (
 
 type Action interface {
 	Run(*Event)
+	GetName() string
 }
 
 type ActionMap map[*regexp.Regexp]Action
 
 var actionMap = ActionMap{
-	regexp.MustCompile(`(?i)^~version`): Version{},
+	regexp.MustCompile(`(?i)^~version`): version{},
 }
+
+func GetAll() ActionMap { return actionMap }

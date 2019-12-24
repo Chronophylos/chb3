@@ -1,8 +1,8 @@
-package cmd
+package actions
 
 import (
+	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
-
 	"github.com/rs/zerolog"
 )
 
@@ -22,12 +22,14 @@ const (
 )
 
 type Event struct {
-	log *zerolog.Logger
-	infoContainer
+	Log         zerolog.Logger
+	Twitch      *twitch.Client
+	State       *state.Client
+	CHB3Version string
 
-	action Action
-	msg    *twitch.PrivateMessage
-	match  []string
+	Action Action
+	Msg    *twitch.PrivateMessage
+	Match  []string
 
 	perm Permission
 
@@ -35,7 +37,6 @@ type Event struct {
 }
 
 // Init sets some internal values like the permission of the sender.
-// TODO: remove this and do this in NewEvent
 func (e *Event) Init() {
 	if e.IsOwner() {
 		e.perm = Owner
@@ -51,8 +52,9 @@ func (e *Event) Init() {
 	// no need to set e.perm to Everyone since it is the default.
 }
 
+// Say sends message to the current channel.
 func (e *Event) Say(message string) {
-	e.twitch.Say(e.msg.Channel, message)
+	e.Twitch.Say(e.Msg.Channel, message)
 }
 
 // HasPermission compares perm with the permission level of the sender and
@@ -76,19 +78,19 @@ func (e *Event) IsRegular() bool { return false }
 // IsSubscriber reports wheather the sender is a subscriber in the current
 // channel.
 func (e *Event) IsSubscriber() bool {
-	return e.msg.Tags["subscriber"] == "1"
+	return e.Msg.Tags["subscriber"] == "1"
 }
 
 // IsModerator reports wheather the sender is a moderator in the current
 // channel.
 func (e *Event) IsModerator() bool {
-	return e.msg.Tags["mod"] == "1"
+	return e.Msg.Tags["mod"] == "1"
 }
 
 // IsBroadcaster reports wheather the sender is the owner of the current
 // channel.
 func (e *Event) IsBroadcaster() bool {
-	return e.msg.User.Name == e.msg.Channel
+	return e.Msg.User.Name == e.Msg.Channel
 }
 
 // IsOwner reports wheather the sender is the bots owner.
@@ -101,7 +103,7 @@ func (e *Event) IsOwner() bool {
 // TODO: check in other places eg. badges
 func (e *Event) IsBot() bool {
 	for _, name := range botNames {
-		if e.msg.User.Name == name {
+		if e.Msg.User.Name == name {
 			return true
 		}
 	}

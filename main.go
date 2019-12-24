@@ -62,10 +62,12 @@ var (
 	swears []string
 )
 
+/*
 var (
 	True  = true
 	False = false
 )
+*/
 
 // Globals
 var (
@@ -77,9 +79,11 @@ var (
 )
 
 func main() {
-	commands := []*Command{}
-	True := true
-	False := false
+	/*
+		commands := []*Command{}
+		True := true
+		False := false
+	*/
 
 	// Commandline Flags {{{
 	// Create new parser
@@ -216,9 +220,7 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager := &cmd.Manager{
-		twitch: twitchClient,
-	}
+	manager := cmd.NewManager(twitchClient, stateClient, Version)
 
 	/* Old Style Commands are DISABLED.
 	aC := func(c Command) {
@@ -810,14 +812,14 @@ func main() {
 			return
 		}
 
-		sleeping, err := stateClient.IsSleeping(message.Channel)
-		if err != nil {
-			log.Error().
-				Err(err).
-				Str("channel", message.Channel).
-				Msg("Checking if channel is sleeping")
-			return
-		}
+		//sleeping, err := stateClient.IsSleeping(message.Channel)
+		//if err != nil {
+		//	log.Error().
+		//		Err(err).
+		//		Str("channel", message.Channel).
+		//		Msg("Checking if channel is sleeping")
+		//	return
+		//}
 
 		foundASwear, swearsFound, err := swearfilter.Check(message.Message)
 		if err != nil {
@@ -833,7 +835,7 @@ func main() {
 			return
 		}
 
-		manager.RunActions(&message)
+		manager.RunActions(&message, user)
 
 		/* Old Style Command Invokation is DISABLED
 		s := &CommandState{
@@ -869,11 +871,11 @@ func main() {
 					Msg("Command did not get executed")
 			}
 		}
-		*/
 
 		if !s.IsSleeping && !s.IsTimedout {
 			checkForVoicemails(message.User.Name, message.Channel)
 		}
+		*/
 	})
 
 	twitchClient.OnConnect(func() {
