@@ -72,7 +72,7 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 				Action:      action,
 				Msg:         msg,
 				Sleeping:    sleeping,
-				BotName:     m.BotName,
+				BotName:     m.botName,
 			}
 			e.Init()
 
