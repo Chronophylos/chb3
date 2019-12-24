@@ -13,14 +13,16 @@ type Manager struct {
 	twitch      *twitch.Client
 	state       *state.Client
 	chb3Version string
+	botName     string
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, version string) *Manager {
+func NewManager(twitch *twitch.Client, state *state.Client, version, botName string) *Manager {
 	return &Manager{
 		log:         log.With().Logger(),
 		twitch:      twitch,
 		state:       state,
 		chb3Version: version,
+		botName:     botName,
 	}
 }
 
@@ -70,6 +72,7 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 				Action:      action,
 				Msg:         msg,
 				Sleeping:    sleeping,
+				BotName:     m.BotName,
 			}
 			e.Init()
 

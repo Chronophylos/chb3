@@ -220,7 +220,7 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager := cmd.NewManager(twitchClient, stateClient, Version)
+	manager := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername)
 
 	/* Old Style Commands are DISABLED.
 	aC := func(c Command) {

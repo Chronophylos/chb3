@@ -26,6 +26,7 @@ type Event struct {
 	Twitch      *twitch.Client
 	State       *state.Client
 	CHB3Version string
+	BotName     string
 
 	Action Action
 	Msg    *twitch.PrivateMessage
@@ -110,6 +111,11 @@ func (e *Event) IsBot() bool {
 		}
 	}
 	return false
+}
+
+// IsInBotChannel reports wheather the current channel is owned by the bot.
+func (e *Event) IsInBotChannel() bool {
+	return e.Msg.Channel == e.BotName
 }
 
 // Skip skips this command and allows other commands to run.
