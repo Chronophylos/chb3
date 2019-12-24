@@ -6,8 +6,17 @@ import (
 
 type version struct{}
 
-func (v version) Run(e *Event) {
-	e.Say(fmt.Sprintf("I'm a bot written by Chronophylos in Golang. Current version is %s.", e.CHB3Version))
+func (a version) GetOptions() *ActionOptions {
+	return &ActionOptions{
+		Name: "version",
+	}
 }
 
-func (v version) GetName() string { return "version" }
+func (a version) Run(e *Event) error {
+	e.Say(fmt.Sprintf(
+		"I'm a bot written by Chronophylos in Golang. Current version is %s.",
+		e.CHB3Version,
+	))
+
+	return nil
+}

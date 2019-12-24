@@ -31,6 +31,8 @@ type Event struct {
 	Msg    *twitch.PrivateMessage
 	Match  []string
 
+	Sleeping bool
+
 	perm Permission
 
 	Skipped bool
@@ -60,7 +62,7 @@ func (e *Event) Say(message string) {
 // HasPermission compares perm with the permission level of the sender and
 // reports wheather the sender has a permission of at least perm.
 func (e *Event) HasPermission(perm Permission) bool {
-	return e.perm < perm
+	return e.perm > perm
 }
 
 // IsCoolingDown reports wheather the command is available or if it is cooling
@@ -95,7 +97,7 @@ func (e *Event) IsBroadcaster() bool {
 
 // IsOwner reports wheather the sender is the bots owner.
 func (e *Event) IsOwner() bool {
-	return e.HasPermission(Owner)
+	return e.Msg.User.ID == "54946241"
 }
 
 // IsBot reports wheather the message was sent by a bot.

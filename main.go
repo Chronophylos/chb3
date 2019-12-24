@@ -228,31 +228,6 @@ func main() {
 		commands = append(commands, &c)
 	}
 
-	// State {{{
-	aC(Command{
-		name:       "go sleep",
-		re:         rl(`(?i)^`+prefix+`(shut up|go sleep)`, `(?i)^`+prefix+`sei ruhig`),
-		permission: Moderator,
-		callback: func(c *CommandEvent) {
-			c.Logger.Info().Msg("Going to sleep")
-
-			stateClient.SetSleeping(c.Channel, true)
-		},
-	})
-
-	aC(Command{
-		name:        "wake up",
-		re:          rl(`(?i)^` + prefix + `(wake up|wach auf)`),
-		ignoreSleep: true,
-		permission:  Moderator,
-		callback: func(c *CommandEvent) {
-			c.Logger.Info().Msg("Waking up")
-
-			stateClient.SetSleeping(c.Channel, false)
-		},
-	})
-	// }}}
-
 	// Admin Commands {{{
 	aC(Command{
 		name: "join",
@@ -811,15 +786,6 @@ func main() {
 		if isLurking {
 			return
 		}
-
-		//sleeping, err := stateClient.IsSleeping(message.Channel)
-		//if err != nil {
-		//	log.Error().
-		//		Err(err).
-		//		Str("channel", message.Channel).
-		//		Msg("Checking if channel is sleeping")
-		//	return
-		//}
 
 		foundASwear, swearsFound, err := swearfilter.Check(message.Message)
 		if err != nil {
