@@ -1,19 +1,31 @@
 package actions
 
-import "fmt"
+import (
+	"fmt"
+	"regexp"
+)
 
-type joinChannel struct{}
+type joinChannel struct {
+	options *Options
+}
+
+func newJoinChannel() *joinChannel {
+	return &joinChannel{
+		options: &Options{
+			Name: "admin.join",
+			Re:   regexp.MustCompile(`(?i)^~join( (\w+))?`),
+		},
+	}
+}
 
 func (a joinChannel) GetOptions() *Options {
-	return &Options{
-		Name: "admin.join",
-	}
+	return a.options
 }
 
 // TODO: check if the bot  already joined the channel
 func (a joinChannel) Run(e *Event) error {
 	if !e.IsInBotChannel() {
-		return &notInBotChannel{channel: e.Msg.Channel}
+		return &notInBotChannelError{channel: e.Msg.Channel}
 	}
 
 	var channel string
@@ -39,18 +51,27 @@ func (a joinChannel) Run(e *Event) error {
 	return nil
 }
 
-type leaveChannel struct{}
+type leaveChannel struct {
+	options *Options
+}
+
+func newLeaveChannel() *leaveChannel {
+	return &leaveChannel{
+		options: &Options{
+			Name: "admin.leave",
+			Re:   regexp.MustCompile(`(?i)^~leave( (\w+))?`),
+		},
+	}
+}
 
 func (a leaveChannel) GetOptions() *Options {
-	return &Options{
-		Name: "admin.leave",
-	}
+	return a.options
 }
 
 // TODO: check if the bot already left the channel
 func (a leaveChannel) Run(e *Event) error {
 	if !e.IsInBotChannel() {
-		return &notInBotChannel{channel: e.Msg.Channel}
+		return &notInBotChannelError{channel: e.Msg.Channel}
 	}
 
 	var channel string

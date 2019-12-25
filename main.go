@@ -220,7 +220,13 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername)
+	manager, err := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Msg("could not create command manager")
+		return
+	}
 
 	/* Old Style Commands are DISABLED.
 	aC := func(c Command) {

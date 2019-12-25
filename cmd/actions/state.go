@@ -1,11 +1,22 @@
 package actions
 
-type stateSleep struct{}
+import "regexp"
+
+type stateSleep struct {
+	options *Options
+}
+
+func newStateSleep() *stateSleep {
+	return &stateSleep{
+		options: &Options{
+			Name: "state.sleep",
+			Re:   regexp.MustCompile(`(?i)^~(shut up|go sleep|sleep|sei ruhig)`),
+		},
+	}
+}
 
 func (a stateSleep) GetOptions() *Options {
-	return &Options{
-		Name: "state.sleep",
-	}
+	return a.options
 }
 
 func (a stateSleep) Run(e *Event) error {
@@ -20,13 +31,21 @@ func (a stateSleep) Run(e *Event) error {
 	return nil
 }
 
-type stateWake struct{}
+type stateWake struct {
+	options *Options
+}
 
-func (a stateWake) GetOptions() *Options {
-	return &Options{
-		Name:      "state.wake",
-		Sleepless: true,
+func newStateWake() *stateWake {
+	return &stateWake{
+		options: &Options{
+			Name:      "state.wake",
+			Re:        regexp.MustCompile(`(?i)^~(wake up|wach auf)`),
+			Sleepless: true,
+		},
 	}
+}
+func (a stateWake) GetOptions() *Options {
+	return a.options
 }
 
 func (a stateWake) Run(e *Event) error {

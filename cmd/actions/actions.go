@@ -6,6 +6,7 @@ import (
 
 type Options struct {
 	Name      string
+	Re        *regexp.Regexp
 	Sleepless bool
 }
 
@@ -14,14 +15,27 @@ type Action interface {
 	GetOptions() *Options
 }
 
-type ActionMap map[*regexp.Regexp]Action
+type Actions []Action
 
-var actionMap = ActionMap{
-	regexp.MustCompile(`(?i)^~version`):                            version{},
-	regexp.MustCompile(`(?i)^~(shut up|go sleep|sleep|sei ruhig)`): stateSleep{},
-	regexp.MustCompile(`(?i)^~(wake up|wach auf)`):                 stateWake{},
-	regexp.MustCompile(`(?i)^~join( (\w+))?`):                      joinChannel{},
-	regexp.MustCompile(`(?i)^~leave( (\w+))?`):                     leaveChannel{},
+var actions = Actions{
+	newVersion(),
+	newStateSleep(),
+	newStateWake(),
+	newJoinChannel(),
+	newLeaveChannel(),
 }
 
-func GetAll() ActionMap { return actionMap }
+func GetAll() Actions { return actions }
+
+func Check(a Action) error {
+	opt := a.GetOptions()
+
+	if opt.Name == "" {
+		return errors.New("required field Name is empty")
+	}
+
+	if opt.Re == nil {
+		return erros.New("required field Re is nil")
+	}
+	return nil
+}

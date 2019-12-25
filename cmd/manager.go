@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/chronophylos/chb3/cmd/actions"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -14,16 +16,25 @@ type Manager struct {
 	state       *state.Client
 	chb3Version string
 	botName     string
+	actions     actions.Actions
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, version, botName string) *Manager {
+func NewManager(twitch *twitch.Client, state *state.Client, version, botName string) (*Manager, error) {
+	// check actions for errors
+	for _, action := range actions.GetAll() {
+		if err := actions.Check(action); err != nil {
+			return &Manager{}, fmt.Errorf("malformed action %T: %v", action, err)
+		}
+	}
+
 	return &Manager{
 		log:         log.With().Logger(),
 		twitch:      twitch,
 		state:       state,
 		chb3Version: version,
 		botName:     botName,
-	}
+		actions:     actions.GetAll(),
+	}, nil
 }
 
 func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
@@ -39,14 +50,10 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 		return
 	}
 
-	for re, action := range actions.GetAll() {
-		if match := re.FindStringSubmatch(msg.Message); match != nil {
-			opt := action.GetOptions()
+	for _, action := range m.actions {
+		opt := action.GetOptions()
 
-			if opt.Name == "" {
-				log.Error().Msg("malformed action name: empty string")
-				return
-			}
+		if match := opt.Re.FindStringSubmatch(msg.Message); match != nil {
 
 			log := log.With().
 				Str("action", opt.Name).

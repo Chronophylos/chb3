@@ -2,14 +2,24 @@ package actions
 
 import (
 	"fmt"
+	"regexp"
 )
 
-type version struct{}
+type version struct {
+	options *Options
+}
+
+func newVersion() *version {
+	return &version{
+		options: &Options{
+			Name: "version",
+			Re:   regexp.MustCompile(`(?i)^~version`),
+		},
+	}
+}
 
 func (a version) GetOptions() *Options {
-	return &Options{
-		Name: "version",
-	}
+	return a.options
 }
 
 func (a version) Run(e *Event) error {
