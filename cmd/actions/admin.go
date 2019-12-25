@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 )
@@ -92,4 +93,62 @@ func (a leaveChannel) Run(e *Event) error {
 	e.Say("ppPoof")
 
 	return nil
+}
+
+type lurkChannel struct {
+	options *Options
+}
+
+func newLurkChannel() *lurkChannel {
+	return &lurkChannel{
+		options: &Options{
+			Name: "admin.lurk",
+			Re:   regexp.MustCompile(`(?i)^~lurk (\w+)`),
+		},
+	}
+}
+
+func (a lurkChannel) GetOptions() *Options {
+	return a.options
+}
+
+func (a lurkChannel) Run(e *Event) error {
+	if !e.IsInBotChannel() {
+		return &notInBotChannelError{channel: e.Msg.Channel}
+	}
+
+	channel := e.Match[2]
+
+	e.Twitch.Join(channel)
+	e.State.SetLurking(channel, true)
+	e.State.JoinChannel(channel, true)
+
+	e.Log.Info().
+		Str("new-channel", channel).
+		Msg("Lurking in new channel")
+
+	e.Say(fmt.Sprintf("I'm lurking in %s now.", channel))
+
+	return nil
+}
+
+type debug struct {
+	options *Options
+}
+
+func newDebug() *debug {
+	return &debug{
+		options: &Options{
+			Name: "admin.debug",
+			Re:   regexp.MustCompile(`(?i)^~debug (\w+)`),
+		},
+	}
+}
+
+func (a debug) GetOptions() *Options {
+	return a.options
+}
+
+func (a debug) Run(e *Event) error {
+	return errors.New("Not yet implemented")
 }

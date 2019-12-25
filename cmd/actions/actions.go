@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"errors"
 	"regexp"
 )
 
@@ -35,7 +36,8 @@ func Check(a Action) error {
 	}
 
 	if opt.Re == nil {
-		return erros.New("required field Re is nil")
+		return errors.New("required field Re is nil")
 	}
+
 	return nil
 }
