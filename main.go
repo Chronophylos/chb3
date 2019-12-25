@@ -234,63 +234,6 @@ func main() {
 		commands = append(commands, &c)
 	}
 
-	// Admin Commands {{{
-	aC(Command{
-		name:       "lurk",
-		re:         rl(`(?i)^` + prefix + `lurk in (\w+)$`),
-		permission: Moderator,
-		callback: func(c *CommandEvent) {
-			channel := strings.ToLower(c.Match[0][1])
-
-			if c.IsBotChannel {
-				twitchClient.Join(channel)
-				stateClient.SetLurking(channel, true)
-				stateClient.JoinChannel(channel, true)
-
-				c.Logger.Info().Str("channel", channel).Msg("Lurking in new channel")
-
-				twitchClient.Say(c.Channel, "I'm lurking in "+channel+" now.")
-			}
-		},
-	})
-
-	aC(Command{
-		name:       "debug",
-		re:         rl(`(?i)^` + prefix + `debug (\w+)`),
-		permission: Owner,
-		callback: func(c *CommandEvent) {
-			action := strings.ToLower(c.Match[0][1])
-
-			switch action {
-			case "enable":
-				debug = &True
-				zerolog.SetGlobalLevel(zerolog.DebugLevel)
-				c.Logger.Info().Msg("Enabled debugging")
-				twitchClient.Say(c.Channel, "Enabled debugging")
-			case "disable":
-				debug = &False
-				zerolog.SetGlobalLevel(zerolog.InfoLevel)
-				c.Logger.Info().Msg("Disabled debugging")
-				twitchClient.Say(c.Channel, "Disabled debugging")
-			}
-		},
-	})
-	// }}}
-
-	// Version Command {{{
-	aC(Command{
-		name: "version",
-		re: rl(
-			`(?i)^`+botRe+`\?`,
-			`(?i)^`+prefix+`version`,
-		),
-		callback: func(c *CommandEvent) {
-			twitchClient.Say(c.Channel, "I'm a bot written by Chronophylos in Golang. Current Version is "+Version+".")
-			c.Logger.Info().Msg("Sending Version")
-		},
-	})
-	// }}}
-
 	// Voicemails {{{
 	aC(Command{
 		name: "leave voicemail",
