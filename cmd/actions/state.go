@@ -2,12 +2,12 @@ package actions
 
 import "regexp"
 
-type stateSleep struct {
+type sleepAction struct {
 	options *Options
 }
 
-func newStateSleep() *stateSleep {
-	return &stateSleep{
+func newSleepAction() *sleepAction {
+	return &sleepAction{
 		options: &Options{
 			Name: "state.sleep",
 			Re:   regexp.MustCompile(`(?i)^~(shut up|go sleep|sleep|sei ruhig)`),
@@ -15,11 +15,11 @@ func newStateSleep() *stateSleep {
 	}
 }
 
-func (a stateSleep) GetOptions() *Options {
+func (a sleepAction) GetOptions() *Options {
 	return a.options
 }
 
-func (a stateSleep) Run(e *Event) error {
+func (a sleepAction) Run(e *Event) error {
 	if !e.HasPermission(Moderator) {
 		return &noPermissionError{has: e.perm, needed: Moderator}
 	}
@@ -31,12 +31,12 @@ func (a stateSleep) Run(e *Event) error {
 	return nil
 }
 
-type stateWake struct {
+type wakeAction struct {
 	options *Options
 }
 
-func newStateWake() *stateWake {
-	return &stateWake{
+func newWakeAction() *wakeAction {
+	return &wakeAction{
 		options: &Options{
 			Name:      "state.wake",
 			Re:        regexp.MustCompile(`(?i)^~(wake up|wach auf)`),
@@ -44,11 +44,11 @@ func newStateWake() *stateWake {
 		},
 	}
 }
-func (a stateWake) GetOptions() *Options {
+func (a wakeAction) GetOptions() *Options {
 	return a.options
 }
 
-func (a stateWake) Run(e *Event) error {
+func (a wakeAction) Run(e *Event) error {
 	if !e.Sleeping {
 		return nil
 	}

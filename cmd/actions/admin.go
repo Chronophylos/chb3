@@ -6,12 +6,12 @@ import (
 	"regexp"
 )
 
-type joinChannel struct {
+type joinAction struct {
 	options *Options
 }
 
-func newJoinChannel() *joinChannel {
-	return &joinChannel{
+func newJoinAction() *joinAction {
+	return &joinAction{
 		options: &Options{
 			Name: "admin.join",
 			Re:   regexp.MustCompile(`(?i)^~join( (\w+))?`),
@@ -19,12 +19,12 @@ func newJoinChannel() *joinChannel {
 	}
 }
 
-func (a joinChannel) GetOptions() *Options {
+func (a joinAction) GetOptions() *Options {
 	return a.options
 }
 
 // TODO: check if the bot  already joined the channel
-func (a joinChannel) Run(e *Event) error {
+func (a joinAction) Run(e *Event) error {
 	if !e.IsInBotChannel() {
 		return &notInBotChannelError{channel: e.Msg.Channel}
 	}
@@ -52,12 +52,12 @@ func (a joinChannel) Run(e *Event) error {
 	return nil
 }
 
-type leaveChannel struct {
+type leaveAction struct {
 	options *Options
 }
 
-func newLeaveChannel() *leaveChannel {
-	return &leaveChannel{
+func newLeaveAction() *leaveAction {
+	return &leaveAction{
 		options: &Options{
 			Name: "admin.leave",
 			Re:   regexp.MustCompile(`(?i)^~leave( (\w+))?`),
@@ -65,12 +65,12 @@ func newLeaveChannel() *leaveChannel {
 	}
 }
 
-func (a leaveChannel) GetOptions() *Options {
+func (a leaveAction) GetOptions() *Options {
 	return a.options
 }
 
 // TODO: check if the bot already left the channel
-func (a leaveChannel) Run(e *Event) error {
+func (a leaveAction) Run(e *Event) error {
 	if !e.IsInBotChannel() {
 		return &notInBotChannelError{channel: e.Msg.Channel}
 	}
@@ -95,12 +95,12 @@ func (a leaveChannel) Run(e *Event) error {
 	return nil
 }
 
-type lurkChannel struct {
+type lurkAction struct {
 	options *Options
 }
 
-func newLurkChannel() *lurkChannel {
-	return &lurkChannel{
+func newLurkAction() *lurkAction {
+	return &lurkAction{
 		options: &Options{
 			Name: "admin.lurk",
 			Re:   regexp.MustCompile(`(?i)^~lurk (\w+)`),
@@ -108,11 +108,11 @@ func newLurkChannel() *lurkChannel {
 	}
 }
 
-func (a lurkChannel) GetOptions() *Options {
+func (a lurkAction) GetOptions() *Options {
 	return a.options
 }
 
-func (a lurkChannel) Run(e *Event) error {
+func (a lurkAction) Run(e *Event) error {
 	if !e.IsInBotChannel() {
 		return &notInBotChannelError{channel: e.Msg.Channel}
 	}
@@ -132,12 +132,12 @@ func (a lurkChannel) Run(e *Event) error {
 	return nil
 }
 
-type debug struct {
+type debugAction struct {
 	options *Options
 }
 
-func newDebug() *debug {
-	return &debug{
+func newDebugAction() *debugAction {
+	return &debugAction{
 		options: &Options{
 			Name: "admin.debug",
 			Re:   regexp.MustCompile(`(?i)^~debug (\w+)`),
@@ -145,10 +145,10 @@ func newDebug() *debug {
 	}
 }
 
-func (a debug) GetOptions() *Options {
+func (a debugAction) GetOptions() *Options {
 	return a.options
 }
 
-func (a debug) Run(e *Event) error {
+func (a debugAction) Run(e *Event) error {
 	return errors.New("Not yet implemented")
 }

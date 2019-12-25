@@ -19,11 +19,13 @@ type Action interface {
 type Actions []Action
 
 var actions = Actions{
-	newVersion(),
-	newStateSleep(),
-	newStateWake(),
-	newJoinChannel(),
-	newLeaveChannel(),
+	newVersionAction(),
+	newSleepAction(),
+	newWakeAction(),
+	newJoinAction(),
+	newLeaveAction(),
+	newLurkAction(),
+	newDebugAction(),
 }
 
 func GetAll() Actions { return actions }
