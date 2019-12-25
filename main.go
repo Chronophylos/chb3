@@ -234,53 +234,6 @@ func main() {
 		commands = append(commands, &c)
 	}
 
-	// Voicemails {{{
-	aC(Command{
-		name: "leave voicemail",
-		re: rl(
-			`(?i)^` + prefix + `tell ((\w+)( && (\w+))*) (.*)`,
-		),
-		userCD: 30 * time.Second,
-		callback: func(c *CommandEvent) {
-			match := c.Match[0]
-			usernames := []string{}
-			message := match[5]
-
-			for _, username := range strings.Split(match[1], " && ") {
-				if username == twitchUsername {
-					continue
-				}
-
-				if username == c.User.Name {
-					continue
-				}
-
-				usernames = append(usernames, strings.ToLower(username))
-			}
-
-			if len(usernames) <= 0 {
-				return
-			}
-
-			c.Logger.Info().
-				Strs("usernames", usernames).
-				Str("voicemessage", message).
-				Str("creator", c.User.Name).
-				Msg("Leaving a voicemail")
-
-			for _, username := range usernames {
-				if err := stateClient.AddVoicemail(username, c.Channel, c.User.Name, message, c.Time); err != nil {
-					log.Error().
-						Err(err).
-						Msg("Adding Voicemail")
-					return
-				}
-			}
-			twitchClient.Say(c.Channel, "I'll forward this message to "+strings.Join(usernames, ", ")+" when they type something in chat.")
-		},
-	})
-	//}}}
-
 	// patscheck {{{
 	aC(Command{
 		name: "patscheck",

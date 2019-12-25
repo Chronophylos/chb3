@@ -3,12 +3,17 @@ package actions
 import (
 	"errors"
 	"regexp"
+	"time"
 )
 
 type Options struct {
 	Name      string
 	Re        *regexp.Regexp
 	Sleepless bool
+
+	UserCooldown    time.Duration
+	ChannelCooldown time.Duration
+	GlobalCooldown  time.Duration
 }
 
 type Action interface {
@@ -26,6 +31,7 @@ var actions = Actions{
 	newLeaveAction(),
 	newLurkAction(),
 	newDebugAction(),
+	newVoicemailAction(),
 }
 
 func GetAll() Actions { return actions }
