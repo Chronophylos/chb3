@@ -32,6 +32,8 @@ var actions = Actions{
 	newLurkAction(),
 	newDebugAction(),
 	newVoicemailAction(),
+	newPatscheckAction(),
+	newPatschAction(),
 }
 
 func GetAll() Actions { return actions }

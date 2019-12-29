@@ -220,7 +220,7 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager, err := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername)
+	manager, err := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername, debug)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -233,73 +233,6 @@ func main() {
 		c.Init()
 		commands = append(commands, &c)
 	}
-
-	// patscheck {{{
-	aC(Command{
-		name: "patscheck",
-		re:   rl(`(?i)^` + prefix + `hihsg\?`),
-		callback: func(c *CommandEvent) {
-			user, err := stateClient.GetUserByID(c.User.ID)
-			if err != nil {
-				log.Error().
-					Err(err).
-					Str("id", c.User.ID).
-					Msg("Could not get user")
-				return
-			}
-
-			c.Logger.Info().Msg("Checking Patscher")
-
-			if user.PatschCount == 0 {
-				twitchClient.Say(c.Channel, "You've never patted the fish before. You should do that now.")
-				return
-			}
-
-			streak := "Your current streak is " + strconv.Itoa(user.PatschStreak) + "."
-			if user.PatschStreak == 0 {
-				streak = "You don't have a streak ongoing."
-			}
-
-			total := " In total you patted " + strconv.Itoa(user.PatschCount) + " times."
-			if user.PatschCount == 0 {
-				total = ""
-			}
-
-			if user.HasPatschedToday(c.Time) {
-				twitchClient.Say(c.Channel, "You already patted today. "+streak+total)
-			} else {
-				twitchClient.Say(c.Channel, "You have not yet patted today. "+streak+total)
-			}
-		},
-	})
-
-	aC(Command{
-		name: "patsch",
-		re:   rl(`fischPatsch|fishPat`),
-		callback: func(c *CommandEvent) {
-			if c.Channel != "furzbart" && !(*debug && c.IsBotChannel) {
-				c.Skip()
-				return
-			}
-
-			if len(c.Match) > 1 {
-				twitchClient.Say(c.Channel, "/timeout "+c.User.Name+" 1 Wenn du so viel patschst wird das ne Flunder.")
-				return
-			}
-
-			if err := stateClient.Patsch(c.User.ID, c.Time); err != nil {
-				if err == state.ErrAlreadyPatsched {
-					twitchClient.Say(c.Channel, "Du hast heute schon gepatscht.")
-					return
-				} else if err == state.ErrForgotToPatsch {
-					// did not patsch
-				}
-			}
-
-			c.Logger.Info().Msg("Patsch!")
-		},
-	})
-	// }}}
 
 	// Useful Commands {{{
 	aC(Command{

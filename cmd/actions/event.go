@@ -27,10 +27,10 @@ type Event struct {
 	State       *state.Client
 	CHB3Version string
 	BotName     string
+	Debug       bool
 
-	Action Action
-	Msg    *twitch.PrivateMessage
-	Match  []string
+	Msg   *twitch.PrivateMessage
+	Match []string
 
 	Sleeping bool
 

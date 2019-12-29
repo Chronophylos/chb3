@@ -11,15 +11,20 @@ import (
 )
 
 type Manager struct {
-	log         zerolog.Logger
-	twitch      *twitch.Client
-	state       *state.Client
-	chb3Version string
-	botName     string
-	actions     actions.Actions
+	Log         zerolog.Logger
+	Twitch      *twitch.Client
+	State       *state.Client
+	CHB3Version string
+	BotName     string
+
+	actions actions.Actions
+
+	Config struct {
+		Debug *bool
+	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, version, botName string) (*Manager, error) {
+func NewManager(twitch *twitch.Client, state *state.Client, version, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {
@@ -27,22 +32,24 @@ func NewManager(twitch *twitch.Client, state *state.Client, version, botName str
 		}
 	}
 
-	return &Manager{
-		log:         log.With().Logger(),
-		twitch:      twitch,
-		state:       state,
-		chb3Version: version,
-		botName:     botName,
+	m := &Manager{
+		Log:         log.With().Logger(),
+		Twitch:      twitch,
+		State:       state,
+		CHB3Version: version,
+		BotName:     botName,
 		actions:     actions.GetAll(),
-	}, nil
+	}
+	m.Config.Debug = debug
+	return m, nil
 }
 
 func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
-	log := m.log.With().
+	log := m.Log.With().
 		Str("channel", msg.Channel).
 		Logger()
 
-	sleeping, err := m.state.IsSleeping(msg.Channel)
+	sleeping, err := m.State.IsSleeping(msg.Channel)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -72,14 +79,13 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 
 			e := &actions.Event{
 				Log:         log,
-				Twitch:      m.twitch,
-				State:       m.state,
-				CHB3Version: m.chb3Version,
+				Twitch:      m.Twitch,
+				State:       m.State,
+				CHB3Version: m.CHB3Version,
 				Match:       match,
-				Action:      action,
 				Msg:         msg,
 				Sleeping:    sleeping,
-				BotName:     m.botName,
+				BotName:     m.BotName,
 			}
 			e.Init()
 
