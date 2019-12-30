@@ -219,7 +219,7 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager, err := cmd.NewManager(twitchClient, stateClient, Version, twitchUsername, debug)
+	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, Version, twitchUsername, debug)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -229,23 +229,6 @@ func main() {
 
 	/* Old Style Commands are DISABLED.
 	// Useful Commands {{{
-	aC(Command{
-		name: "weather",
-		//disabled: true,
-		re: rl(`(?i)^wie ist das wetter in (.*)\?`),
-		callback: func(c *CommandEvent) {
-			city := c.Match[0][1]
-
-			c.Logger.Info().
-				Str("city", city).
-				Msg("Checking weather")
-
-			if weatherMessage := getWeather(city); weatherMessage != "" {
-				twitchClient.Say(c.Channel, weatherMessage)
-			}
-		},
-	})
-
 	aC(Command{
 		name: "location",
 		re:   rl(`(?i)^wo (ist|liegt) (.*)\?+`),
@@ -757,72 +740,6 @@ func checkForVoicemails(username, channel string) {
 }
 
 // }}}
-// weather {{{
-const weatherText = "Das aktuelle Wetter für %s, %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
-
-func getWeather(city string) string {
-	currentWeather, err := owClient.GetCurrentWeatherByName(city)
-	if err != nil {
-		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
-			log.Warn().
-				Err(err).
-				Str("city", city).
-				Msg("City not found")
-			return fmt.Sprintf("Ich kann %s nicht finden", city)
-		}
-		log.Error().
-			Err(err).
-			Str("city", city).
-			Msg("Error getting current weather")
-		return ""
-	}
-
-	conditions := []string{}
-	for _, condition := range currentWeather.Conditions {
-		conditions = append(conditions, condition.Description)
-	}
-
-	currentCondition := strings.Join(conditions, " und ")
-
-	weatherForecast, err := owClient.GetWeatherForecastByName(city)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("city", city).
-			Msg("Error getting weather forecast")
-	}
-
-	var tomorrowsWeather *openweather.Weather
-	year, month, day := time.Now().Date()
-	tomorrow := time.Date(year, month, day+1, 12, 0, 0, 0, time.UTC)
-	for _, weather := range weatherForecast {
-		if weather.Time == tomorrow {
-			tomorrowsWeather = weather
-			break
-		}
-	}
-
-	conditions = []string{}
-	for _, condition := range tomorrowsWeather.Conditions {
-		conditions = append(conditions, condition.Description)
-	}
-
-	tomorrowsConditions := strings.Join(conditions, " und ")
-
-	return fmt.Sprintf(weatherText,
-		currentWeather.City.Name,
-		currentWeather.City.Country,
-		currentCondition,
-		currentWeather.Temperature.Current,
-		currentWeather.Wind.Direction,
-		currentWeather.Wind.Speed,
-		currentWeather.Humidity,
-		tomorrowsConditions,
-		tomorrowsWeather.Temperature.Min,
-		tomorrowsWeather.Temperature.Max,
-	)
-}
-
 func getLocation(city string) string {
 	currentWeather, err := owClient.GetCurrentWeatherByName(city)
 	if err != nil {
@@ -847,7 +764,6 @@ func getLocation(city string) string {
 	)
 }
 
-// }}}
 // }}}
 
 // Helper Functions {{{

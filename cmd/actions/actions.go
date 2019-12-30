@@ -39,6 +39,8 @@ var actions = Actions{
 	newCircumflexAction(),
 	newPingAction(),
 	newRateAction(),
+	newWeatherAction1(),
+	newWeatherAction2(),
 }
 
 func GetAll() Actions { return actions }

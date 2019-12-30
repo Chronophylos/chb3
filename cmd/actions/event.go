@@ -1,6 +1,7 @@
 package actions
 
 import (
+	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/rs/zerolog"
@@ -25,6 +26,7 @@ type Event struct {
 	Log         zerolog.Logger
 	Twitch      *twitch.Client
 	State       *state.Client
+	Weather     *openweather.OpenWeatherClient
 	CHB3Version string
 	BotName     string
 	Debug       bool
