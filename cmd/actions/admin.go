@@ -1,7 +1,6 @@
 package actions
 
 import (
-	"errors"
 	"fmt"
 	"regexp"
 )
@@ -130,25 +129,4 @@ func (a lurkAction) Run(e *Event) error {
 	e.Say(fmt.Sprintf("I'm lurking in %s now.", channel))
 
 	return nil
-}
-
-type debugAction struct {
-	options *Options
-}
-
-func newDebugAction() *debugAction {
-	return &debugAction{
-		options: &Options{
-			Name: "admin.debug",
-			Re:   regexp.MustCompile(`(?i)^~debug (\w+)`),
-		},
-	}
-}
-
-func (a debugAction) GetOptions() *Options {
-	return a.options
-}
-
-func (a debugAction) Run(e *Event) error {
-	return errors.New("Not yet implemented")
 }

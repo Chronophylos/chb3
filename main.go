@@ -228,11 +228,6 @@ func main() {
 	}
 
 	/* Old Style Commands are DISABLED.
-	aC := func(c Command) {
-		c.Init()
-		commands = append(commands, &c)
-	}
-
 	// Useful Commands {{{
 	aC(Command{
 		name: "weather",
