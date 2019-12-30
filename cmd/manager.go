@@ -89,6 +89,10 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 			}
 			e.Init()
 
+			if !e.HasPermission(opt.Perm) {
+				return // Skip
+			}
+
 			if err := action.Run(e); err != nil {
 				log.Error().Err(err).Msg("action failed")
 				return

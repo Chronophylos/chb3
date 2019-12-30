@@ -236,30 +236,6 @@ func main() {
 
 	// Useful Commands {{{
 	aC(Command{
-		name:       "vanish reply",
-		re:         rl(`^!vanish`),
-		permission: Moderator,
-		callback: func(c *CommandEvent) {
-			c.Logger.Info().Msgf("Telling %s how to use !vanish", c.User.Name)
-			twitchClient.Say(c.Channel, "Try /unmod "+c.User.Name+" first weSmart")
-		},
-	})
-
-	aC(Command{
-		name:      "^",
-		re:        rl(`^\^`),
-		channelCD: 10 * time.Second,
-		userCD:    30 * time.Second,
-		callback: func(c *CommandEvent) {
-			if c.IsBot || c.Channel == "moondye7" {
-				c.Skip()
-				return
-			}
-			twitchClient.Say(c.Channel, "^")
-		},
-	})
-
-	aC(Command{
 		name: "rate",
 		re:   rl(`(?i)^~rate (.*)$`),
 		callback: func(c *CommandEvent) {

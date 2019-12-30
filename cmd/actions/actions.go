@@ -10,6 +10,7 @@ type Options struct {
 	Name      string
 	Re        *regexp.Regexp
 	Sleepless bool
+	Perm      Permission
 
 	UserCooldown    time.Duration
 	ChannelCooldown time.Duration
@@ -34,6 +35,8 @@ var actions = Actions{
 	newVoicemailAction(),
 	newPatscheckAction(),
 	newPatschAction(),
+	newVanishReplyAction(),
+	newCircumflexAction(),
 }
 
 func GetAll() Actions { return actions }
@@ -47,6 +50,10 @@ func Check(a Action) error {
 
 	if opt.Re == nil {
 		return errors.New("required field Re is nil")
+	}
+
+	if opt.Perm < Everyone || opt.Perm > Owner {
+		return errors.New("field Perm is out of bounds")
 	}
 
 	return nil
