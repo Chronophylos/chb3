@@ -11,6 +11,7 @@ func newSleepAction() *sleepAction {
 		options: &Options{
 			Name: "state.sleep",
 			Re:   regexp.MustCompile(`(?i)^~(shut up|go sleep|sleep|sei ruhig)`),
+			Perm: Moderator,
 		},
 	}
 }
@@ -20,10 +21,6 @@ func (a sleepAction) GetOptions() *Options {
 }
 
 func (a sleepAction) Run(e *Event) error {
-	if !e.HasPermission(Moderator) {
-		return &noPermissionError{has: e.perm, needed: Moderator}
-	}
-
 	e.Log.Info().Msg("Going to sleep")
 
 	e.State.SetSleeping(e.Msg.Channel, true)
@@ -41,6 +38,7 @@ func newWakeAction() *wakeAction {
 			Name:      "state.wake",
 			Re:        regexp.MustCompile(`(?i)^~(wake up|wach auf)`),
 			Sleepless: true,
+			Perm:      Moderator,
 		},
 	}
 }
@@ -51,10 +49,6 @@ func (a wakeAction) GetOptions() *Options {
 func (a wakeAction) Run(e *Event) error {
 	if !e.Sleeping {
 		return nil
-	}
-
-	if !e.HasPermission(Moderator) {
-		return &noPermissionError{has: e.perm, needed: Moderator}
 	}
 
 	e.Log.Info().Msg("Waking up")

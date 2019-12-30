@@ -62,7 +62,7 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 
 		// sleeping: nothing to do
 		if sleeping && !opt.Sleepless {
-			return
+			continue
 		}
 
 		if match := opt.Re.FindStringSubmatch(msg.Message); match != nil {
@@ -90,7 +90,11 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 			e.Init()
 
 			if !e.HasPermission(opt.Perm) {
-				return // Skip
+				log.Warn().
+					Str("has", e.Perm.String()).
+					Str("needs", opt.Perm.String()).
+					Msg("permission not high enough")
+				continue // Skip
 			}
 
 			if err := action.Run(e); err != nil {

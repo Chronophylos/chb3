@@ -34,7 +34,7 @@ type Event struct {
 
 	Sleeping bool
 
-	perm Permission
+	Perm Permission
 
 	Skipped bool
 }
@@ -42,17 +42,17 @@ type Event struct {
 // Init sets some internal values like the permission of the sender.
 func (e *Event) Init() {
 	if e.IsOwner() {
-		e.perm = Owner
+		e.Perm = Owner
 	} else if e.IsBroadcaster() {
-		e.perm = Broadcaster
+		e.Perm = Broadcaster
 	} else if e.IsModerator() {
-		e.perm = Moderator
+		e.Perm = Moderator
 	} else if e.IsRegular() {
-		e.perm = Regular
+		e.Perm = Regular
 	} else if e.IsSubscriber() {
-		e.perm = Subscriber
+		e.Perm = Subscriber
 	}
-	// no need to set e.perm to Everyone since it is the default.
+	// no need to set e.Perm to Everyone since it is the default.
 }
 
 // Say sends message to the current channel.
@@ -63,7 +63,7 @@ func (e *Event) Say(message string) {
 // HasPermission compares perm with the permission level of the sender and
 // reports wheather the sender has a permission of at least perm.
 func (e *Event) HasPermission(perm Permission) bool {
-	return e.perm > perm
+	return e.Perm >= perm
 }
 
 // IsCoolingDown reports wheather the command is available or if it is cooling
@@ -122,3 +122,5 @@ func (e *Event) IsInBotChannel() bool {
 func (e *Event) Skip() {
 	e.Skipped = true
 }
+
+//go:generate stringer -type=Permission

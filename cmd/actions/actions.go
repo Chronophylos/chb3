@@ -37,6 +37,8 @@ var actions = Actions{
 	newPatschAction(),
 	newVanishReplyAction(),
 	newCircumflexAction(),
+	newPingAction(),
+	newRateAction(),
 }
 
 func GetAll() Actions { return actions }

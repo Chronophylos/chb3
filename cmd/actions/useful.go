@@ -29,10 +29,6 @@ func (a vanishReplyAction) Run(e *Event) error {
 		e.Skip()
 		return nil
 	}
-	if !e.HasPermission(Moderator) {
-		e.Skip()
-		return nil
-	}
 
 	e.Log.Info().Msg("unmod the mods")
 

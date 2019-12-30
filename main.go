@@ -1,7 +1,6 @@
 package main
 
 import (
-	"crypto/md5"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -235,22 +234,6 @@ func main() {
 	}
 
 	// Useful Commands {{{
-	aC(Command{
-		name: "rate",
-		re:   rl(`(?i)^~rate (.*)$`),
-		callback: func(c *CommandEvent) {
-			key := c.Match[0][1]
-			rating := rate(key)
-
-			c.Logger.Info().
-				Str("key", key).
-				Str("rating", rating).
-				Msg("Rating something")
-
-			twitchClient.Say(c.Channel, "I rate "+key+" "+rating+"/10")
-		},
-	})
-
 	aC(Command{
 		name: "weather",
 		//disabled: true,
@@ -630,15 +613,6 @@ func main() {
 }
 
 // Command Functions {{{
-// rate {{{
-func rate(key string) string {
-	hash := fmt.Sprintf("%x", md5.Sum([]byte(key)))
-	p, _ := strconv.ParseInt(hash, 16, 64)
-	q := float32(p%101) / 10
-	return fmt.Sprintf("%.1f", q)
-}
-
-// }}}
 // jumble {{{
 // jumble uses the Fisher-Yates shuffle to shuffle a string in plaCe
 func jumble(name string) string {
