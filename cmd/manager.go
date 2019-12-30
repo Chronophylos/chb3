@@ -60,17 +60,17 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 	for _, action := range m.actions {
 		opt := action.GetOptions()
 
+		// sleeping: nothing to do
+		if sleeping && !opt.Sleepless {
+			return
+		}
+
 		if match := opt.Re.FindStringSubmatch(msg.Message); match != nil {
 
 			log := log.With().
 				Str("action", opt.Name).
 				Str("invoker", msg.User.Name).
 				Logger()
-
-			// sleeping: nothing to do
-			if sleeping && !opt.Sleepless {
-				return
-			}
 
 			log.Debug().
 				Strs("match", match).
