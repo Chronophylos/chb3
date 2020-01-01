@@ -228,52 +228,6 @@ func main() {
 	}
 
 	/* Old Style Commands are DISABLED.
-	// Useful Commands {{{
-	aC(Command{
-		name: "math",
-		re:   rl(`(?i)^` + prefix + `(math|quickmafs) (.*)$`),
-		callback: func(c *CommandEvent) {
-			exprString := c.Match[0][2]
-
-			defer func() {
-				if r := recover(); r != nil {
-					c.Logger.Info().
-						Str("expression", exprString).
-						Msg("failed to do math")
-
-					twitchClient.Say(c.Channel, "I can't calculate that :(")
-				}
-			}()
-
-			expr, err := govaluate.NewEvaluableExpression(exprString)
-			if err != nil {
-				c.Logger.Error().
-					Err(err).
-					Str("expression", exprString).
-					Msg("Error parsing expression")
-				twitchClient.Say(c.Channel, fmt.Sprintf("Error: %v", err))
-				return
-			}
-
-			result, err := expr.Evaluate(nil)
-			if err != nil {
-				c.Logger.Error().
-					Err(err).
-					Str("expression", exprString).
-					Msg("Error evaluating expression")
-				return
-			}
-
-			c.Logger.Info().
-				Str("expression", exprString).
-				Interface("result", result).
-				Msg("doing math")
-
-			twitchClient.Say(c.Channel, fmt.Sprintf("%v", result))
-		},
-	})
-	// }}}
-
 	// Arguably Useful Commands {{{
 	aC(Command{
 		name:        "er dr",

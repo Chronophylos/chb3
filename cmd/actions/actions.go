@@ -42,6 +42,7 @@ var actions = Actions{
 	newWeatherAction1(),
 	newWeatherAction2(),
 	newLocationAction(),
+	newMathAction(),
 }
 
 func GetAll() Actions { return actions }
