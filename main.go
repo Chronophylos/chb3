@@ -219,7 +219,7 @@ func main() {
 	wg.Wait()
 
 	// Commands {{{
-	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, Version, twitchUsername, debug)
+	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, Version, twitchUsername, debug)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -229,29 +229,6 @@ func main() {
 
 	/* Old Style Commands are DISABLED.
 	// Useful Commands {{{
-	aC(Command{
-		name: "location",
-		re:   rl(`(?i)^wo (ist|liegt) (.*)\?+`),
-		callback: func(c *CommandEvent) {
-			city := c.Match[0][2]
-
-			place, err := osmClient.GetPlace(city)
-			if err != nil {
-				c.Logger.Error().Err(err).Msg("Could not get place")
-				twitchClient.Say(c.Channel, "Ich kann "+city+" nicht finden")
-				return
-			}
-
-			twitchClient.Say(c.Channel, place.URL)
-
-			c.Logger.Info().
-				Str("city", city).
-				Float64("lat", place.Lat).
-				Float64("lon", place.Lon).
-				Msg("Checking Coordinates")
-		},
-	})
-
 	aC(Command{
 		name: "math",
 		re:   rl(`(?i)^` + prefix + `(math|quickmafs) (.*)$`),
@@ -740,30 +717,6 @@ func checkForVoicemails(username, channel string) {
 }
 
 // }}}
-func getLocation(city string) string {
-	currentWeather, err := owClient.GetCurrentWeatherByName(city)
-	if err != nil {
-		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
-			log.Warn().
-				Err(err).
-				Str("city", city).
-				Msg("City not found")
-			return fmt.Sprintf("Ich kann %s nicht finden", city)
-		}
-		log.Error().
-			Err(err).
-			Str("city", city).
-			Msg("Error getting current weather")
-		return ""
-	}
-
-	return fmt.Sprintf(
-		"https://www.google.com/maps/@%f,%f,10z",
-		currentWeather.Position.Latitude,
-		currentWeather.Position.Longitude,
-	)
-}
-
 // }}}
 
 // Helper Functions {{{

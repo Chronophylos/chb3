@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/chronophylos/chb3/cmd/actions"
+	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
@@ -15,6 +16,7 @@ type Manager struct {
 	Log         zerolog.Logger
 	Twitch      *twitch.Client
 	State       *state.Client
+	Location    *nominatim.Client
 	Weather     *openweather.OpenWeatherClient
 	CHB3Version string
 	BotName     string
@@ -26,7 +28,7 @@ type Manager struct {
 	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.OpenWeatherClient, version, botName string, debug *bool) (*Manager, error) {
+func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.OpenWeatherClient, location *nominatim.Client, version, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {
@@ -39,6 +41,7 @@ func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather
 		Twitch:      twitch,
 		State:       state,
 		Weather:     weather,
+		Location:    location,
 		CHB3Version: version,
 		BotName:     botName,
 		actions:     actions.GetAll(),
@@ -85,6 +88,7 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 				Twitch:      m.Twitch,
 				State:       m.State,
 				Weather:     m.Weather,
+				Location:    m.Location,
 				CHB3Version: m.CHB3Version,
 				Match:       match,
 				Msg:         msg,

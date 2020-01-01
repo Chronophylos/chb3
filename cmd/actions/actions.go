@@ -18,8 +18,8 @@ type Options struct {
 }
 
 type Action interface {
-	Run(*Event) error
 	GetOptions() *Options
+	Run(*Event) error
 }
 
 type Actions []Action
@@ -41,6 +41,7 @@ var actions = Actions{
 	newRateAction(),
 	newWeatherAction1(),
 	newWeatherAction2(),
+	newLocationAction(),
 }
 
 func GetAll() Actions { return actions }
