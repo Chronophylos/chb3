@@ -205,42 +205,9 @@ func main() {
 
 	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
 	if err != nil {
-		log.Error().
+		log.Fatal().
 			Err(err).
 			Msg("could not create command manager")
-		name: "teamtrees",
-		re:   rl(`(?i)^` + prefix + `teamtrees`),
-		callback: func(c *CommandEvent) {
-			resp, err := http.Get("https://teamtrees.org")
-			if err != nil {
-				c.Logger.Error().
-					Err(err).
-					Msg("Could not get teamtrees.org")
-				return
-			}
-			defer resp.Body.Close()
-
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				c.Logger.Error().
-					Err(err).
-					Msg("Could not read body")
-				return
-			}
-
-			re := regexp.MustCompile(`<div id="totalTrees" class="counter" data-count="(\d+)">`)
-			matches := re.FindStringSubmatch(string(body[:]))
-
-			c.Logger.Info().
-				Str("trees", matches[1]).
-				Msg("Found trees")
-
-			twitchClient.Say(c.Channel, matches[1])
-		},
-	})
-
-	aC(Command{
-		return
 	}
 
 	// Twitch Client Event Handling {{{
@@ -290,46 +257,6 @@ func main() {
 		}
 
 		manager.RunActions(&message, user)
-
-		/* Old Style Command Invokation is DISABLED
-		s := &CommandState{
-			IsSleeping:    sleeping,
-			IsMod:         message.Tags["mod"] == "1",
-			IsSubscriber:  message.Tags["subscriber"] != "0",
-			IsBroadcaster: message.User.Name == message.Channel,
-			IsOwner:       message.User.ID == idStore["chronophylos"],
-			IsBot:         checkIfBotname(message.User.Name),
-			IsBotChannel:  message.Channel == twitchUsername,
-			IsTimedout:    user.IsTimedout(message.Time),
-
-			Channel: message.Channel,
-			Message: message.Message,
-			Time:    message.Time,
-			User:    &message.User,
-
-			Raw: &message,
-		}
-
-		for _, c := range commands {
-			if err := c.Trigger(s); err != nil {
-				switch err.Error() {
-				case "not enough permissions":
-					fallthrough
-				case "no match found":
-					continue
-				}
-
-				log.Debug().
-					Err(err).
-					Str("command", c.name).
-					Msg("Command did not get executed")
-			}
-		}
-
-		if !s.IsSleeping && !s.IsTimedout {
-			checkForVoicemails(message.User.Name, message.Channel)
-		}
-		*/
 	})
 
 	twitchClient.OnConnect(func() {
