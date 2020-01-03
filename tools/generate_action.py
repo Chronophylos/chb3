@@ -7,11 +7,12 @@ def main():
     name = input("Name: ")
     re = input("Regexp: ")
 
-    actionName = name.replace(" ", "") + "Action"
-    newActionFunction = "new" + actionName[0].upper() + actionName[1:]
+    actionName = name.title().replace(" ", "") + "Action"
+    newActionFunction = "new" + actionName
+    actionName = actionName[0].lower() + actionName[1:]
 
     actionsGo = "cmd/actions/actions.go"
-    actionFile = "cmd/actions/" + name.replace(" ", "_") + ".go"
+    actionFile = "cmd/actions/" + name.lower().replace(" ", "_") + ".go"
 
     addActionEntry = True
 
@@ -52,8 +53,8 @@ type {actionName} struct {{
 func {newActionFunction}() *{actionName} {{
     return &{actionName}{{
         options: &Options{{
-            "Name": "{name}",
-            "Re":   regexp.MustCompile(`{re}`),
+            Name: "{name}",
+            Re:   regexp.MustCompile(`{re}`),
         }},
     }}
 }}

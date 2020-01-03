@@ -11,8 +11,8 @@ type erdrAction struct {
 func newErDrAction() *erdrAction {
 	return &erdrAction{
 		options: &Options{
-			"Name": "er dr",
-			"Re":   regexp.MustCompile(`er dr`),
+			Name: "er dr",
+			Re:   regexp.MustCompile(`er dr`),
 		},
 	}
 }

@@ -43,6 +43,12 @@ var actions = Actions{
 	newWeatherAction2(),
 	newLocationAction(),
 	newErDrAction(),
+	newHelloAction(),
+	newHelloStirnbotAction(),
+	newMarcsAgeAction(),
+	newMaxikingsAgeAction(),
+	newTimeAction(),
+	newScambotAction(),
 	newMathAction(),
 }
 
