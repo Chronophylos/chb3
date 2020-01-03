@@ -17,7 +17,7 @@ type Manager struct {
 	Twitch        *twitch.Client
 	State         *state.Client
 	Location      *nominatim.Client
-	Weather       *openweather.OpenWeatherClient
+	Weather       *openweather.Client
 	CHB3Version   string
 	ImgurClientID string
 	BotName       string
@@ -29,7 +29,7 @@ type Manager struct {
 	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.OpenWeatherClient, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
+func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.Client, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {

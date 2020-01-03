@@ -27,7 +27,7 @@ type Event struct {
 	Log           zerolog.Logger
 	Twitch        *twitch.Client
 	State         *state.Client
-	Weather       *openweather.OpenWeatherClient
+	Weather       *openweather.Client
 	Location      *nominatim.Client
 	CHB3Version   string
 	ImgurClientID string

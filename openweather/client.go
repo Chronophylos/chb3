@@ -8,10 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
-)
-
-var (
-	client = &http.Client{}
+	"time"
 )
 
 type weatherDataResponse struct {
@@ -124,33 +121,45 @@ type apiResponse interface {
 	GetMessage() string
 }
 
-type OpenWeatherClient struct {
-	appid string
+type Client struct {
+	httpClient *http.Client
+	appid      string
+	userAgent  string
 }
 
-func NewOpenWeatherClient(appid string) *OpenWeatherClient {
-	return &OpenWeatherClient{
-		appid: appid,
+// NewClient creates a new Client
+func NewClient(appid, userAgent string) *Client {
+	return &Client{
+		httpClient: &http.Client{
+			Timeout: time.Second * 30,
+		},
+		appid:     appid,
+		userAgent: userAgent,
 	}
 }
 
-func (ow *OpenWeatherClient) request(url string, params url.Values) ([]byte, error) {
-	params.Set("appid", ow.appid)
+func (c *Client) request(url string, params url.Values) ([]byte, error) {
+	params.Set("appid", c.appid)
+	params.Set("lang", "de")
+	params.Set("units", "metric")
+
 	url = url + "?" + params.Encode()
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return []byte{}, fmt.Errorf("Could not create request: %v", err)
+		return []byte{}, fmt.Errorf("could not create request: %v", err)
 	}
 
-	resp, err := client.Do(req)
+	req.Header.Add("User-Agent", c.userAgent)
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
-		return []byte{}, fmt.Errorf("Could not perform request: %v", err)
+		return []byte{}, fmt.Errorf("could not perform request: %v", err)
 	}
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return []byte{}, fmt.Errorf("Could not read bytes from response: %v", err)
+		return []byte{}, fmt.Errorf("could not read bytes from response: %v", err)
 	}
 
 	return bytes, nil
@@ -167,16 +176,14 @@ func checkResponse(resp apiResponse) error {
 	return nil
 }
 
-func (ow *OpenWeatherClient) GetCurrentWeatherByName(name string) (*Weather, error) {
+func (c *Client) GetCurrentWeatherByName(name string) (*Weather, error) {
 	var weather *Weather
 	var weatherResp currentWeatherResponse
 
-	params := url.Values{}
+	var params url.Values
 	params.Set("q", name)
-	params.Set("lang", "de")
-	params.Set("units", "metric")
 
-	bytes, err := ow.request("https://api.openweathermap.org/data/2.5/weather", params)
+	bytes, err := c.request("https://api.openweathermap.org/data/2.5/weather", params)
 	if err != nil {
 		return weather, err
 	}
@@ -203,16 +210,14 @@ func (ow *OpenWeatherClient) GetCurrentWeatherByName(name string) (*Weather, err
 	return weather, nil
 }
 
-func (ow *OpenWeatherClient) GetWeatherForecastByName(name string) ([]*Weather, error) {
+func (c *Client) GetWeatherForecastByName(name string) ([]*Weather, error) {
 	var weatherList []*Weather
 	var weatherResp forecastWeatherResponse
 
-	params := url.Values{}
+	var params url.Values
 	params.Set("q", name)
-	params.Set("lang", "de")
-	params.Set("units", "metric")
 
-	bytes, err := ow.request("https://api.openweathermap.org/data/2.5/forecast", params)
+	bytes, err := c.request("https://api.openweathermap.org/data/2.5/forecast", params)
 	if err != nil {
 		return weatherList, err
 	}

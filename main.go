@@ -55,7 +55,7 @@ var (
 
 // Globals
 var (
-	owClient     *openweather.OpenWeatherClient
+	owClient     *openweather.Client
 	stateClient  *state.Client
 	twitchClient *twitch.Client
 	swearfilter  *sw.SwearFilter
@@ -172,7 +172,7 @@ func main() {
 	}()
 
 	go func() {
-		owClient = openweather.NewOpenWeatherClient(openweatherAppID)
+		owClient = openweather.NewClient(openweatherAppID, Version)
 		wg.Done()
 		log.Info().
 			Str("appid", censor(openweatherAppID)).

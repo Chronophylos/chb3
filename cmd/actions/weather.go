@@ -54,7 +54,7 @@ func (a weatherAction) Run(e *Event) error {
 
 const weatherText = "Das aktuelle Wetter für %s, %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
 
-func getWeather(c *openweather.OpenWeatherClient, where string) (error, string) {
+func getWeather(c *openweather.Client, where string) (error, string) {
 	currentWeather, err := c.GetCurrentWeatherByName(where)
 	if err != nil {
 		if err.Error() == "OpenWeather API returned an error with code 404: city not found" {
