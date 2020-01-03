@@ -257,6 +257,8 @@ func main() {
 		}
 
 		manager.RunActions(&message, user)
+
+		checkForVoicemails(message.User.Name, message.Channel)
 	})
 
 	twitchClient.OnConnect(func() {
