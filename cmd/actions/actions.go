@@ -50,6 +50,7 @@ var actions = Actions{
 	newTimeAction(),
 	newScambotAction(),
 	newReuploadAction(),
+	newFillAction(),
 	newMathAction(),
 }
 
