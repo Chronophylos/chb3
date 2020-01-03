@@ -7,11 +7,11 @@ def main():
     name = input("Name: ")
     re = input("Regexp: ")
 
-    actionName = name + "Action"
+    actionName = name.replace(" ", "") + "Action"
     newActionFunction = "new" + actionName[0].upper() + actionName[1:]
 
     actionsGo = "cmd/actions/actions.go"
-    actionFile = "cmd/actions/" + name + ".go"
+    actionFile = "cmd/actions/" + name.replace(" ", "_") + ".go"
 
     addActionEntry = True
 
