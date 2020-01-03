@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* new command system
+
+### Removed
+
+* teamtrees command
+* misc unused commands
+
 ## [3.5.0] - 2019-12-18
 
 ### Added
