@@ -24,14 +24,15 @@ const (
 )
 
 type Event struct {
-	Log         zerolog.Logger
-	Twitch      *twitch.Client
-	State       *state.Client
-	Weather     *openweather.OpenWeatherClient
-	Location    *nominatim.Client
-	CHB3Version string
-	BotName     string
-	Debug       bool
+	Log           zerolog.Logger
+	Twitch        *twitch.Client
+	State         *state.Client
+	Weather       *openweather.OpenWeatherClient
+	Location      *nominatim.Client
+	CHB3Version   string
+	ImgurClientID string
+	BotName       string
+	Debug         bool
 
 	Msg   *twitch.PrivateMessage
 	Match []string

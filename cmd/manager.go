@@ -13,13 +13,14 @@ import (
 )
 
 type Manager struct {
-	Log         zerolog.Logger
-	Twitch      *twitch.Client
-	State       *state.Client
-	Location    *nominatim.Client
-	Weather     *openweather.OpenWeatherClient
-	CHB3Version string
-	BotName     string
+	Log           zerolog.Logger
+	Twitch        *twitch.Client
+	State         *state.Client
+	Location      *nominatim.Client
+	Weather       *openweather.OpenWeatherClient
+	CHB3Version   string
+	ImgurClientID string
+	BotName       string
 
 	actions actions.Actions
 
@@ -28,7 +29,7 @@ type Manager struct {
 	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.OpenWeatherClient, location *nominatim.Client, version, botName string, debug *bool) (*Manager, error) {
+func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.OpenWeatherClient, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {
@@ -37,14 +38,15 @@ func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather
 	}
 
 	m := &Manager{
-		Log:         log.With().Logger(),
-		Twitch:      twitch,
-		State:       state,
-		Weather:     weather,
-		Location:    location,
-		CHB3Version: version,
-		BotName:     botName,
-		actions:     actions.GetAll(),
+		Log:           log.With().Logger(),
+		Twitch:        twitch,
+		State:         state,
+		Weather:       weather,
+		Location:      location,
+		CHB3Version:   version,
+		ImgurClientID: imgurClientID,
+		BotName:       botName,
+		actions:       actions.GetAll(),
 	}
 	m.Config.Debug = debug
 	return m, nil
@@ -84,16 +86,17 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 				Msg("Found matching action")
 
 			e := &actions.Event{
-				Log:         log,
-				Twitch:      m.Twitch,
-				State:       m.State,
-				Weather:     m.Weather,
-				Location:    m.Location,
-				CHB3Version: m.CHB3Version,
-				Match:       match,
-				Msg:         msg,
-				Sleeping:    sleeping,
-				BotName:     m.BotName,
+				Log:           log,
+				Twitch:        m.Twitch,
+				State:         m.State,
+				Weather:       m.Weather,
+				Location:      m.Location,
+				CHB3Version:   m.CHB3Version,
+				ImgurClientID: m.ImgurClientID,
+				Match:         match,
+				Msg:           msg,
+				Sleeping:      sleeping,
+				BotName:       m.BotName,
 			}
 			e.Init()
 

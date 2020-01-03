@@ -49,6 +49,7 @@ var actions = Actions{
 	newMaxikingsAgeAction(),
 	newTimeAction(),
 	newScambotAction(),
+	newReuploadAction(),
 	newMathAction(),
 }
 

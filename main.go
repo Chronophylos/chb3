@@ -1,16 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
 	"math/rand"
-	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -27,16 +22,6 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
 )
-
-const (
-	botRe  = "@?chronophylosbot,?"
-	prefix = "~"
-)
-
-var idStore = map[string]string{
-	"marc_yoyo":    "89131006",
-	"chronophylos": "54946241",
-}
 
 // Build Infos
 var (
@@ -218,58 +203,13 @@ func main() {
 
 	wg.Wait()
 
-	// Commands {{{
-	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, Version, twitchUsername, debug)
+	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
 	if err != nil {
 		log.Error().
 			Err(err).
 			Msg("could not create command manager")
 		return
 	}
-
-	/* Old Style Commands are DISABLED.
-	// Arguably Useful Commands {{{
-	aC(Command{
-		name: "scambot",
-		re:   rl(`(?i)\bscambot\b`),
-		callback: func(c *CommandEvent) {
-			c.Logger.Info().Msg("not a scambot")
-			twitchClient.Say(c.Channel, "FeelsNotsureMan")
-		},
-	})
-	// }}}
-
-	// Hardly Useful Commands {{{
-	aC(Command{
-		name: "reupload",
-		re: rl(
-			`((https?:\/\/)?(damn-community.com)|(screenshots.relentless.wtf)\/.*\.(png|jpe?g))`,
-			`((https?:\/\/)?(puddelgaming.de\/upload)\/.*\.(png|jpe?g))`,
-		),
-		callback: func(c *CommandEvent) {
-			link := c.Match[0][1]
-
-			// Fix links
-			if !strings.HasPrefix(link, "https://") {
-				if !strings.HasPrefix(link, "https://") {
-					link = strings.TrimPrefix(link, "http://")
-				}
-				link = "https://" + link
-			}
-
-			c.Logger.Info().
-				Str("link", link).
-				Msg("Reuploading a link to imgur")
-
-			newURL := reupload(link)
-			if newURL != "" {
-				twitchClient.Say(c.Channel, "Did you mean "+newURL+" ?")
-			}
-		},
-	})
-	// }}}
-	*/
-	// }}}
 
 	// Twitch Client Event Handling {{{
 	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
@@ -407,90 +347,6 @@ func jumble(name string) string {
 }
 
 // }}}
-// Imgur Reupload {{{
-type imgurBody struct {
-	Data    imgurBodyData `json:"data"`
-	Success bool          `json:"success"`
-}
-
-type imgurBodyData struct {
-	Link  string `json:"link"`
-	Error string `json:"error"`
-}
-
-func reupload(link string) string {
-	client := &http.Client{}
-
-	form := url.Values{}
-	form.Add("image", link)
-
-	req, err := http.NewRequest("POST", "https://api.imgur.com/3/upload", strings.NewReader(form.Encode()))
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("link", link).
-			Msg("Error creating POST request for https://api.imgur.com/3/upload")
-		return ""
-	}
-
-	req.Header.Add("Authorization", "Client-ID "+imgurClientID)
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-	log.Debug().
-		Str("link", link).
-		Str("client-id", censor(imgurClientID)).
-		Msg("Posting url to imgur")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("link", link).
-			Str("client-id", censor(imgurClientID)).
-			Msg("Error posting url to imgur")
-		return ""
-	}
-
-	bytes, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("link", link).
-			Msg("Error reading bytes from request body")
-		return ""
-	}
-
-	log.Debug().
-		Str("body", string(bytes[:])).
-		Msg("Read bytes from body")
-
-	var body imgurBody
-	err = json.Unmarshal(bytes, &body)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("link", link).
-			Msg("Error unmarshalling response from imgur")
-		return ""
-	}
-
-	log.Debug().
-		Bool("success", body.Success).
-		Str("old-link", link).
-		Str("new-link", body.Data.Link).
-		Msg("Got an answer from imgur")
-
-	if !body.Success {
-		log.Error().
-			Str("error", body.Data.Error).
-			Msg("Imgur API returned an error")
-		return ""
-	}
-
-	return body.Data.Link
-}
-
-// }}}
 
 // check for voicemails {{{
 func checkForVoicemails(username, channel string) {
@@ -560,16 +416,6 @@ func setGlobalLogger() {
 	output := zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.Stamp}
 	log.Logger = log.Output(output)
 }
-func rl(re ...string) []*regexp.Regexp {
-	res := []*regexp.Regexp{}
-
-	for _, r := range re {
-		res = append(res, regexp.MustCompile(r))
-	}
-
-	return res
-}
-
 func censor(text string) string {
 	if *showSecrets {
 		return text
@@ -594,18 +440,6 @@ func part(log zerolog.Logger, channel string) {
 	twitchClient.Depart(channel)
 	stateClient.JoinChannel(channel, false)
 	log.Info().Str("channel", channel).Msg("Parted from channel")
-}
-
-func checkIfBotname(name string) bool {
-	switch name {
-	case "nightbot":
-		fallthrough
-	case "fossabot":
-		fallthrough
-	case "streamelements":
-		return true
-	}
-	return false
 }
 
 // Credit: https://stackoverflow.com/users/130095/geoff
