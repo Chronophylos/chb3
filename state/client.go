@@ -155,13 +155,14 @@ func (c *Client) SetSleeping(channelName string, sleeping bool) error {
 	filter := bson.D{{Key: "name", Value: channelName}}
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
-			{Key: "name", Value: channelName},
 			{Key: "sleeping", Value: sleeping},
 		}},
 	}
 	opts := options.FindOneAndUpdate()
 	opts.Upsert = c.upsert
-	col.FindOneAndUpdate(ctx, filter, update, opts)
+	if err := col.FindOneAndUpdate(ctx, filter, update, opts).Err(); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -215,7 +216,6 @@ func (c *Client) SetLurking(channelName string, lurking bool) error {
 	filter := bson.D{{Key: "name", Value: channelName}}
 	update := bson.D{
 		{Key: "$set", Value: bson.D{
-			{Key: "name", Value: channelName},
 			{Key: "lurking", Value: lurking},
 		}},
 	}
