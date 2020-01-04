@@ -20,7 +20,7 @@ func newFillAction() *fillAction {
 	return &fillAction{
 		options: &Options{
 			Name: "fill",
-			Re:   regexp.MustCompile(`(?i)^~fill (.*)`),
+			Re:   regexp.MustCompile(`(?i)^~fill(o?) (.*)`),
 		},
 	}
 }
@@ -30,7 +30,7 @@ func (a fillAction) GetOptions() *Options {
 }
 
 func (a fillAction) Run(e *Event) error {
-	filler := strings.Split(e.Match[1], " ")
+	filler := strings.Split(e.Match[2], " ")
 
 	for i, v := range filler {
 		filler[i] = strings.TrimSpace(v)
@@ -39,10 +39,19 @@ func (a fillAction) Run(e *Event) error {
 	var m []string
 	var l int
 
-	for l < 500 {
-		word := filler[rand.Intn(len(filler))]
-		l += len(word) + 1
-		m = append(m, word)
+	switch strings.ToLower(e.Match[1]) {
+	case "":
+		for l < 500 {
+			word := filler[rand.Intn(len(filler))]
+			l += len(word) + 1
+			m = append(m, word)
+		}
+	case "o":
+		for l < 500 {
+			word := filler[l%len(filler)]
+			l += len(word) + 1
+			m = append(m, word)
+		}
 	}
 
 	e.Log.Info().
