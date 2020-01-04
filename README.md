@@ -1,5 +1,7 @@
 # CHB3 - ChronophylosBot 3
 
+This readme is totally outdated
+
 ## Installation
 
 ```
@@ -23,3 +25,11 @@ token = "oauth:the token"
 [imgur]
 clientid = "the client id for imgur"
 ```
+
+## Contributions
+
+Feel free to add Issues and PRs
+
+## License
+
+The code in this repository is licensed under the [MIT License](LICENSE).
