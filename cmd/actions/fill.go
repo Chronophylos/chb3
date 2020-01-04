@@ -7,6 +7,9 @@ import (
 	"time"
 )
 
+// The code here closely represents supinics code
+// Retrieved on 2020-01-04 01:01
+// Link: https://supinic.com/bot/command/175/code
 type fillAction struct {
 	options *Options
 }
