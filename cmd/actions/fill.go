@@ -33,16 +33,19 @@ func (a fillAction) Run(e *Event) error {
 		filler[i] = strings.TrimSpace(v)
 	}
 
-	var m string
+	var m []string
+	var l int
 
-	for len(m) < 490 {
-		m += filler[rand.Intn(len(filler))] + " "
+	for l < 500 {
+		word := filler[rand.Intn(len(filler))]
+		l += len(word) + 1
+		m = append(m, word)
 	}
 
 	e.Log.Info().
 		Strs("filler", filler).
 		Msg("Filling message")
-	e.Say(m)
+	e.Say(strings.Join(m[:len(m)-1], " "))
 
 	return nil
 }
