@@ -12,6 +12,7 @@ import (
 // Link: https://supinic.com/bot/command/175/code
 type fillAction struct {
 	options *Options
+	limit   int
 }
 
 func newFillAction() *fillAction {
@@ -22,6 +23,7 @@ func newFillAction() *fillAction {
 			Name: "fill",
 			Re:   regexp.MustCompile(`(?i)^~fill(o?) (.*)`),
 		},
+		limit: 400,
 	}
 }
 
@@ -41,13 +43,13 @@ func (a fillAction) Run(e *Event) error {
 
 	switch strings.ToLower(e.Match[1]) {
 	case "":
-		for l < 500 {
+		for l < a.limit {
 			word := filler[rand.Intn(len(filler))]
 			l += len(word) + 1
 			m = append(m, word)
 		}
 	case "o":
-		for l < 500 {
+		for l < a.limit {
 			word := filler[l%len(filler)]
 			l += len(word) + 1
 			m = append(m, word)
