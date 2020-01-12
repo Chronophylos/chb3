@@ -17,7 +17,7 @@ func newWeatherAction1() *weatherAction {
 	return &weatherAction{
 		options: &Options{
 			Name: "weather",
-			Re:   regexp.MustCompile(`(?i)^~weather (.*)`),
+			Re:   regexp.MustCompile(`(?i)^~(weather|wetter) (.*)`),
 		},
 	}
 }
