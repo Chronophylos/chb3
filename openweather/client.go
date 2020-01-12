@@ -180,7 +180,7 @@ func (c *Client) GetCurrentWeatherByName(name string) (*Weather, error) {
 	var weather *Weather
 	var weatherResp currentWeatherResponse
 
-	var params url.Values
+	params := url.Values{}
 	params.Set("q", name)
 
 	bytes, err := c.request("https://api.openweathermap.org/data/2.5/weather", params)
@@ -214,7 +214,7 @@ func (c *Client) GetWeatherForecastByName(name string) ([]*Weather, error) {
 	var weatherList []*Weather
 	var weatherResp forecastWeatherResponse
 
-	var params url.Values
+	params := url.Values{}
 	params.Set("q", name)
 
 	bytes, err := c.request("https://api.openweathermap.org/data/2.5/forecast", params)
