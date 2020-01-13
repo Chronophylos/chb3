@@ -40,6 +40,7 @@ func (a fillAction) Run(e *Event) error {
 
 	var m []string
 	var l int
+	var i int
 
 	switch strings.ToLower(e.Match[1]) {
 	case "":
@@ -50,8 +51,9 @@ func (a fillAction) Run(e *Event) error {
 		}
 	case "o":
 		for l < a.limit {
-			word := filler[l%len(filler)]
+			word := filler[i%len(filler)]
 			l += len(word) + 1
+			i++
 			m = append(m, word)
 		}
 	}
