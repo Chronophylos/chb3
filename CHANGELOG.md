@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * new command system
 * fill command
+* suicide command
 
 ### Changed
 

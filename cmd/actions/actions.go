@@ -51,6 +51,7 @@ var actions = Actions{
 	newScambotAction(),
 	newReuploadAction(),
 	newFillAction(),
+	newSuicideAction(),
 	newMathAction(),
 }
 
