@@ -44,13 +44,13 @@ func (a fillAction) Run(e *Event) error {
 
 	switch strings.ToLower(e.Match[1]) {
 	case "":
-		for l < a.limit {
+		for l-1 < a.limit {
 			word := filler[rand.Intn(len(filler))]
 			l += len(word) + 1
 			m = append(m, word)
 		}
 	case "o":
-		for l < a.limit {
+		for l-1 < a.limit {
 			word := filler[i%len(filler)]
 			l += len(word) + 1
 			i++
