@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"math"
-	"math/rand"
 	"os"
 	"os/signal"
 	"strconv"
@@ -292,23 +290,6 @@ func main() {
 	log.Error().Msg("Twitch Client Terminated")
 }
 
-// Command Functions {{{
-// jumble {{{
-// jumble uses the Fisher-Yates shuffle to shuffle a string in plaCe
-func jumble(name string) string {
-	a := strings.Split(name, "")
-	l := len(a)
-
-	for i := l - 2; i > 1; i-- {
-		j := int32(math.Floor(rand.Float64()*float64(i+1)) + 1)
-		a[i], a[j] = a[j], a[i]
-	}
-
-	return strings.Join(a, "")
-}
-
-// }}}
-
 // check for voicemails {{{
 func checkForVoicemails(username, channel string) {
 
@@ -334,9 +315,6 @@ func checkForVoicemails(username, channel string) {
 
 		for _, voicemail := range voicemails {
 			message := voicemail.String()
-			if len(messages[0])+len(message) > 400 {
-				truncate(message, 400-len(messages[0]))
-			}
 			if len(messages[i])+len(message) > 400 {
 				i++
 				messages = append(messages, message)
@@ -353,11 +331,9 @@ func checkForVoicemails(username, channel string) {
 		for _, message := range messages {
 			twitchClient.Say(channel, message)
 		}
-
 	}
 }
 
-// }}}
 // }}}
 
 // Helper Functions {{{
@@ -401,15 +377,6 @@ func part(log zerolog.Logger, channel string) {
 	twitchClient.Depart(channel)
 	stateClient.JoinChannel(channel, false)
 	log.Info().Str("channel", channel).Msg("Parted from channel")
-}
-
-// Credit: https://stackoverflow.com/users/130095/geoff
-func truncate(s string, i int) string {
-	runes := []rune(s)
-	if len(runes) > i {
-		return string(runes[:i])
-	}
-	return s
 }
 
 // }}}

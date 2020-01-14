@@ -46,7 +46,13 @@ func (a voicemailAction) Run(e *Event) error {
 	}
 
 	if len(recipents) == 0 {
+		e.Say("I will not send a message to these recipents")
 		return errors.New("no valid username")
+	}
+
+	if len(message) >= 400 {
+		e.Say("I'm sorry but your message is too long")
+		return errors.New("message too long")
 	}
 
 	e.Log.Info().
