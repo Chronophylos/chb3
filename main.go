@@ -44,13 +44,6 @@ var (
 	swears []string
 )
 
-/*
-var (
-	True  = true
-	False = false
-)
-*/
-
 // Globals
 var (
 	owClient     *openweather.Client
@@ -61,12 +54,6 @@ var (
 )
 
 func main() {
-	/*
-		commands := []*Command{}
-		True := true
-		False := false
-	*/
-
 	// Commandline Flags {{{
 	// Create new parser
 	parser := argparse.NewParser("chb3", "ChronophylosBot but version 3")
