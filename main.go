@@ -256,22 +256,22 @@ func main() {
 	})
 	// }}}
 
-	for {
-		joinedChannels, err := stateClient.GetJoinedChannels()
-		if err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("Getting currently joined channels")
-		}
-		log.Info().
-			Str("own-channel", twitchUsername).
-			Interface("channels", joinedChannels).
-			Msg("Joining Channels")
-		// Make sure the bot is always in it's own channel
-		twitchClient.Join(twitchUsername)
-		stateClient.JoinChannel(twitchUsername, true)
-		twitchClient.Join(joinedChannels...)
+	joinedChannels, err := stateClient.GetJoinedChannels()
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Getting currently joined channels")
+	}
+	log.Info().
+		Str("own-channel", twitchUsername).
+		Interface("channels", joinedChannels).
+		Msg("Joining Channels")
+	// Make sure the bot is always in it's own channel
+	twitchClient.Join(twitchUsername)
+	stateClient.JoinChannel(twitchUsername, true)
+	twitchClient.Join(joinedChannels...)
 
+	for {
 		log.Info().Msg("Connecting to chat")
 
 		if twitchClient.Connect(); err != nil {
