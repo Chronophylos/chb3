@@ -126,7 +126,6 @@ func main() {
 	log.Info().Msgf("Starting CHB3 %s", Version)
 
 	// Signals {{{
-
 	// setup signal catching
 	sigs := make(chan os.Signal, 1)
 
@@ -137,6 +136,7 @@ func main() {
 	go func() {
 		s := <-sigs
 		log.Info().Msgf("Received %s. Quitting.", s)
+		twitchClient.Disconnect()
 		os.Exit(1)
 	}()
 	// }}}
@@ -266,15 +266,19 @@ func main() {
 	stateClient.JoinChannel(twitchUsername, true)
 	twitchClient.Join(joinedChannels...)
 
-	log.Info().Msg("Connecting to irc.twitch.tv")
-	err = twitchClient.Connect()
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("Failed to connect to irc.twitch.tv")
-	}
+	for {
+		log.Info().Msg("Connecting to irc.twitch.tv")
 
-	log.Error().Msg("Twitch Client Terminated")
+		if twitchClient.Connect(); err != nil {
+			log.Fatal().
+				Err(err).
+				Msg("Failed to connect to irc.twitch.tv")
+		}
+
+		log.Info().Msg("Disconnected from irc.twitch.tv")
+
+		time.Sleep(10 * time.Second)
+	}
 }
 
 // check for voicemails {{{
