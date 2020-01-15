@@ -28,8 +28,12 @@ func (a debugAction) Run(e *Event) error {
 	action := e.Match[1]
 
 	switch action {
-	case "enable", "disable", "reconnect":
+	case "enable", "disable":
 		return errors.New("Not yet implemented")
+	case "reconnect":
+		e.Log.Info().Msg("Reconnecting")
+		e.Say("Waving")
+		e.Twitch.Disconnect()
 	case "exit":
 		e.Log.Info().Msg("Exiting")
 		os.Exit(0)

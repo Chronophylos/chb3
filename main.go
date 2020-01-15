@@ -196,6 +196,14 @@ func main() {
 	}
 
 	// Twitch Client Event Handling {{{
+	twitchClient.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
+		if message.User == twitchUsername {
+			log.Info().
+				Str("channel", message.Channel).
+				Msg("Joined Channel")
+		}
+	})
+
 	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
 		// Don't listen to messages sent by the bot
 		if message.User.Name == twitchUsername {

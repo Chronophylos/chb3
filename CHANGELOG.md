@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+* debug command to reconnect to twitch
+
+
 ## [3.6.0] - 2020-01-15
 
 ### Added
