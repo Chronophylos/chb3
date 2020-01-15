@@ -32,7 +32,6 @@ func (a debugAction) Run(e *Event) error {
 		return errors.New("Not yet implemented")
 	case "reconnect":
 		e.Log.Info().Msg("Reconnecting")
-		e.Say("Waving")
 		e.Twitch.Disconnect()
 	case "exit":
 		e.Log.Info().Msg("Exiting")

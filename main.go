@@ -196,12 +196,8 @@ func main() {
 	}
 
 	// Twitch Client Event Handling {{{
-	twitchClient.OnUserJoinMessage(func(message twitch.UserJoinMessage) {
-		if message.User == twitchUsername {
-			log.Info().
-				Str("channel", message.Channel).
-				Msg("Joined Channel")
-		}
+	twitchClient.OnReconnectMessage(func(message twitch.ReconnectMessage) {
+		log.Info().Msg("Reconnected to chat")
 	})
 
 	twitchClient.OnPrivateMessage(func(message twitch.PrivateMessage) {
@@ -255,35 +251,36 @@ func main() {
 	})
 
 	twitchClient.OnConnect(func() {
-		log.Info().Msg("Connected to irc.twitch.tv")
+		log.Info().Msg("Connected to chat")
+		twitchClient.Say(twitchUsername, "Connected FeelsGoodMan")
 	})
 	// }}}
 
-	joinedChannels, err := stateClient.GetJoinedChannels()
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("Getting currently joined channels")
-	}
-	log.Info().
-		Str("own-channel", twitchUsername).
-		Interface("channels", joinedChannels).
-		Msg("Joining Channels")
-	// Make sure the bot is always in it's own channel
-	twitchClient.Join(twitchUsername)
-	stateClient.JoinChannel(twitchUsername, true)
-	twitchClient.Join(joinedChannels...)
-
 	for {
-		log.Info().Msg("Connecting to irc.twitch.tv")
+		joinedChannels, err := stateClient.GetJoinedChannels()
+		if err != nil {
+			log.Fatal().
+				Err(err).
+				Msg("Getting currently joined channels")
+		}
+		log.Info().
+			Str("own-channel", twitchUsername).
+			Interface("channels", joinedChannels).
+			Msg("Joining Channels")
+		// Make sure the bot is always in it's own channel
+		twitchClient.Join(twitchUsername)
+		stateClient.JoinChannel(twitchUsername, true)
+		twitchClient.Join(joinedChannels...)
+
+		log.Info().Msg("Connecting to chat")
 
 		if twitchClient.Connect(); err != nil {
 			log.Fatal().
 				Err(err).
-				Msg("Failed to connect to irc.twitch.tv")
+				Msg("Failed to connect to chat")
 		}
 
-		log.Info().Msg("Disconnected from irc.twitch.tv")
+		log.Info().Msg("Disconnected from chat")
 
 		time.Sleep(10 * time.Second)
 	}
