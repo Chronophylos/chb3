@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * allow wetter as alias for weather
 * set voicemail max length to 399 characters
+* set permissions for leave and join to Owner-only
 
 ### Removed
 

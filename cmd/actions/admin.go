@@ -14,6 +14,7 @@ func newJoinAction() *joinAction {
 		options: &Options{
 			Name: "admin.join",
 			Re:   regexp.MustCompile(`(?i)^~join( (\w+))?`),
+			Perm: Owner,
 		},
 	}
 }
@@ -60,6 +61,7 @@ func newLeaveAction() *leaveAction {
 		options: &Options{
 			Name: "admin.leave",
 			Re:   regexp.MustCompile(`(?i)^~leave( (\w+))?`),
+			Perm: Owner,
 		},
 	}
 }
@@ -103,6 +105,7 @@ func newLurkAction() *lurkAction {
 		options: &Options{
 			Name: "admin.lurk",
 			Re:   regexp.MustCompile(`(?i)^~lurk (\w+)`),
+			Perm: Owner,
 		},
 	}
 }
