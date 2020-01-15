@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.6.0] - 2020-01-15
+
 ### Added
 
 * new command system
@@ -233,7 +235,8 @@ Working but some features from v1 and v2 are missing:
 * Analytics Log
 
 
-[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.5.0..HEAD
+[Unreleased]: https://github.com/Chronophylos/chb3/compare/v3.6.0..HEAD
+[3.6.0]: https://github.com/Chronophylos/chb3/compare/v3.5.0..v3.6.0
 [3.5.0]: https://github.com/Chronophylos/chb3/compare/v3.4.0..v3.5.0
 [3.4.0]: https://github.com/Chronophylos/chb3/compare/v3.3.2..v3.4.0
 [3.3.2]: https://github.com/Chronophylos/chb3/compare/v3.3.1..v3.3.2
