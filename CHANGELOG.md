@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * debug command to reconnect to twitch
 
+### Fixed
+
+* when reconnecting the bot didn't join any channels
+
 
 ## [3.6.0] - 2020-01-15
 
