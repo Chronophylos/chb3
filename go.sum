@@ -29,8 +29,6 @@ github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZm
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
-github.com/gempir/go-twitch-irc/v2 v2.2.1 h1:jMiEgw6zzrgiz4viG7lgj148J6enLls5aicF+zsi1bk=
-github.com/gempir/go-twitch-irc/v2 v2.2.1/go.mod h1:0HXoEr9l7gNjwajosptV0w0xGpHeU6gsD7JDlfvjTYI=
 github.com/gempir/go-twitch-irc/v2 v2.2.2 h1:uzinel2qApXL1UVfr3QcZ3dJsf+YU+PaUp0qJk03qNo=
 github.com/gempir/go-twitch-irc/v2 v2.2.2/go.mod h1:0HXoEr9l7gNjwajosptV0w0xGpHeU6gsD7JDlfvjTYI=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
