@@ -31,6 +31,8 @@ github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/gempir/go-twitch-irc/v2 v2.2.1 h1:jMiEgw6zzrgiz4viG7lgj148J6enLls5aicF+zsi1bk=
 github.com/gempir/go-twitch-irc/v2 v2.2.1/go.mod h1:0HXoEr9l7gNjwajosptV0w0xGpHeU6gsD7JDlfvjTYI=
+github.com/gempir/go-twitch-irc/v2 v2.2.2 h1:uzinel2qApXL1UVfr3QcZ3dJsf+YU+PaUp0qJk03qNo=
+github.com/gempir/go-twitch-irc/v2 v2.2.2/go.mod h1:0HXoEr9l7gNjwajosptV0w0xGpHeU6gsD7JDlfvjTYI=
 github.com/ghodss/yaml v1.0.0/go.mod h1:4dBDuWmgqj2HViK6kFavaiC9ZROes6MMH2rRYeMEF04=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.3.0/go.mod h1:Qt1PoO58o5twSAckw1HlFXLmHsOX5/0LbT9GBnD5lWE=
