@@ -52,6 +52,7 @@ var actions = Actions{
 	newReuploadAction(),
 	newFillAction(),
 	newSuicideAction(),
+	newTrueAction(),
 	newMathAction(),
 }
 
