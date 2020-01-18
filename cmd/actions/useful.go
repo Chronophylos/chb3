@@ -44,8 +44,9 @@ type circumflexAction struct {
 func newCircumflexAction() *circumflexAction {
 	return &circumflexAction{
 		options: &Options{
-			Name: "circumflex",
-			Re:   regexp.MustCompile(`^\^`),
+			Name:             "circumflex",
+			Re:               regexp.MustCompile(`^\^`),
+			DisabledChannels: map[string]bool{"qteeaa": true},
 		},
 	}
 }

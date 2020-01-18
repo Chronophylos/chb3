@@ -7,10 +7,12 @@ import (
 )
 
 type Options struct {
-	Name      string
-	Re        *regexp.Regexp
-	Sleepless bool
-	Perm      Permission
+	Name             string
+	Re               *regexp.Regexp
+	Sleepless        bool
+	Perm             Permission
+	Disabled         bool
+	DisabledChannels map[string]bool
 
 	UserCooldown    time.Duration
 	ChannelCooldown time.Duration

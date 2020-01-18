@@ -68,13 +68,21 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 	for _, action := range m.actions {
 		opt := action.GetOptions()
 
-		// sleeping: nothing to do
+		// if sleeping and command is not ignoring sleep
 		if sleeping && !opt.Sleepless {
 			continue
 		}
 
-		if match := opt.Re.FindStringSubmatch(msg.Message); match != nil {
+		var channelDisabled bool
+		if opt.DisabledChannels != nil {
+			_, channelDisabled = opt.DisabledChannels[msg.Channel]
+		}
 
+		if opt.Disabled || channelDisabled {
+			continue
+		}
+
+		if match := opt.Re.FindStringSubmatch(msg.Message); match != nil {
 			log := log.With().
 				Str("action", opt.Name).
 				Str("invoker", msg.User.Name).

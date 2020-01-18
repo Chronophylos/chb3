@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 * debug command to reconnect to twitch
 * true command
+* allow command to be disabled completely and per channel
 
 
 ## [3.6.0] - 2020-01-15
