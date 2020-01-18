@@ -46,7 +46,7 @@ func newCircumflexAction() *circumflexAction {
 		options: &Options{
 			Name:             "circumflex",
 			Re:               regexp.MustCompile(`^\^`),
-			DisabledChannels: map[string]bool{"qteeaa": true},
+			DisabledChannels: map[string]bool{"qteeaa": true, "moondye7": true},
 		},
 	}
 }
@@ -57,10 +57,6 @@ func (a circumflexAction) GetOptions() *Options {
 
 func (a circumflexAction) Run(e *Event) error {
 	if e.IsBot() {
-		e.Skip()
-		return nil
-	}
-	if e.Msg.Channel == "moondye7" {
 		e.Skip()
 		return nil
 	}
