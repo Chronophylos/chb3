@@ -3,12 +3,31 @@ Description=ChronophylosBot Version 3
 After=network.target
 
 [Service]
-Type=simple
-
 Restart=on-failure
 RestartSec=10
 
 ExecStart=/usr/bin/chb3
+
+User=chb3
+PrivateDevices=yes
+PrivateNetwork=no
+PrivateUsers=yes
+PrivateTmp=yes
+ProtectHome=yes
+ProtectSystem=yes
+# DynamicUser=yes
+ReadOnlyPaths=/etc/chb3/config.toml
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+# ProtectKernelLogs=yes
+ProtectControlGroups=yes
+NoNewPrivileges=yes
+CapabilityBoundingSet=
+RestrictNamespaces=yes
+RestrictAddressFamilies=AF_INET AF_INET6
+LockPersonality=yes
+RestrictRealtime=yes
+
 
 [Install]
 WantedBy=multi-user.target
