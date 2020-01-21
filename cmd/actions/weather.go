@@ -52,7 +52,7 @@ func (a weatherAction) Run(e *Event) error {
 	return nil
 }
 
-const weatherText = "Das aktuelle Wetter für %s, %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C bis %.1f°C."
+const weatherText = "Das aktuelle Wetter für %s, %s: %s bei %.1f°C. Der Wind kommt aus %s mit %.1fm/s bei einer Luftfeuchtigkeit von %d%%. Die Wettervorhersagen für morgen: %s bei %.1f°C."
 
 func getWeather(c *openweather.Client, where string) (error, string) {
 	currentWeather, err := c.GetCurrentWeatherByName(where)
@@ -101,7 +101,6 @@ func getWeather(c *openweather.Client, where string) (error, string) {
 		currentWeather.Wind.Speed,
 		currentWeather.Humidity,
 		tomorrowsConditions,
-		tomorrowsWeather.Temperature.Min,
-		tomorrowsWeather.Temperature.Max,
+		(tomorrowsWeather.Temperature.Min+tomorrowsWeather.Temperature.Max)/2,
 	)
 }
