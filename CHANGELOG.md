@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * true command
 * allow command to be disabled completely and per channel
 
+### Changed
+
+* `?` in hihsg? is now optional
+
 ### Fixed
 
 * duplicate temperature forecast

@@ -15,7 +15,7 @@ func newPatscheckAction() *patscheckAction {
 	return &patscheckAction{
 		options: &Options{
 			Name: "patsch.check",
-			Re:   regexp.MustCompile(`(?i)^~hihsg\?`),
+			Re:   regexp.MustCompile(`(?i)^~hihsg\??`),
 		},
 	}
 }
