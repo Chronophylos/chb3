@@ -181,7 +181,7 @@ func main() {
 		if resp.StatusCode != http.StatusOK {
 			if resp.ErrorMessage == "Invalid authorization code" {
 				log.Fatal().
-					Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("TODO_gernerate_CSRF", false))
+					Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("", false))
 			}
 			log.Fatal().
 				Int("statuscode", resp.StatusCode).
@@ -220,7 +220,7 @@ func main() {
 				if resp.StatusCode != http.StatusOK {
 					if resp.ErrorMessage == "Invalid authorization code" {
 						log.Fatal().
-							Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("TODO_gernerate_CSRF", false))
+							Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("", false))
 					}
 					log.Fatal().
 						Int("statuscode", resp.StatusCode).
