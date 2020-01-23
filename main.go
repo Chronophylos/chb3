@@ -199,9 +199,10 @@ func main() {
 
 	wg.Wait()
 
-	helixClient, err := helix.NewClient(&helix.Options{
-		ClientID:  viper.GetString("twitch.clientid"),
-		UserAgent: "ChronophylosBot/" + Version,
+	_ /*helixClient*/, err := helix.NewClient(&helix.Options{
+		ClientID:    viper.GetString("twitch.clientid"),
+		UserAgent:   "ChronophylosBot/" + Version,
+		RedirectURI: "https://localhost",
 	})
 	if err != nil {
 		log.Fatal().
