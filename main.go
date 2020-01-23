@@ -16,6 +16,7 @@ import (
 	"github.com/chronophylos/chb3/openweather"
 	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
+	"github.com/nicklaw5/helix"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
@@ -56,6 +57,7 @@ var (
 	twitchClient *twitch.Client
 	swearfilter  *sw.SwearFilter
 	osmClient    *nominatim.Client
+	helixClient  *helix.Client
 )
 
 func main() {
@@ -114,6 +116,10 @@ func main() {
 		log.Fatal().Msg("Twitch Token is not set.")
 	}
 	twitchToken = viper.GetString("twitch.token")
+
+	if !viper.IsSet("twitch.clientid") {
+		log.Fatal().Msg("Twitch ClientID is not set.")
+	}
 
 	if !viper.IsSet("imgur.clientid") {
 		log.Fatal().Msg("Imgur ClientID is not set.")
@@ -192,6 +198,16 @@ func main() {
 	}()
 
 	wg.Wait()
+
+	helixClient, err := helix.NewClient(&helix.Options{
+		ClientID:  viper.GetString("twitch.clientid"),
+		UserAgent: "ChronophylosBot/" + Version,
+	})
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Could not create helix client")
+	}
 
 	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
 	if err != nil {
