@@ -44,6 +44,11 @@ var (
 	swears []string
 )
 
+var userBlacklist = []string{
+	"86621952", // ritzenspalt
+	"38286541", // klotz795
+}
+
 // Globals
 var (
 	owClient     *openweather.Client
@@ -204,6 +209,12 @@ func main() {
 		// Don't listen to messages sent by the bot
 		if message.User.Name == twitchUsername {
 			return
+		}
+
+		for _, userID := range userBlacklist {
+			if message.User.ID == userID {
+				return
+			}
 		}
 
 		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
