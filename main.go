@@ -203,7 +203,7 @@ func main() {
 
 	wg.Wait()
 
-	_ /*helixClient*/, err := helix.NewClient(&helix.Options{
+	_ /*helixClient*/, err = helix.NewClient(&helix.Options{
 		ClientID:     viper.GetString("twitch.clientid"),
 		ClientSecret: viper.GetString("twitch.secret"),
 		UserAgent:    "ChronophylosBot/" + Version,
