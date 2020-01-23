@@ -121,6 +121,10 @@ func main() {
 		log.Fatal().Msg("Twitch ClientID is not set.")
 	}
 
+	if !viper.IsSet("twitch.secret") {
+		log.Fatal().Msg("Twitch Client Secret is not set.")
+	}
+
 	if !viper.IsSet("imgur.clientid") {
 		log.Fatal().Msg("Imgur ClientID is not set.")
 	}
@@ -200,9 +204,10 @@ func main() {
 	wg.Wait()
 
 	_ /*helixClient*/, err := helix.NewClient(&helix.Options{
-		ClientID:    viper.GetString("twitch.clientid"),
-		UserAgent:   "ChronophylosBot/" + Version,
-		RedirectURI: "https://localhost",
+		ClientID:     viper.GetString("twitch.clientid"),
+		ClientSecret: viper.GetString("twitch.secret"),
+		UserAgent:    "ChronophylosBot/" + Version,
+		RedirectURI:  "https://localhost",
 	})
 	if err != nil {
 		log.Fatal().
