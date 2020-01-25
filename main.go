@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -37,6 +36,7 @@ var (
 // Config
 var (
 	twitchUsername string
+	twitchToken    string
 
 	imgurClientID string
 
@@ -112,12 +112,13 @@ func main() {
 	}
 	twitchUsername = viper.GetString("twitch.username")
 
+	if !viper.IsSet("twitch.token") {
+		log.Fatal().Msg("Twitch Token is not set.")
+	}
+	twitchToken = viper.GetString("twitch.token")
+
 	if !viper.IsSet("twitch.clientid") {
 		log.Fatal().Msg("Twitch ClientID is not set.")
-	}
-
-	if !viper.IsSet("twitch.secret") {
-		log.Fatal().Msg("Twitch Client Secret is not set.")
 	}
 
 	if !viper.IsSet("imgur.clientid") {
@@ -151,97 +152,6 @@ func main() {
 	}()
 	// }}}
 
-	helixClient, err = helix.NewClient(&helix.Options{
-		ClientID:     viper.GetString("twitch.clientid"),
-		ClientSecret: viper.GetString("twitch.secret"),
-		UserAgent:    "ChronophylosBot/" + Version,
-		RedirectURI:  "https://localhost",
-		Scopes:       []string{"user:edit", "channel:moderate", "chat:edit", "chat:read", "whispers:read", "whispers:edit"},
-	})
-	if err != nil {
-		log.Fatal().
-			Err(err).
-			Msg("Could not create helix client")
-	}
-
-	if !viper.IsSet("twitch.token") {
-		log.Fatal().Msgf("Twitch Token is not set. You can get one here %s", helixClient.GetAuthorizationURL("TODO_gernerate_CSRF", false))
-	}
-
-	if !viper.IsSet("twitch.user_access_token") || viper.GetString("twitch.user_access_token") == "" ||
-		!viper.IsSet("twitch.user_refresh_token") || viper.GetString("twitch.user_refresh_token") == "" {
-		log.Info().Msg("Getting new User Access Token")
-
-		resp, err := helixClient.GetUserAccessToken(viper.GetString("twitch.token"))
-		if err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("Could not get User Access Token")
-		}
-		if resp.StatusCode != http.StatusOK {
-			if resp.ErrorMessage == "Invalid authorization code" {
-				log.Fatal().
-					Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("", false))
-			}
-			log.Fatal().
-				Int("statuscode", resp.StatusCode).
-				Str("err", resp.Error).
-				Str("msg", resp.ErrorMessage).
-				Msg("Server returned a non OK status code")
-		}
-
-		log.Debug().
-			Str("access-token", resp.Data.AccessToken).
-			Str("refresh-token", resp.Data.RefreshToken).
-			Msg("Got new User Access Token")
-
-		viper.Set("twitch.user_access_token", resp.Data.AccessToken)
-		viper.Set("twitch.user_refresh_token", resp.Data.RefreshToken)
-
-		viper.WriteConfig()
-	}
-
-	helixClient.SetUserAccessToken(viper.GetString("twitch.user_access_token"))
-
-	log.Info().Msg("Created Helix Client")
-
-	tokenRefreshTicker := time.NewTicker(24 * time.Hour)
-
-	go func() {
-		for {
-			select {
-			case <-tokenRefreshTicker.C:
-				resp, err := helixClient.RefreshUserAccessToken(viper.GetString("twitch.user_refresh_token"))
-				if err != nil {
-					log.Error().
-						Err(err).
-						Msg("Could not refresh User Access Token")
-				}
-				if resp.StatusCode != http.StatusOK {
-					if resp.ErrorMessage == "Invalid authorization code" {
-						log.Fatal().
-							Msgf("Twitch Token is not valid. You can get a new one here %s", helixClient.GetAuthorizationURL("", false))
-					}
-					log.Fatal().
-						Int("statuscode", resp.StatusCode).
-						Str("err", resp.Error).
-						Str("msg", resp.ErrorMessage).
-						Msg("Server returned a non OK status code")
-				}
-
-				log.Debug().
-					Str("access-token", resp.Data.AccessToken).
-					Str("refresh-token", resp.Data.RefreshToken).
-					Msg("Got new User Access Token")
-
-				viper.Set("twitch.user_access_token", resp.Data.AccessToken)
-				viper.Set("twitch.user_refresh_token", resp.Data.RefreshToken)
-
-				viper.WriteConfig()
-			}
-		}
-	}()
-
 	wg := sync.WaitGroup{}
 
 	wg.Add(5)
@@ -266,12 +176,11 @@ func main() {
 	}()
 
 	go func() {
-		token := viper.GetString("twitch.user_access_token")
-		twitchClient = twitch.NewClient(twitchUsername, "oauth:"+token)
+		twitchClient = twitch.NewClient(twitchUsername, twitchToken)
 		wg.Done()
 		log.Info().
 			Str("username", twitchUsername).
-			Str("token", censor(token)).
+			Str("token", censor(twitchToken)).
 			Msg("Created new Twitch Client")
 	}()
 
@@ -289,6 +198,16 @@ func main() {
 	}()
 
 	wg.Wait()
+
+	helixClient, err := helix.NewClient(&helix.Options{
+		ClientID:  viper.GetString("twitch.clientid"),
+		UserAgent: "ChronophylosBot/" + Version,
+	})
+	if err != nil {
+		log.Fatal().
+			Err(err).
+			Msg("Could not create helix client")
+	}
 
 	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
 	if err != nil {
