@@ -36,7 +36,6 @@ var (
 // Config
 var (
 	twitchUsername string
-	twitchToken    string
 
 	imgurClientID string
 
@@ -115,7 +114,6 @@ func main() {
 	if !viper.IsSet("twitch.token") {
 		log.Fatal().Msg("Twitch Token is not set.")
 	}
-	twitchToken = viper.GetString("twitch.token")
 
 	if !viper.IsSet("twitch.clientid") {
 		log.Fatal().Msg("Twitch ClientID is not set.")
@@ -176,11 +174,13 @@ func main() {
 	}()
 
 	go func() {
-		twitchClient = twitch.NewClient(twitchUsername, twitchToken)
+		token := viper.GetString("twitch.token")
+		token = "oauth:" + token
+		twitchClient = twitch.NewClient(twitchUsername, token)
 		wg.Done()
 		log.Info().
 			Str("username", twitchUsername).
-			Str("token", censor(twitchToken)).
+			Str("token", censor(token)).
 			Msg("Created new Twitch Client")
 	}()
 
@@ -199,9 +199,12 @@ func main() {
 
 	wg.Wait()
 
-	helixClient, err := helix.NewClient(&helix.Options{
-		ClientID:  viper.GetString("twitch.clientid"),
-		UserAgent: "ChronophylosBot/" + Version,
+	helixClient, err = helix.NewClient(&helix.Options{
+		ClientID:     viper.GetString("twitch.clientid"),
+		ClientSecret: viper.GetString("twitch.secret"),
+		UserAgent:    "ChronophylosBot/" + Version,
+		RedirectURI:  "https://localhost",
+		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate", "moderation:read", "channel_editor"},
 	})
 	if err != nil {
 		log.Fatal().
@@ -299,13 +302,19 @@ func main() {
 	twitchClient.Join(joinedChannels...)
 
 	for {
+		var hasConnected bool
 		log.Info().Msg("Connecting to chat")
 
 		if twitchClient.Connect(); err != nil {
+			hasConnected = true
 			log.Fatal().
 				Err(err).
 				Msg("Failed to connect to chat")
 		}
+		if !hasConnected {
+			log.Fatal().Msg("Could not connect to chat. Try getting a new token: " + helixClient.GetAuthorizationURL("", false))
+		}
+		hasConnected = false
 
 		log.Info().Msg("Disconnected from chat")
 
