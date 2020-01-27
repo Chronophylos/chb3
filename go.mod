@@ -9,7 +9,7 @@ require (
 	github.com/akamensky/argparse v0.0.0-20191006154803-1427fe674291
 	github.com/gempir/go-twitch-irc/v2 v2.2.2
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/nicklaw5/helix v0.5.4
+	github.com/nicklaw5/helix v0.5.5
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/rs/zerolog v1.17.2
 	github.com/spf13/afero v1.2.2 // indirect
