@@ -12,7 +12,7 @@ func newTrueAction() *trueAction {
 	return &trueAction{
 		options: &Options{
 			Name: "true",
-			Re:   regexp.MustCompile(`(?i)^~test`),
+			Re:   regexp.MustCompile(`(?i)^~true`),
 		},
 	}
 }
