@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+* the missing regex for ~true
+* a bug where bielefeld was actually found
+
 ## [3.6.1] - 2020-01-23
 
 ### Added
