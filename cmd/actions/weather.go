@@ -42,6 +42,11 @@ func (a weatherAction) Run(e *Event) error {
 		Str("where", where).
 		Msg("Checking the weather")
 
+	if strings.ToLower(where) == "bielefeld" {
+		e.Say("Ich kann Bielefeld nicht finden")
+		return nil
+	}
+
 	err, weatherMessage := getWeather(e.Weather, where)
 	if err != nil {
 		return nil

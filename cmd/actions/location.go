@@ -1,6 +1,9 @@
 package actions
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 type locationAction struct {
 	options *Options
@@ -22,10 +25,15 @@ func (a locationAction) GetOptions() *Options {
 func (a locationAction) Run(e *Event) error {
 	where := e.Match[2]
 
+	if strings.ToLower(where) == "bielefeld" {
+		e.Say("Ich kann Bielefeld nicht finden")
+		return nil
+	}
+
 	place, err := e.Location.GetPlace(where)
 	if err != nil {
 		e.Say("Ich kann " + where + " nicht finden")
-		return err
+		return nil
 	}
 
 	e.Say(place.URL)
