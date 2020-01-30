@@ -18,10 +18,10 @@ CREATE TABLE users (
 	first_seen TIMESTAMP,
 	last_seen TIMESTAMP,
 
-	timeout TIMESTAMP,
+	timeout TIMESTAMP NULL,
 	banned BOOLEAN DEFAULT false,
 
-	last_patsched TIMESTAMP,
+	last_patsched TIMESTAMP NULL,
 	patsch_streak INT DEFAULT 0,
 	patsch_count INT DEFAULT 0,
 
@@ -35,9 +35,9 @@ CREATE TABLE channels (
 CREATE TABLE voicemails (
 	id SERIAL PRIMARY KEY,
 	creator INT REFERENCES users(id) ON DELETE CASCADE,
-	created TIMESTAMP,
-	recipent VARCHAR(26),
-	message VARCHAR(500)
+	created TIMESTAMP NOT NULL,
+	recipent VARCHAR(26) NOT NULL,
+	message VARCHAR(500) NOT NULL
 );
 CREATE TABLE copypastas (
 	id SERIAL PRIMARY KEY,
