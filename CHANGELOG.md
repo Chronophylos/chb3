@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * duplicate temperature forecast
+* hash to rating calculation for `rate`
 
 
 ## [3.6.0] - 2020-01-15

@@ -3,8 +3,8 @@ package actions
 import (
 	"crypto/md5"
 	"fmt"
+	"math/big"
 	"regexp"
-	"strconv"
 )
 
 type rateAction struct {
@@ -37,8 +37,20 @@ func (a rateAction) Run(e *Event) error {
 }
 
 func rate(s string) float32 {
-	hash := fmt.Sprintf("%x", md5.Sum([]byte(s)))
-	p, _ := strconv.ParseInt(hash, 16, 64)
-	q := float32(p%101) / 10
-	return q
+	// get hash
+	hash := md5.Sum([]byte(s))
+
+	// convert to big int
+	p := new(big.Int).SetBytes(hash[:])
+
+	// modulus 101
+	_, m := p.DivMod(p, big.NewInt(101), new(big.Int))
+
+	// int to float
+	q := new(big.Float).SetInt(m)
+
+	// divide by 10
+	r, _ := q.Quo(q, big.NewFloat(10)).Float32()
+
+	return r
 }
