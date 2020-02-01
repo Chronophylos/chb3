@@ -29,7 +29,7 @@ func (a debugAction) Run(e *Event) error {
 
 	switch action {
 	case "enable", "disable":
-		return errors.New("Not yet implemented")
+		return errors.New("not yet implemented")
 	case "reconnect":
 		e.Log.Info().Msg("Reconnecting")
 		e.Twitch.Disconnect()

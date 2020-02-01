@@ -190,7 +190,7 @@ func (c *Client) GetCurrentWeatherByName(name string) (*Weather, error) {
 	}
 
 	if err = json.Unmarshal(bytes, &weatherResp); err != nil {
-		return weather, fmt.Errorf("Could not unmarshal bytes: %v", err)
+		return weather, fmt.Errorf("could not unmarshal bytes: %v", err)
 	}
 
 	if err = checkResponse(weatherResp); err != nil {
@@ -224,7 +224,7 @@ func (c *Client) GetWeatherForecastByName(name string) ([]*Weather, error) {
 	}
 
 	if err = json.Unmarshal(bytes, &weatherResp); err != nil {
-		return weatherList, fmt.Errorf("Could not unmarshal bytes: %v", err)
+		return weatherList, fmt.Errorf("could not unmarshal bytes: %v", err)
 	}
 
 	if err = checkResponse(weatherResp); err != nil {
