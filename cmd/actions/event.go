@@ -46,15 +46,16 @@ type Event struct {
 
 // Init sets some internal values like the permission of the sender.
 func (e *Event) Init() {
-	if e.IsOwner() {
+	switch {
+	case e.IsOwner():
 		e.Perm = Owner
-	} else if e.IsBroadcaster() {
+	case e.IsBroadcaster():
 		e.Perm = Broadcaster
-	} else if e.IsModerator() {
+	case e.IsModerator():
 		e.Perm = Moderator
-	} else if e.IsRegular() {
+	case e.IsRegular():
 		e.Perm = Regular
-	} else if e.IsSubscriber() {
+	case e.IsSubscriber():
 		e.Perm = Subscriber
 	}
 	// no need to set e.Perm to Everyone since it is the default.
