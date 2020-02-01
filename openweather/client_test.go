@@ -9,7 +9,7 @@ import (
 
 func TestGetCurrentWeatherByName(t *testing.T) {
 
-	ow := NewOpenWeatherClient(os.Getenv("OPENWEATHERMAP_APPID"))
+	ow := NewClient(os.Getenv("OPENWEATHERMAP_APPID"), "Testing")
 
 	t.Run("existing city", func(t *testing.T) {
 		assert := assert.New(t)
@@ -21,8 +21,8 @@ func TestGetCurrentWeatherByName(t *testing.T) {
 		}
 		assert.Equal("London", got.City.Name)
 		assert.Equal("GB", got.City.Country)
-		assert.Equal(51.51, got.Position.Latitude)
-		assert.Equal(-0.13, got.Position.Longitude)
+		assert.InDelta(51.5073, got.Position.Latitude, 0.1)
+		assert.InDelta(-0.1277, got.Position.Longitude, 0.1)
 	})
 
 	t.Run("nonexisting city", func(t *testing.T) {
@@ -38,7 +38,7 @@ func TestGetCurrentWeatherByName(t *testing.T) {
 func TestGetWeatherForecastByName(t *testing.T) {
 	assert := assert.New(t)
 
-	ow := NewOpenWeatherClient(os.Getenv("OPENWEATHERMAP_APPID"))
+	ow := NewClient(os.Getenv("OPENWEATHERMAP_APPID"), "Testing")
 	got, err := ow.GetWeatherForecastByName("London")
 
 	if !assert.NoError(err) {
@@ -48,7 +48,7 @@ func TestGetWeatherForecastByName(t *testing.T) {
 	for _, w := range got {
 		assert.Equal("London", w.City.Name)
 		assert.Equal("GB", w.City.Country)
-		assert.Equal(51.5073, w.Position.Latitude)
-		assert.Equal(-0.1277, w.Position.Longitude)
+		assert.InDelta(51.5073, w.Position.Latitude, 0.1)
+		assert.InDelta(-0.1277, w.Position.Longitude, 0.1)
 	}
 }
