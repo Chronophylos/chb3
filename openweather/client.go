@@ -156,6 +156,7 @@ func (c *Client) request(url string, params url.Values) ([]byte, error) {
 	if err != nil {
 		return []byte{}, fmt.Errorf("could not perform request: %v", err)
 	}
+	defer resp.Body.Close()
 
 	bytes, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
