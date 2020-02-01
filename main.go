@@ -368,7 +368,7 @@ func checkForVoicemails(username, channel string) {
 
 // }}}
 
-// Helper Functions {{{
+// Helper Functions
 func setGlobalLogger() {
 	level := zerolog.InfoLevel
 
@@ -398,19 +398,3 @@ func pluralize(text string, times int64) string {
 	}
 	return "one " + text
 }
-
-func join(log zerolog.Logger, channel string) {
-	twitchClient.Join(channel)
-	stateClient.JoinChannel(channel, true)
-	log.Info().Str("channel", channel).Msg("Joined new channel")
-}
-
-func part(log zerolog.Logger, channel string) {
-	twitchClient.Depart(channel)
-	stateClient.JoinChannel(channel, false)
-	log.Info().Str("channel", channel).Msg("Parted from channel")
-}
-
-// }}}
-
-// vim: set foldmarker={{{,}}} foldmethod=marker:
