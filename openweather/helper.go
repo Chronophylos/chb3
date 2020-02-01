@@ -31,7 +31,7 @@ func DegreeToCompass(degree int) (string, error) {
 		return "", errors.New("degrees are out of bounds")
 	}
 
-	i := int(degree / 22 % 16)
+	i := degree / 22 % 16
 
 	return compassNames[i], nil
 }
