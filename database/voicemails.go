@@ -42,7 +42,17 @@ func (c *Client) HasVoicemails(name string) (bool, error) {
 
 // DeleteVoicemail deletes a single voicemails
 func (c *Client) DeleteVoicemail(id int) error {
-	_, err := c.db.Exec("DELTE FROM voicemails WHERE id=$1", id)
+	_, err := c.db.Exec("DELETE FROM voicemails WHERE id=$1", id)
+
+	return err
+}
+
+// CreateVoicemail puts a voicemail into the database
+func (c *Client) CreateVoicemail(voicemail *Voicemail) error {
+	_, err := c.db.Exec(`
+	INSERT INTO voicemails (creator, created, recipent, message)
+	VALUES (:creator, :created, :recipent, :message)
+	`, voicemail)
 
 	return err
 }
