@@ -7,10 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+* made `ping` return time since starting the bot and message latency
+
 ### Fixed
 
 * the missing regex for ~true
 * a bug where bielefeld was actually found
+* hash to rating calculation for `rate`
 
 ## [3.6.1] - 2020-01-23
 
@@ -27,7 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 * duplicate temperature forecast
-* hash to rating calculation for `rate`
 
 
 ## [3.6.0] - 2020-01-15
