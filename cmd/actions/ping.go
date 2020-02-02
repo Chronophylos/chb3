@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strings"
 	"time"
+
+	"github.com/chronophylos/chb3/util"
 )
 
 type pingAction struct {
@@ -37,31 +39,25 @@ func (a pingAction) Run(e *Event) error {
 
 func formatDuration(d time.Duration) string {
 	var strs strings.Builder
-	var seconds, minutes, hours, days, weeks, months, years float64
-	var seconds_r, minutes_r, hours_r, days_r, weeks_r, months_r, years_r int
+	var seconds, minutes, hours, days, weeks, months, years int
+	var temp float64
 
-	seconds = d.Seconds()
-	minutes = seconds / 60
-	hours = minutes / 60
-	days = hours / 24
-	weeks = days / 7
-	months = weeks / 4
-	years = months / 12
+	temp, seconds = util.Divmod(d.Seconds(), 60)
+	temp, minutes = util.Divmod(temp, 60)
+	temp, hours = util.Divmod(temp, 24)
+	temp, days = util.Divmod(temp, 7)
+	temp, weeks = util.Divmod(temp, 4)
+	temp, months = util.Divmod(temp, 12)
 
-	years_r = int(years)
-	months_r = int(months) - years_r*12
-	weeks_r = int(weeks) - months_r*4
-	hours_r = int(hours) - days_r*24
-	minutes_r = int(minutes) - hours_r*60
-	seconds_r = int(seconds) - minutes_r*60
+	years = int(temp)
 
-	formatToBuilder(&strs, "year", years_r)
-	formatToBuilder(&strs, "month", months_r)
-	formatToBuilder(&strs, "week", weeks_r)
-	formatToBuilder(&strs, "day", days_r)
-	formatToBuilder(&strs, "hour", hours_r)
-	formatToBuilder(&strs, "minute", minutes_r)
-	formatToBuilder(&strs, "second", seconds_r)
+	formatToBuilder(&strs, "year", years)
+	formatToBuilder(&strs, "month", months)
+	formatToBuilder(&strs, "week", weeks)
+	formatToBuilder(&strs, "day", days)
+	formatToBuilder(&strs, "hour", hours)
+	formatToBuilder(&strs, "minute", minutes)
+	formatToBuilder(&strs, "second", seconds)
 
 	return strings.TrimSpace(strs.String())
 }
