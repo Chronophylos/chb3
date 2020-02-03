@@ -38,7 +38,7 @@ type User struct {
 // and last seen. If the user did't exist it creates a new user and
 // additionally sets id and first seen.
 func (c *Client) BumpUser(u *twitch.User, t time.Time) error {
-	_, err := c.db.NamedExec(`
+	_, err := c.DB.NamedExec(`
 	INSERT INTO users (id, name, display_name, first_seen, last_seen)
 	VALUES (:id, :name, :display_name, :time, :time)
 	ON CONFLICT (id) DO UPDATE
@@ -58,25 +58,25 @@ func (c *Client) BumpUser(u *twitch.User, t time.Time) error {
 // GetUserByID finds a user with id and returns it.
 func (c *Client) GetUserByID(id int) (*User, error) {
 	var user User
-	err := c.db.Get(&user, "SELECT * FROM users WHERE id=$1", id)
+	err := c.DB.Get(&user, "SELECT * FROM users WHERE id=$1", id)
 
 	return &user, err
 }
 
 func (c *Client) BanUser(userID int) error {
-	_, err := c.db.Exec("UPDATE users SET banned=true WHERE id = $1", userID)
+	_, err := c.DB.Exec("UPDATE users SET banned=true WHERE id = $1", userID)
 
 	return err
 }
 
 func (c *Client) UnbanUser(userID int) error {
-	_, err := c.db.Exec("UPDATE users SET banned=false WHERE id = $1", userID)
+	_, err := c.DB.Exec("UPDATE users SET banned=false WHERE id = $1", userID)
 
 	return err
 }
 
 func (c *Client) TimeoutUser(userID int, until time.Time) error {
-	_, err := c.db.Exec("update users set timeout=$1 where id = $2", until, userID)
+	_, err := c.DB.Exec("update users set timeout=$1 where id = $2", until, userID)
 
 	return err
 }
@@ -100,7 +100,7 @@ func (c *Client) UserPatsch(u *User, now time.Time) (error, error) {
 
 	u.PatschCount++
 
-	_, dErr := c.db.NamedExec(`
+	_, dErr := c.DB.NamedExec(`
 	UPDATE users
 	SET patsch_streak=:patsch_streak,
 		patsch_count=:patsch_count,

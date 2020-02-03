@@ -11,7 +11,7 @@ type Channel struct {
 
 // PutChannel puts a new channel into the database
 func (c *Client) PutChannel(channel *Channel) error {
-	_, err := c.db.NamedExec(`
+	_, err := c.DB.NamedExec(`
 	INSERT INTO channels (id, name, enabled, paused, readonly)
 	VALUES (:id, :name, :enabled, :paused, :readonly)
 	`, channel)

@@ -48,7 +48,7 @@ CREATE TABLE copypastas (
 `
 
 type Client struct {
-	db    *sqlx.DB
+	DB    *sqlx.DB
 	viper *viper.Viper
 }
 
@@ -83,5 +83,5 @@ func (c *Client) Connect() {
 			Msg("Could not verify schema")
 	}
 
-	c.db = db
+	c.DB = db
 }

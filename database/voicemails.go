@@ -15,7 +15,7 @@ type Voicemail struct {
 func (c *Client) PopVoicemails(name string) (Voicemails, error) {
 	var voicemails Voicemails
 
-	tx, err := c.db.Beginx()
+	tx, err := c.DB.Beginx()
 	if err != nil {
 		return voicemails, err
 	}
@@ -37,21 +37,21 @@ func (c *Client) PopVoicemails(name string) (Voicemails, error) {
 func (c *Client) HasVoicemails(name string) (bool, error) {
 	var exists bool
 
-	err := c.db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM voicemails WHERE name=$1)", name)
+	err := c.DB.Get(&exists, "SELECT EXISTS(SELECT 1 FROM voicemails WHERE name=$1)", name)
 
 	return exists, err
 }
 
 // DeleteVoicemail deletes a single voicemails
 func (c *Client) DeleteVoicemail(id int) error {
-	_, err := c.db.Exec("DELETE FROM voicemails WHERE id=$1", id)
+	_, err := c.DB.Exec("DELETE FROM voicemails WHERE id=$1", id)
 
 	return err
 }
 
 // PutVoicemail puts a voicemail into the database
 func (c *Client) PutVoicemail(voicemail *Voicemail) error {
-	_, err := c.db.Exec(`
+	_, err := c.DB.Exec(`
 	INSERT INTO voicemails (creator, created, recipent, message)
 	VALUES (:creator, :created, :recipent, :message)
 	`, voicemail)
