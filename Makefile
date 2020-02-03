@@ -2,7 +2,7 @@ VERSION=$(shell git describe --tags --abbrev=0)
 DATE=$(shell date -Iseconds)
 COMMIT=$(shell git rev-parse --short HEAD)
 
-LDFLAGS=-ldflags "-X main.Version=${VERSION} -X main.BuildDate=${DATE} -X main.GitCommit=${COMMIT}"
+LDFLAGS=-ldflags "-X github.com/chronophylos/chb3/buildinfo.version=${VERSION} -X github.com/chronophylos/chb3/buildinfo.buildDate=${DATE} -X github.com/chronophylos/chb3/buildinfo.commit=${COMMIT}"
 
 all: clean build
 

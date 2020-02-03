@@ -3,6 +3,8 @@ package actions
 import (
 	"fmt"
 	"regexp"
+
+	"github.com/chronophylos/chb3/buildinfo"
 )
 
 type versionAction struct {
@@ -24,8 +26,8 @@ func (a versionAction) GetOptions() *Options {
 
 func (a versionAction) Run(e *Event) error {
 	e.Say(fmt.Sprintf(
-		"I'm a bot written by Chronophylos in Golang. Current version is %s.",
-		e.CHB3Version,
+		"I'm a bot written by Chronophylos in Golang. Current version is %s (%s).",
+		buildinfo.Version(), buildinfo.Commit(),
 	))
 
 	return nil

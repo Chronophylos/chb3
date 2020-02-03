@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/chronophylos/chb3/buildinfo"
 	"github.com/rs/zerolog/log"
 )
 
@@ -36,7 +37,7 @@ func (a reuploadAction) Run(e *Event) error {
 
 	link = "https://" + link
 
-	newLink, err := reupload(link, e.ImgurClientID, "ChronophylosBot/"+e.CHB3Version)
+	newLink, err := reupload(link, e.ImgurClientID, "ChronophylosBot/"+buildinfo.Version())
 	if err != nil {
 		e.Log.Error().
 			Err(err).

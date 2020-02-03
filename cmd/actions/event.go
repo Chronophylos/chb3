@@ -29,7 +29,6 @@ type Event struct {
 	State         *state.Client
 	Weather       *openweather.Client
 	Location      *nominatim.Client
-	CHB3Version   string
 	ImgurClientID string
 	BotName       string
 	Debug         bool

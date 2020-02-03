@@ -18,7 +18,6 @@ type Manager struct {
 	State         *state.Client
 	Location      *nominatim.Client
 	Weather       *openweather.Client
-	CHB3Version   string
 	ImgurClientID string
 	BotName       string
 
@@ -29,7 +28,7 @@ type Manager struct {
 	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.Client, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
+func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.Client, location *nominatim.Client, imgurClientID, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {
@@ -43,7 +42,6 @@ func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather
 		State:         state,
 		Weather:       weather,
 		Location:      location,
-		CHB3Version:   version,
 		ImgurClientID: imgurClientID,
 		BotName:       botName,
 		actions:       actions.GetAll(),
@@ -99,7 +97,6 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 				State:         m.State,
 				Weather:       m.Weather,
 				Location:      m.Location,
-				CHB3Version:   m.CHB3Version,
 				ImgurClientID: m.ImgurClientID,
 				Match:         match,
 				Msg:           msg,

@@ -11,6 +11,7 @@ import (
 
 	sw "github.com/JoshuaDoes/gofuckyourself"
 	"github.com/akamensky/argparse"
+	"github.com/chronophylos/chb3/buildinfo"
 	"github.com/chronophylos/chb3/cmd"
 	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
@@ -20,13 +21,6 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"github.com/spf13/viper"
-)
-
-// Build Infos
-var (
-	Version   string
-	GitCommit string
-	//BuildDate string
 )
 
 // Flags
@@ -134,7 +128,7 @@ func main() {
 	swears = viper.GetStringSlice("chb3.swears")
 	// }}}
 
-	log.Info().Msgf("Starting CHB3 %s", Version)
+	log.Info().Msgf("Starting CHB3 %s (%s)", buildinfo.Version(), buildinfo.Commit())
 
 	// Signals {{{
 	// setup signal catching
@@ -168,7 +162,7 @@ func main() {
 	}()
 
 	go func() {
-		owClient = openweather.NewClient(openweatherAppID, Version)
+		owClient = openweather.NewClient(openweatherAppID, buildinfo.Version())
 		wg.Done()
 		log.Info().
 			Str("appid", censor(openweatherAppID)).
@@ -194,7 +188,7 @@ func main() {
 	}()
 
 	go func() {
-		osmClient = &nominatim.Client{UserAgent: "ChronophylosBot/" + Version}
+		osmClient = &nominatim.Client{UserAgent: "ChronophylosBot/" + buildinfo.Version()}
 		wg.Done()
 		log.Info().Msg("Created OpenStreetMaps Client")
 	}()
@@ -204,7 +198,7 @@ func main() {
 	helixClient, err = helix.NewClient(&helix.Options{
 		ClientID:     viper.GetString("twitch.clientid"),
 		ClientSecret: viper.GetString("twitch.secret"),
-		UserAgent:    "ChronophylosBot/" + Version,
+		UserAgent:    "ChronophylosBot/" + buildinfo.Version(),
 		RedirectURI:  "https://localhost",
 		Scopes:       []string{"chat:read", "chat:edit", "channel:moderate", "moderation:read", "channel_editor"},
 	})
@@ -214,7 +208,7 @@ func main() {
 			Msg("Could not create helix client")
 	}
 
-	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
+	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, twitchUsername, debug)
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -286,7 +280,7 @@ func main() {
 		log.Info().Msg("Connected to chat")
 		twitchClient.Say(twitchUsername,
 			fmt.Sprintf("CHB3 %s (%s) has started FeelsGoodMan",
-				Version, GitCommit,
+				buildinfo.Version(), buildinfo.Commit(),
 			))
 	})
 	// }}}
