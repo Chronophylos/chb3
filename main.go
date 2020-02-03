@@ -24,7 +24,9 @@ import (
 
 // Build Infos
 var (
-	Version = "3.6.1"
+	Version   string
+	GitCommit string
+	//BuildDate string
 )
 
 // Flags
@@ -282,7 +284,10 @@ func main() {
 
 	twitchClient.OnConnect(func() {
 		log.Info().Msg("Connected to chat")
-		twitchClient.Say(twitchUsername, "Connected FeelsGoodMan")
+		twitchClient.Say(twitchUsername,
+			fmt.Sprintf("CHB3 %s (%s) has started FeelsGoodMan",
+				Version, GitCommit,
+			))
 	})
 	// }}}
 
