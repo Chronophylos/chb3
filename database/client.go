@@ -61,9 +61,11 @@ func (c *Client) Connect() {
 	password := c.viper.GetString("password")
 	dbname := c.viper.GetString("dbname")
 
-	password = strings.Replace("'", `\'`)
+	password = strings.ReplaceAll(password, "'", "\\'")
 
-	db, err := sqlx.Connect("postgres", fmt.Sprintf("user=%s password='%s' dbname=%s sslmode=require", user, dbname, password))
+	db, err := sqlx.Connect("postgres",
+		fmt.Sprintf("user=%s password='%s' dbname=%s sslmode=require", user, dbname, password),
+	)
 	if err != nil {
 		log.Fatal().
 			Err(err).

@@ -4,6 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"database/sql"
+
 	"github.com/gempir/go-twitch-irc/v2"
 )
 

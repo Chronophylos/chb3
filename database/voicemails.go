@@ -15,7 +15,7 @@ type Voicemail struct {
 func (c *Client) PopVoicemails(name string) (Voicemails, error) {
 	var voicemails Voicemails
 
-	tx, err := c.db.Begin()
+	tx, err := c.db.Beginx()
 	if err != nil {
 		return voicemails, err
 	}
@@ -24,19 +24,21 @@ func (c *Client) PopVoicemails(name string) (Voicemails, error) {
 		return voicemails, err
 	}
 
-	if err = tx.Exec("DELETE FROM voicemails WHERE recipent=$1", name); err != nil {
+	if _, err = tx.Exec("DELETE FROM voicemails WHERE recipent=$1", name); err != nil {
 		return voicemails, err
 	}
 
 	err = tx.Commit()
 
-	return voicemails, nil
+	return voicemails, err
 }
 
 // HasVoicemails reports true if voicemails for name exist
 func (c *Client) HasVoicemails(name string) (bool, error) {
 	var exists bool
-	err := db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM voicemails WHERE name=$1)", name)
+
+	err := c.db.Get(&exists, "SELECT EXISTS(SELECT 1 FROM voicemails WHERE name=$1)", name)
+
 	return exists, err
 }
 
