@@ -11,7 +11,7 @@ import (
 
 const schema = `
 CREATE TABLE users (
-	id INT PRIMARY KEY,
+	id INT NOT NULL PRIMARY KEY, -- use a provided id
 	name VARCHAR(26),
 	display_name VARCHAR(26),
 
@@ -28,9 +28,11 @@ CREATE TABLE users (
 	birthday DATE NULL
 );
 CREATE TABLE channels (
-	name VARCHAR(26) PRIMARY KEY,
+	id INT NOT NULL PRIMARY KEY, -- use a provided id
+	name VARCHAR(26),
 	enabled BOOLEAN NOT NULL,
 	paused BOOLEAN DEFAULT false
+	readonly BOOLEAN DEFAULT false
 );
 CREATE TABLE voicemails (
 	id SERIAL PRIMARY KEY,

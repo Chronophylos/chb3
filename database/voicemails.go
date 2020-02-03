@@ -49,8 +49,8 @@ func (c *Client) DeleteVoicemail(id int) error {
 	return err
 }
 
-// CreateVoicemail puts a voicemail into the database
-func (c *Client) CreateVoicemail(voicemail *Voicemail) error {
+// PutVoicemail puts a voicemail into the database
+func (c *Client) PutVoicemail(voicemail *Voicemail) error {
 	_, err := c.db.Exec(`
 	INSERT INTO voicemails (creator, created, recipent, message)
 	VALUES (:creator, :created, :recipent, :message)
