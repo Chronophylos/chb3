@@ -1,9 +1,9 @@
 package actions
 
 import (
+	"github.com/chronophylos/chb3/database"
 	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
-	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/rs/zerolog"
 )
@@ -26,13 +26,14 @@ const (
 type Event struct {
 	Log           zerolog.Logger
 	Twitch        *twitch.Client
-	State         *state.Client
+	DB            *database.Client
 	Weather       *openweather.Client
 	Location      *nominatim.Client
 	CHB3Version   string
 	ImgurClientID string
 	BotName       string
 	Debug         bool
+	Channel       *database.Channel
 
 	Msg   *twitch.PrivateMessage
 	Match []string

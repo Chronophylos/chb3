@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
+
+	"github.com/chronophylos/chb3/database"
 )
 
 type voicemailAction struct {
@@ -60,12 +63,23 @@ func (a voicemailAction) Run(e *Event) error {
 		Str("voicemail", message).
 		Msg("Leaving a voicmail")
 
-	channel := e.Msg.Channel
-	creator := e.Msg.User.Name
-	created := e.Msg.Time
+	id, err := strconv.ParseInt(e.Msg.User.ID, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	user, err := e.DB.GetUserByID(id)
+	if err != nil {
+		return err
+	}
 
 	for _, username := range recipents {
-		err := e.State.AddVoicemail(username, channel, creator, message, created)
+		err := e.DB.PutVoicemail(&database.Voicemail{
+			Creator:  user,
+			Created:  e.Msg.Time,
+			Recipent: username,
+			Message:  message,
+		})
 		if err != nil {
 			return fmt.Errorf("could not insert voicmail into database: %v", err)
 		}

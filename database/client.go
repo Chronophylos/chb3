@@ -39,7 +39,8 @@ CREATE TABLE voicemails (
 	creator INT REFERENCES users(id) ON DELETE CASCADE,
 	created TIMESTAMP NOT NULL,
 	recipent VARCHAR(26) NOT NULL,
-	message VARCHAR(500) NOT NULL
+	message VARCHAR(500) NOT NULL,
+	replayed BOOLEAN DEFAULT false
 );
 CREATE TABLE copypastas (
 	id SERIAL PRIMARY KEY,

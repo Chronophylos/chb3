@@ -9,6 +9,11 @@ type Voicemail struct {
 	Created  time.Time
 	Recipent string
 	Message  string
+	Replayed bool
+}
+
+func (v *Voicemail) String() string {
+	return v.Created.Format(time.Stamp) + " " + v.Creator.DisplayName + ": " + v.Message
 }
 
 // PopVoicemails returns all voicmails for name and removes them from the database
@@ -24,22 +29,13 @@ func (c *Client) PopVoicemails(name string) (Voicemails, error) {
 		return voicemails, err
 	}
 
-	if _, err = tx.Exec("DELETE FROM voicemails WHERE recipent=$1", name); err != nil {
+	if _, err = tx.Exec("UPDATE voicemails SET replayed=true WHERE recipent=$1", name); err != nil {
 		return voicemails, err
 	}
 
 	err = tx.Commit()
 
 	return voicemails, err
-}
-
-// HasVoicemails reports true if voicemails for name exist
-func (c *Client) HasVoicemails(name string) (bool, error) {
-	var exists bool
-
-	err := c.DB.Get(&exists, "SELECT EXISTS(SELECT 1 FROM voicemails WHERE name=$1)", name)
-
-	return exists, err
 }
 
 // DeleteVoicemail deletes a single voicemails

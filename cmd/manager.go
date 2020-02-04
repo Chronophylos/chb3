@@ -4,9 +4,9 @@ import (
 	"fmt"
 
 	"github.com/chronophylos/chb3/cmd/actions"
+	"github.com/chronophylos/chb3/database"
 	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
-	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
@@ -15,7 +15,7 @@ import (
 type Manager struct {
 	Log           zerolog.Logger
 	Twitch        *twitch.Client
-	State         *state.Client
+	DB            *database.Client
 	Location      *nominatim.Client
 	Weather       *openweather.Client
 	CHB3Version   string
@@ -29,7 +29,7 @@ type Manager struct {
 	}
 }
 
-func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather.Client, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
+func NewManager(twitch *twitch.Client, db *database.Client, weather *openweather.Client, location *nominatim.Client, imgurClientID, version, botName string, debug *bool) (*Manager, error) {
 	// check actions for errors
 	for _, action := range actions.GetAll() {
 		if err := actions.Check(action); err != nil {
@@ -40,7 +40,7 @@ func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather
 	m := &Manager{
 		Log:           log.With().Logger(),
 		Twitch:        twitch,
-		State:         state,
+		DB:            db,
 		Weather:       weather,
 		Location:      location,
 		CHB3Version:   version,
@@ -52,16 +52,21 @@ func NewManager(twitch *twitch.Client, state *state.Client, weather *openweather
 	return m, nil
 }
 
-func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
+func (m *Manager) RunActions(msg *twitch.PrivateMessage) {
 	log := m.Log.With().
 		Str("channel", msg.Channel).
 		Logger()
 
-	sleeping, err := m.State.IsSleeping(msg.Channel)
+	channel, err := m.DB.GetChannel(msg.Channel)
 	if err != nil {
 		log.Error().
+			Str("channel", msg.Channel).
 			Err(err).
-			Msg("Checking if channel is sleeping")
+			Msg("Could not get channel from database")
+		return
+	}
+
+	if !channel.Enabled || channel.ReadOnly {
 		return
 	}
 
@@ -69,7 +74,7 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 		opt := action.GetOptions()
 
 		// if sleeping and command is not ignoring sleep
-		if sleeping && !opt.Sleepless {
+		if channel.Paused && !opt.Sleepless {
 			continue
 		}
 
@@ -96,14 +101,14 @@ func (m *Manager) RunActions(msg *twitch.PrivateMessage, user *state.User) {
 			e := &actions.Event{
 				Log:           log,
 				Twitch:        m.Twitch,
-				State:         m.State,
+				DB:            m.DB,
 				Weather:       m.Weather,
 				Location:      m.Location,
 				CHB3Version:   m.CHB3Version,
 				ImgurClientID: m.ImgurClientID,
 				Match:         match,
 				Msg:           msg,
-				Sleeping:      sleeping,
+				Channel:       channel,
 				BotName:       m.BotName,
 			}
 			e.Init()

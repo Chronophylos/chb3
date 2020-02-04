@@ -12,9 +12,9 @@ import (
 	sw "github.com/JoshuaDoes/gofuckyourself"
 	"github.com/akamensky/argparse"
 	"github.com/chronophylos/chb3/cmd"
+	"github.com/chronophylos/chb3/database"
 	"github.com/chronophylos/chb3/nominatim"
 	"github.com/chronophylos/chb3/openweather"
-	"github.com/chronophylos/chb3/state"
 	"github.com/gempir/go-twitch-irc/v2"
 	"github.com/nicklaw5/helix"
 	"github.com/rs/zerolog"
@@ -52,11 +52,11 @@ var userBlacklist = []string{
 // Globals
 var (
 	owClient     *openweather.Client
-	stateClient  *state.Client
 	twitchClient *twitch.Client
 	swearfilter  *sw.SwearFilter
 	osmClient    *nominatim.Client
 	helixClient  *helix.Client
+	db           *database.Client
 )
 
 func main() {
@@ -150,19 +150,16 @@ func main() {
 	}()
 	// }}}
 
+	db = database.NewClient(viper.Sub("database"))
+
 	wg := sync.WaitGroup{}
 
 	wg.Add(5)
 
 	go func() {
-		stateClient, err = state.NewClient("mongodb://localhost:27017")
-		if err != nil {
-			log.Fatal().
-				Err(err).
-				Msg("Could not create State Client")
-		}
+		db.Connect()
 		wg.Done()
-		log.Info().Msg("Created State Client")
+		log.Info().Msg("Connected to Database")
 	}()
 
 	go func() {
@@ -212,7 +209,7 @@ func main() {
 			Msg("Could not create helix client")
 	}
 
-	manager, err := cmd.NewManager(twitchClient, stateClient, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
+	manager, err := cmd.NewManager(twitchClient, db, owClient, osmClient, imgurClientID, Version, twitchUsername, debug)
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -230,17 +227,7 @@ func main() {
 			return
 		}
 
-		for _, userID := range userBlacklist {
-			if message.User.ID == userID {
-				return
-			}
-		}
-
-		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
-		message.Message = strings.TrimSpace(message.Message)
-
-		user, err := stateClient.BumpUser(message.User, message.Time)
-		if err != nil {
+		if err := db.BumpUser(&message.User, message.Time); err != nil {
 			log.Error().
 				Err(err).
 				Str("username", message.User.Name).
@@ -248,18 +235,30 @@ func main() {
 			return
 		}
 
-		isLurking, err := stateClient.IsLurking(message.Channel)
+		id, err := strconv.ParseInt(message.User.ID, 10, 64)
 		if err != nil {
 			log.Error().
+				Str("id", message.User.ID).
 				Err(err).
-				Str("channel", message.Channel).
-				Msg("Checking if bot is lurking")
+				Msg("Could not parse user id")
 			return
 		}
 
-		if isLurking {
+		user, err := db.GetUserByID(id)
+		if err != nil {
+			log.Error().
+				Int64("id", id).
+				Err(err).
+				Msg("Could not get user from database")
 			return
 		}
+
+		if user.IsTimedout(message.Time) || user.Banned {
+			return
+		}
+
+		message.Message = strings.ReplaceAll(message.Message, "\U000e0000", "")
+		message.Message = strings.TrimSpace(message.Message)
 
 		foundASwear, swearsFound, err := swearfilter.Check(message.Message)
 		if err != nil {
@@ -275,7 +274,7 @@ func main() {
 			return
 		}
 
-		manager.RunActions(&message, user)
+		manager.RunActions(&message)
 
 		checkForVoicemails(message.User.Name, message.Channel)
 	})
@@ -286,7 +285,7 @@ func main() {
 	})
 	// }}}
 
-	joinedChannels, err := stateClient.GetJoinedChannels()
+	joinedChannels, err := db.GetChannels()
 	if err != nil {
 		log.Fatal().
 			Err(err).
@@ -298,8 +297,7 @@ func main() {
 		Msg("Joining Channels")
 	// Make sure the bot is always in it's own channel
 	twitchClient.Join(twitchUsername)
-	stateClient.JoinChannel(twitchUsername, true)
-	twitchClient.Join(joinedChannels...)
+	twitchClient.Join(joinedChannels.Names()...)
 
 	for {
 		var hasConnected bool
@@ -324,8 +322,7 @@ func main() {
 
 // check for voicemails {{{
 func checkForVoicemails(username, channel string) {
-
-	voicemails, err := stateClient.CheckForVoicemails(username)
+	voicemails, err := db.PopVoicemails(username)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -397,18 +394,6 @@ func pluralize(text string, times int64) string {
 		return strconv.FormatInt(times, 10) + " " + text + "s"
 	}
 	return "one " + text
-}
-
-func join(log zerolog.Logger, channel string) {
-	twitchClient.Join(channel)
-	stateClient.JoinChannel(channel, true)
-	log.Info().Str("channel", channel).Msg("Joined new channel")
-}
-
-func part(log zerolog.Logger, channel string) {
-	twitchClient.Depart(channel)
-	stateClient.JoinChannel(channel, false)
-	log.Info().Str("channel", channel).Msg("Parted from channel")
 }
 
 // }}}

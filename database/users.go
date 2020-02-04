@@ -17,7 +17,7 @@ var (
 
 type Users []User
 type User struct {
-	ID          int
+	ID          int64
 	Name        string
 	DisplayName string `db:"display_name"`
 
@@ -56,32 +56,37 @@ func (c *Client) BumpUser(u *twitch.User, t time.Time) error {
 }
 
 // GetUserByID finds a user with id and returns it.
-func (c *Client) GetUserByID(id int) (*User, error) {
+func (c *Client) GetUserByID(id int64) (*User, error) {
 	var user User
 	err := c.DB.Get(&user, "SELECT * FROM users WHERE id=$1", id)
 
 	return &user, err
 }
 
-func (c *Client) BanUser(userID int) error {
+func (c *Client) BanUser(userID int64) error {
 	_, err := c.DB.Exec("UPDATE users SET banned=true WHERE id = $1", userID)
 
 	return err
 }
 
-func (c *Client) UnbanUser(userID int) error {
+func (c *Client) UnbanUser(userID int64) error {
 	_, err := c.DB.Exec("UPDATE users SET banned=false WHERE id = $1", userID)
 
 	return err
 }
 
-func (c *Client) TimeoutUser(userID int, until time.Time) error {
+func (c *Client) TimeoutUser(userID int64, until time.Time) error {
 	_, err := c.DB.Exec("update users set timeout=$1 where id = $2", until, userID)
 
 	return err
 }
 
-func (c *Client) UserPatsch(u *User, now time.Time) (error, error) {
+func (c *Client) UserPatsch(userID int64, now time.Time) (error, error) {
+	u, err := c.GetUserByID(userID)
+	if err != nil {
+		return nil, err
+	}
+
 	var pErr error
 	if u.HasPatschedLately(now) { // check if streak is broken
 		if !u.HasPatschedToday(now) { // check if user has patsched today already

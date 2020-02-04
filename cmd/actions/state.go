@@ -23,7 +23,7 @@ func (a sleepAction) GetOptions() *Options {
 func (a sleepAction) Run(e *Event) error {
 	e.Log.Info().Msg("Going to sleep")
 
-	e.State.SetSleeping(e.Msg.Channel, true)
+	e.DB.PauseChannel(e.Msg.Channel)
 
 	return nil
 }
@@ -53,7 +53,7 @@ func (a wakeAction) Run(e *Event) error {
 
 	e.Log.Info().Msg("Waking up")
 
-	e.State.SetSleeping(e.Msg.Channel, false)
+	e.DB.ResumeChannel(e.Msg.Channel)
 
 	return nil
 }

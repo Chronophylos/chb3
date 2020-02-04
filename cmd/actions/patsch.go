@@ -3,6 +3,7 @@ package actions
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 
 	"github.com/chronophylos/chb3/state"
 )
@@ -25,7 +26,12 @@ func (a patscheckAction) GetOptions() *Options {
 }
 
 func (a patscheckAction) Run(e *Event) error {
-	user, err := e.State.GetUserByID(e.Msg.User.ID)
+	id, err := strconv.ParseInt(e.Msg.User.ID, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	user, err := e.DB.GetUserByID(id)
 	if err != nil {
 		return fmt.Errorf("getting user by id: %v", err)
 	}
@@ -97,14 +103,23 @@ func (a patschAction) Run(e *Event) error {
 		return nil
 	}
 
-	if err := e.State.Patsch(e.Msg.User.ID, e.Msg.Time); err != nil {
-		if err == state.ErrAlreadyPatsched {
+	id, err := strconv.ParseInt(e.Msg.User.ID, 10, 64)
+	if err != nil {
+		return err
+	}
+
+	pErr, dErr := e.DB.UserPatsch(id, e.Msg.Time)
+	if dErr != nil {
+		return err
+	}
+	if pErr != nil {
+		if pErr == state.ErrAlreadyPatsched {
 			e.Say("Du hast heute schon gepatscht")
 			return nil
-		} else if err == state.ErrForgotToPatsch {
+		} else if pErr == state.ErrForgotToPatsch {
 			return nil
 		}
-		return err
+		return pErr
 	}
 
 	return nil
