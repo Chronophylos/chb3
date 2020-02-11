@@ -11,7 +11,7 @@ require (
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/nicklaw5/helix v0.5.6
 	github.com/pelletier/go-toml v1.6.0 // indirect
-	github.com/rs/zerolog v1.17.2
+	github.com/rs/zerolog v1.18.0
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
