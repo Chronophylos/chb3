@@ -41,7 +41,7 @@ var (
 )
 
 var userBlacklist = []string{
-	"86621952", // ritzenspalt
+	//"86621952", // ritzenspalt
 	"38286541", // klotz795
 }
 
