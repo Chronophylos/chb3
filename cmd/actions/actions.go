@@ -55,6 +55,7 @@ var actions = Actions{
 	newFillAction(),
 	newSuicideAction(),
 	newTrueAction(),
+	newHeartAction(),
 	newMathAction(),
 }
 
