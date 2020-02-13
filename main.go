@@ -360,6 +360,10 @@ func checkForVoicemails(username, channel string) {
 		}
 
 		for _, message := range messages {
+			log.Debug().
+				Str("message", message).
+				Str("channel", channel).
+				Msg("Sending voicemails")
 			twitchClient.Say(channel, message)
 		}
 	}
