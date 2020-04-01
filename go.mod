@@ -7,7 +7,7 @@ require (
 	github.com/Knetic/govaluate v3.0.0+incompatible
 	github.com/akamensky/argparse v0.0.0-20191006154803-1427fe674291
 	github.com/gempir/go-twitch-irc/v2 v2.2.2
-	github.com/nicklaw5/helix v0.5.7
+	github.com/nicklaw5/helix v0.5.8
 	github.com/pelletier/go-toml v1.6.0 // indirect
 	github.com/rs/zerolog v1.18.0
 	github.com/spf13/afero v1.2.2 // indirect
