@@ -8,7 +8,7 @@ require (
 	github.com/akamensky/argparse v1.2.1
 	github.com/armon/consul-api v0.0.0-20180202201655-eb2c6b5be1b6 // indirect
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
-	github.com/gempir/go-twitch-irc/v2 v2.3.1
+	github.com/gempir/go-twitch-irc/v2 v2.4.0
 	github.com/klauspost/compress v1.10.5 // indirect
 	github.com/mitchellh/mapstructure v1.3.0 // indirect
 	github.com/nicklaw5/helix v0.5.9
